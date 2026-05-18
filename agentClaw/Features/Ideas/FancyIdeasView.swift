@@ -7,7 +7,7 @@ struct FancyIdeasView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 14) {
                 Text("选择一个灵感，再带入对话细化")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(AgentClawDesign.primaryText)
@@ -21,17 +21,7 @@ struct FancyIdeasView: View {
                             .padding(.top, 4)
                             .padding(.bottom, 6)
 
-                        LazyVGrid(
-                            columns: [
-                                GridItem(.flexible(), spacing: 10),
-                                GridItem(.flexible(), spacing: 10)
-                            ],
-                            spacing: 10
-                        ) {
-                            ForEach(group.items) { idea in
-                                ideaCard(idea)
-                            }
-                        }
+                        ideaGrid(items: group.items)
                     }
                 }
             }
@@ -39,6 +29,26 @@ struct FancyIdeasView: View {
             .padding(.bottom, 18)
         }
         .background(AgentClawDesign.controlSurface)
+    }
+
+    private func ideaGrid(items: [FancyIdea]) -> some View {
+        let rows = stride(from: 0, to: items.count, by: 2).map { index in
+            Array(items[index..<min(index + 2, items.count)])
+        }
+
+        return VStack(spacing: 10) {
+            ForEach(rows.indices, id: \.self) { rowIndex in
+                HStack(spacing: 10) {
+                    ForEach(rows[rowIndex]) { idea in
+                        ideaCard(idea)
+                    }
+
+                    if rows[rowIndex].count == 1 {
+                        Spacer()
+                    }
+                }
+            }
+        }
     }
 
     private func ideaCard(_ idea: FancyIdea) -> some View {

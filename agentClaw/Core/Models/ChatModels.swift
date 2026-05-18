@@ -18,16 +18,58 @@ struct ChatMessage: Identifiable, Codable, Equatable {
     var role: ChatRole
     var content: String
     var createdAt: Date
+    var generatedDocuments: [GeneratedDocument]
 
     init(
         id: String = UUID().uuidString,
         role: ChatRole,
         content: String,
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        generatedDocuments: [GeneratedDocument] = []
     ) {
         self.id = id
         self.role = role
         self.content = content
+        self.createdAt = createdAt
+        self.generatedDocuments = generatedDocuments
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case role
+        case content
+        case createdAt
+        case generatedDocuments
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        role = try container.decode(ChatRole.self, forKey: .role)
+        content = try container.decode(String.self, forKey: .content)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        generatedDocuments = try container.decodeIfPresent([GeneratedDocument].self, forKey: .generatedDocuments) ?? []
+    }
+}
+
+struct GeneratedDocument: Identifiable, Codable, Equatable {
+    let id: String
+    let displayName: String
+    let relativePath: String
+    let mimeType: String
+    let createdAt: Date
+
+    init(
+        id: String = UUID().uuidString,
+        displayName: String,
+        relativePath: String,
+        mimeType: String,
+        createdAt: Date = Date()
+    ) {
+        self.id = id
+        self.displayName = displayName
+        self.relativePath = relativePath
+        self.mimeType = mimeType
         self.createdAt = createdAt
     }
 }

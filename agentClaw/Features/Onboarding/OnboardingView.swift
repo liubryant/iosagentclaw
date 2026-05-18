@@ -32,7 +32,7 @@ struct OnboardingView: View {
                             .lineSpacing(3)
                     }
 
-                    ProgressView(value: 1.0)
+                    CompatProgressView(value: 1.0)
                         .accentColor(AgentClawDesign.accent)
                         .frame(maxWidth: 220)
 
@@ -93,4 +93,3 @@ private struct StartupStepRow: View {
         .cornerRadius(8)
     }
 }
-

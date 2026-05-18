@@ -10,12 +10,18 @@ final class ChatViewModel: ObservableObject {
 
     private let gatewayClient: GatewayClient
     private let preferences: AppPreferences
+    let generatedDocumentStore: GeneratedDocumentStore
     private var messagesBySession: [String: [ChatMessage]] = [:]
     private var entryModesBySession: [String: ChatEntryMode] = [:]
 
-    init(gatewayClient: GatewayClient, preferences: AppPreferences) {
+    init(
+        gatewayClient: GatewayClient,
+        preferences: AppPreferences,
+        generatedDocumentStore: GeneratedDocumentStore = GeneratedDocumentStore()
+    ) {
         self.gatewayClient = gatewayClient
         self.preferences = preferences
+        self.generatedDocumentStore = generatedDocumentStore
 
         if let snapshot = preferences.chatHistorySnapshot,
            snapshot.sessions.isEmpty == false {
@@ -123,7 +129,18 @@ final class ChatViewModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let reply):
-                    self?.append(ChatMessage(role: .assistant, content: reply))
+                    guard let self = self else {
+                        return
+                    }
+                    let saveResult = self.generatedDocumentStore.saveGeneratedDocuments(
+                        from: reply,
+                        fallbackTitle: self.selectedSession?.title ?? "document"
+                    )
+                    self.append(ChatMessage(
+                        role: .assistant,
+                        content: saveResult.displayContent,
+                        generatedDocuments: saveResult.documents
+                    ))
                 case .failure(let error):
                     self?.errorMessage = error.localizedDescription
                 }
@@ -139,8 +156,40 @@ final class ChatViewModel: ObservableObject {
         case .video:
             return "[[OPENCLAW_VIDEO_MODE]] \(text)"
         case .default:
+            if shouldRequestDocumentFile(for: text) {
+                return "[[OPENCLAW_DOCUMENT_MODE]] \(documentGenerationInstruction)\n\n用户需求：\(text)"
+            }
             return text
         }
+    }
+
+    private var documentGenerationInstruction: String {
+        """
+        你正在为 iOS 客户端生成可导出的文档文件。
+        当用户要求生成文档、报告、文章、Markdown、HTML、README 或文件时，必须把最终文件内容放进代码块，不要只在聊天里输出正文。
+        如果用户没有指定格式，默认生成 HTML。
+        文件内容控制在适合手机预览的长度，优先完整、简洁、可打开，不要输出超长正文。
+        格式必须是：
+        ```file path="文件名.html"
+        <!doctype html>
+        ...
+        ```
+        或：
+        ```file path="文件名.md"
+        # Markdown 内容
+        ```
+        代码块外只保留一句简短说明。
+        """
+    }
+
+    private func shouldRequestDocumentFile(for text: String) -> Bool {
+        let lower = text.lowercased()
+        let keywords = [
+            "文档", "报告", "简报", "文章", "文件", "导出",
+            "html", "markdown", ".md", "md文件", "readme",
+            "document", "report", "file"
+        ]
+        return keywords.contains { lower.contains($0) }
     }
 
     private func append(_ message: ChatMessage) {

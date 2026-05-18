@@ -4,6 +4,8 @@ import UIKit
 
 struct ChatView: View {
     @ObservedObject var viewModel: ChatViewModel
+    @State private var activeDocumentSheet: DocumentSheet?
+    @State private var inputFocusToken = 0
 
     private let quickPrompts = [
         QuickPrompt(
@@ -61,11 +63,19 @@ struct ChatView: View {
             composer
         }
         .background(Color.white)
+        .sheet(item: $activeDocumentSheet) { sheet in
+            switch sheet {
+            case .preview(let document):
+                DocumentPreviewView(url: viewModel.generatedDocumentStore.fileURL(for: document))
+            case .export(let document):
+                DocumentExportView(url: viewModel.generatedDocumentStore.fileURL(for: document))
+            }
+        }
     }
 
     private var content: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 12) {
                 if viewModel.messages.isEmpty {
                     welcomeState
                         .padding(.top, 8)
@@ -169,6 +179,10 @@ struct ChatView: View {
                 if let imageURL = imageURL {
                     GeneratedImageView(url: imageURL)
                 }
+
+                ForEach(message.generatedDocuments) { document in
+                    generatedDocumentCard(document)
+                }
             }
 
             if message.role != .user {
@@ -177,9 +191,69 @@ struct ChatView: View {
         }
     }
 
+    private func generatedDocumentCard(_ document: GeneratedDocument) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: documentIcon(for: document.displayName))
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(AgentClawDesign.accent)
+                    .frame(width: 26, height: 26)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(document.displayName)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(AgentClawDesign.primaryText)
+                        .lineLimit(1)
+                    Text("已保存到 AgentClaw/Exports")
+                        .font(.system(size: 9))
+                        .foregroundColor(AgentClawDesign.secondaryText)
+                }
+
+                Spacer()
+            }
+
+            HStack(spacing: 8) {
+                Button(action: { activeDocumentSheet = .preview(document) }) {
+                    Text("预览")
+                        .font(.system(size: 11, weight: .medium))
+                        .frame(width: 54, height: 28)
+                }
+                .buttonStyle(DocumentActionButtonStyle())
+
+                Button(action: { activeDocumentSheet = .export(document) }) {
+                    Text("导出")
+                        .font(.system(size: 11, weight: .medium))
+                        .frame(width: 54, height: 28)
+                }
+                .buttonStyle(DocumentActionButtonStyle())
+
+                Spacer()
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: 260, alignment: .leading)
+        .background(Color.white)
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(AgentClawDesign.divider, lineWidth: 1)
+        )
+    }
+
+    private func documentIcon(for fileName: String) -> String {
+        let lower = fileName.lowercased()
+        if lower.hasSuffix(".html") || lower.hasSuffix(".htm") {
+            return "safari"
+        }
+        if lower.hasSuffix(".md") || lower.hasSuffix(".markdown") {
+            return "doc.text"
+        }
+        return "doc"
+    }
+
     private var thinkingIndicator: some View {
         HStack(spacing: 8) {
-            ProgressView()
+            CompatProgressView()
                 .scaleEffect(0.72)
             Text("思考中")
                 .font(.system(size: 11))
@@ -214,8 +288,16 @@ struct ChatView: View {
 
             HStack(alignment: .bottom, spacing: 8) {
                 ZStack(alignment: .topLeading) {
-                    MultilineTextInput(text: $viewModel.draft)
-                        .frame(minHeight: 50, maxHeight: 118)
+                    MultilineTextInput(
+                        text: $viewModel.draft,
+                        focusToken: inputFocusToken,
+                        onReturn: {
+                            if canSend {
+                                viewModel.send()
+                            }
+                        }
+                    )
+                    .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 118)
 
                     if viewModel.draft.isEmpty {
                         Text(composerHint)
@@ -225,6 +307,11 @@ struct ChatView: View {
                             .padding(.top, 15)
                             .allowsHitTesting(false)
                     }
+                }
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    inputFocusToken += 1
                 }
                 .background(Color.white)
                 .cornerRadius(8)
@@ -289,6 +376,20 @@ struct ChatView: View {
     }
 }
 
+private enum DocumentSheet: Identifiable {
+    case preview(GeneratedDocument)
+    case export(GeneratedDocument)
+
+    var id: String {
+        switch self {
+        case .preview(let document):
+            return "preview-\(document.id)"
+        case .export(let document):
+            return "export-\(document.id)"
+        }
+    }
+}
+
 private struct GeneratedImageView: View {
     let url: URL
     @State private var previewImage: UIImage?
@@ -309,7 +410,7 @@ private struct GeneratedImageView: View {
                 }
 
                 if isSaving {
-                    ProgressView()
+                    CompatProgressView()
                         .scaleEffect(0.82)
                         .padding(10)
                         .background(Color.white.opacity(0.86))
@@ -403,8 +504,8 @@ private struct GeneratedImageView: View {
     }
 
     private func saveImageToPhotos(_ image: UIImage) {
-        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
-            guard status == .authorized || status == .limited else {
+        requestPhotoAuthorization { status in
+            guard isPhotoAuthorizationGranted(status) else {
                 finishSave(message: "没有相册写入权限")
                 return
             }
@@ -424,6 +525,24 @@ private struct GeneratedImageView: View {
         }
     }
 
+    private func requestPhotoAuthorization(completion: @escaping (PHAuthorizationStatus) -> Void) {
+        if #available(iOS 14.0, *) {
+            PHPhotoLibrary.requestAuthorization(for: .addOnly, handler: completion)
+        } else {
+            PHPhotoLibrary.requestAuthorization(completion)
+        }
+    }
+
+    private func isPhotoAuthorizationGranted(_ status: PHAuthorizationStatus) -> Bool {
+        if status == .authorized {
+            return true
+        }
+        if #available(iOS 14.0, *) {
+            return status == .limited
+        }
+        return false
+    }
+
     private func finishSave(message: String) {
         DispatchQueue.main.async {
             isSaving = false
@@ -436,6 +555,15 @@ private struct GeneratedImageView: View {
             return
         }
         UIApplication.shared.open(url)
+    }
+}
+
+private struct DocumentActionButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundColor(AgentClawDesign.primaryText)
+            .background(configuration.isPressed ? Color.black.opacity(0.08) : AgentClawDesign.controlSurface)
+            .cornerRadius(6)
     }
 }
 

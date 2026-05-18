@@ -3,6 +3,7 @@ import Foundation
 final class GatewayClient {
     private let imageModeMarker = "[[OPENCLAW_IMAGE_MODE]]"
     private let videoModeMarker = "[[OPENCLAW_VIDEO_MODE]]"
+    private let documentModeMarker = "[[OPENCLAW_DOCUMENT_MODE]]"
     private let preferences: AppPreferences
     private let keychain: KeychainStore
     private let httpClient: HTTPClient
@@ -47,9 +48,15 @@ final class GatewayClient {
             .appendingPathComponent("completions")
         let hasImageModeMarker = messages.contains { $0.content.contains(imageModeMarker) }
         let hasVideoModeMarker = messages.contains { $0.content.contains(videoModeMarker) }
-        let timeout = (hasImageModeMarker || hasVideoModeMarker)
-            ? AppConfig.mediaGenerationRequestTimeout
-            : AppConfig.requestTimeout
+        let hasDocumentModeMarker = messages.contains { $0.content.contains(documentModeMarker) }
+        let timeout: TimeInterval
+        if hasImageModeMarker || hasVideoModeMarker {
+            timeout = AppConfig.mediaGenerationRequestTimeout
+        } else if hasDocumentModeMarker {
+            timeout = AppConfig.documentGenerationRequestTimeout
+        } else {
+            timeout = AppConfig.requestTimeout
+        }
         var request = URLRequest(url: url, timeoutInterval: timeout)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -124,6 +131,7 @@ final class GatewayClient {
         content
             .replacingOccurrences(of: imageModeMarker, with: "")
             .replacingOccurrences(of: videoModeMarker, with: "")
+            .replacingOccurrences(of: documentModeMarker, with: "")
             .replacingOccurrences(of: "\\s{2,}", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }

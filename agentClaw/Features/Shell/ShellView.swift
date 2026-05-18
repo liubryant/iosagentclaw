@@ -6,22 +6,19 @@ struct ShellView: View {
         case ideas
     }
 
-    @StateObject private var gatewayViewModel: GatewayConnectionViewModel
-    @StateObject private var chatViewModel: ChatViewModel
+    @ObservedObject private var gatewayViewModel: GatewayConnectionViewModel
+    @ObservedObject private var chatViewModel: ChatViewModel
     @State private var isSidebarVisible = true
     @State private var isSettingsPresented = false
     @State private var sidebarQuery = ""
     @State private var destination: Destination = .chat
 
     init(container: DependencyContainer) {
-        _gatewayViewModel = StateObject(
-            wrappedValue: GatewayConnectionViewModel(gatewayClient: container.gatewayClient)
-        )
-        _chatViewModel = StateObject(
-            wrappedValue: ChatViewModel(
-                gatewayClient: container.gatewayClient,
-                preferences: container.preferences
-            )
+        self.gatewayViewModel = GatewayConnectionViewModel(gatewayClient: container.gatewayClient)
+        self.chatViewModel = ChatViewModel(
+            gatewayClient: container.gatewayClient,
+            preferences: container.preferences,
+            generatedDocumentStore: container.generatedDocumentStore
         )
     }
 
@@ -76,7 +73,7 @@ struct ShellView: View {
             .buttonStyle(PlainButtonStyle())
 
             ScrollView {
-                LazyVStack(spacing: 6) {
+                VStack(spacing: 6) {
                     ForEach(filteredSessions) { session in
                         sessionRow(session)
                     }

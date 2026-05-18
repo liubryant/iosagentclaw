@@ -32,7 +32,7 @@ struct GatewaySettingsView: View {
                             .minimumScaleFactor(0.85)
                         Spacer()
                         if case .checking = viewModel.status {
-                            ProgressView()
+                            CompatProgressView()
                                 .scaleEffect(0.82)
                         }
                     }
@@ -54,7 +54,7 @@ struct GatewaySettingsView: View {
             }
         }
         .font(.system(size: 12))
-        .navigationTitle("服务器接口")
+        .navigationBarTitle("服务器接口", displayMode: .inline)
     }
 
     private var isChecking: Bool {

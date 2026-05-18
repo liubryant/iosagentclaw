@@ -149,12 +149,24 @@ struct SettingsPanelView: View {
             }
 
             ScrollView {
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                    ForEach(filteredSkills) { skill in
+                skillGrid
+                    .padding(.bottom, 4)
+            }
+        }
+    }
+
+    private var skillGrid: some View {
+        VStack(spacing: 10) {
+            ForEach(skillRows.indices, id: \.self) { rowIndex in
+                HStack(spacing: 10) {
+                    ForEach(skillRows[rowIndex]) { skill in
                         skillCard(skill)
                     }
+
+                    if skillRows[rowIndex].count == 1 {
+                        Spacer()
+                    }
                 }
-                .padding(.bottom, 4)
             }
         }
     }
@@ -196,6 +208,12 @@ struct SettingsPanelView: View {
         return skills.filter {
             $0.name.localizedCaseInsensitiveContains(query) ||
                 $0.detail.localizedCaseInsensitiveContains(query)
+        }
+    }
+
+    private var skillRows: [[SkillItem]] {
+        stride(from: 0, to: filteredSkills.count, by: 2).map { index in
+            Array(filteredSkills[index..<min(index + 2, filteredSkills.count)])
         }
     }
 

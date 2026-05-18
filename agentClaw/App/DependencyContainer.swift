@@ -5,6 +5,7 @@ final class DependencyContainer {
     let keychain: KeychainStore
     let httpClient: HTTPClient
     let gatewayClient: GatewayClient
+    let generatedDocumentStore: GeneratedDocumentStore
 
     init(
         preferences: AppPreferences = AppPreferences(),
@@ -19,6 +20,6 @@ final class DependencyContainer {
             keychain: keychain,
             httpClient: httpClient
         )
+        self.generatedDocumentStore = GeneratedDocumentStore()
     }
 }
-
