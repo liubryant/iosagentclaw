@@ -11,6 +11,7 @@
 		0428199D2FB80F5A0002BDC7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0428199C2FB80F5A0002BDC7 /* ContentView.swift */; };
 		0428199F2FB80F620002BDC7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0428199E2FB80F620002BDC7 /* Assets.xcassets */; };
 		042819A22FB80F620002BDC7 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 042819A12FB80F620002BDC7 /* Preview Assets.xcassets */; };
+		042819FF2FB80F620002BDC8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 042819FE2FB80F620002BDC8 /* LaunchScreen.storyboard */; };
 		042819AD2FB80F620002BDC7 /* agentClawTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042819AC2FB80F620002BDC7 /* agentClawTests.swift */; };
 		042819B82FB80F620002BDC7 /* agentClawUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042819B72FB80F620002BDC7 /* agentClawUITests.swift */; };
 		AB2000012FB9000000000001 /* App/AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000012FB9000000000001 /* App/AppConfig.swift */; };
@@ -62,6 +63,7 @@
 		0428199E2FB80F620002BDC7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		042819A12FB80F620002BDC7 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		042819A32FB80F620002BDC7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		042819FE2FB80F620002BDC8 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		042819A82FB80F620002BDC7 /* agentClawTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = agentClawTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		042819AC2FB80F620002BDC7 /* agentClawTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agentClawTests.swift; sourceTree = "<group>"; };
 		042819AE2FB80F620002BDC7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -143,6 +145,7 @@
 			children = (
 				0428199A2FB80F5A0002BDC7 /* agentClawApp.swift */,
 				0428199C2FB80F5A0002BDC7 /* ContentView.swift */,
+				042819FE2FB80F620002BDC8 /* LaunchScreen.storyboard */,
 				AB1000012FB9000000000001 /* App/AppConfig.swift */,
 				AB1000112FB9000000000011 /* App/AgentClawDesign.swift */,
 				AB1000022FB9000000000002 /* App/DependencyContainer.swift */,
@@ -304,6 +307,7 @@
 			files = (
 				042819A22FB80F620002BDC7 /* Preview Assets.xcassets in Resources */,
 				0428199F2FB80F620002BDC7 /* Assets.xcassets in Resources */,
+				042819FF2FB80F620002BDC8 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
