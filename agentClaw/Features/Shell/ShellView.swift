@@ -12,6 +12,8 @@ struct ShellView: View {
     @State private var isSettingsPresented = false
     @State private var sidebarQuery = ""
     @State private var destination: Destination = .chat
+    @State private var sessionToDelete: LocalChatSession?
+    @State private var showDeleteAlert = false
 
     init(container: DependencyContainer) {
         self.gatewayViewModel = GatewayConnectionViewModel(gatewayClient: container.gatewayClient)
@@ -95,6 +97,21 @@ struct ShellView: View {
         .padding(.trailing, 10)
         .padding(.vertical, 16)
         .background(AgentClawDesign.sidebarBackground)
+        .alert(isPresented: $showDeleteAlert) {
+            Alert(
+                title: Text("删除对话"),
+                message: Text("确定要删除这个对话吗？此操作无法撤销。"),
+                primaryButton: .destructive(Text("删除")) {
+                    if let session = sessionToDelete {
+                        chatViewModel.deleteSession(session)
+                        sessionToDelete = nil
+                    }
+                },
+                secondaryButton: .cancel(Text("取消")) {
+                    sessionToDelete = nil
+                }
+            )
+        }
     }
 
     private var searchField: some View {
@@ -208,7 +225,10 @@ struct ShellView: View {
 
                 Spacer()
 
-                Button(action: { chatViewModel.deleteSession(session) }) {
+                Button(action: {
+                    sessionToDelete = session
+                    showDeleteAlert = true
+                }) {
                     Image(systemName: "trash")
                         .font(.system(size: 11))
                         .foregroundColor(AgentClawDesign.secondaryText)
