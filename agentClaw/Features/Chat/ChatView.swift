@@ -74,23 +74,25 @@ struct ChatView: View {
     }
 
     private var content: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                if viewModel.messages.isEmpty {
-                    welcomeState
-                        .padding(.top, 8)
-                } else {
-                    ForEach(viewModel.messages) { message in
-                        messageBubble(message)
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    if viewModel.messages.isEmpty {
+                        welcomeState
+                            .padding(.top, 8)
+                    } else {
+                        ForEach(viewModel.messages) { message in
+                            messageBubble(message, availableWidth: geometry.size.width)
+                        }
+                    }
+
+                    if viewModel.isSending {
+                        thinkingIndicator
                     }
                 }
-
-                if viewModel.isSending {
-                    thinkingIndicator
-                }
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 10)
         }
     }
 
@@ -152,9 +154,16 @@ struct ChatView: View {
         .padding(.bottom, 12)
     }
 
-    private func messageBubble(_ message: ChatMessage) -> some View {
+    private func messageBubble(_ message: ChatMessage, availableWidth: CGFloat) -> some View {
         let imageURL = message.role == .assistant ? ChatMediaParser.firstImageURL(in: message.content) : nil
         let displayContent = imageURL == nil ? message.content : ChatMediaParser.stripMedia(from: message.content)
+        let hasImage = imageURL != nil
+        let hasDocuments = message.generatedDocuments.isEmpty == false
+
+        // 图片和文档使用更大的宽度，左右间距相等（各18）
+        let mediaMaxWidth = availableWidth - 36
+        // 普通文本消息保持原有布局
+        let textMaxWidth = availableWidth - 36 - 72
 
         return HStack(alignment: .top) {
             if message.role == .user {
@@ -174,32 +183,34 @@ struct ChatView: View {
                         .padding(.vertical, 8)
                         .background(message.role == .user ? Color(red: 0.88, green: 0.93, blue: 1.0) : AgentClawDesign.controlSurface)
                         .cornerRadius(8)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 if let imageURL = imageURL {
-                    GeneratedImageView(url: imageURL)
+                    GeneratedImageView(url: imageURL, maxWidth: mediaMaxWidth)
                 }
 
                 ForEach(message.generatedDocuments) { document in
-                    generatedDocumentCard(document)
+                    generatedDocumentCard(document, maxWidth: mediaMaxWidth)
                 }
             }
 
             if message.role != .user {
-                Spacer(minLength: 72)
+                // 如果有图片或文档，右边间距设为0，让内容占满可用宽度
+                Spacer(minLength: (hasImage || hasDocuments) ? 0 : 72)
             }
         }
     }
 
-    private func generatedDocumentCard(_ document: GeneratedDocument) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
+    private func generatedDocumentCard(_ document: GeneratedDocument, maxWidth: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 10) {
                 Image(systemName: documentIcon(for: document.displayName))
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(AgentClawDesign.accent)
                     .frame(width: 26, height: 26)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(document.displayName)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(AgentClawDesign.primaryText)
@@ -212,26 +223,25 @@ struct ChatView: View {
                 Spacer()
             }
 
-            HStack(spacing: 8) {
+            HStack(spacing: 12) {
                 Button(action: { activeDocumentSheet = .preview(document) }) {
                     Text("预览")
                         .font(.system(size: 11, weight: .medium))
-                        .frame(width: 54, height: 28)
+                        .frame(width: 80, height: 32)
                 }
                 .buttonStyle(DocumentActionButtonStyle())
 
                 Button(action: { activeDocumentSheet = .export(document) }) {
                     Text("导出")
                         .font(.system(size: 11, weight: .medium))
-                        .frame(width: 54, height: 28)
+                        .frame(width: 80, height: 32)
                 }
                 .buttonStyle(DocumentActionButtonStyle())
-
-                Spacer()
             }
+            .frame(maxWidth: .infinity)
         }
-        .padding(10)
-        .frame(maxWidth: 260, alignment: .leading)
+        .padding(14)
+        .frame(maxWidth: maxWidth, alignment: .leading)
         .background(Color.white)
         .cornerRadius(8)
         .overlay(
@@ -392,6 +402,7 @@ private enum DocumentSheet: Identifiable {
 
 private struct GeneratedImageView: View {
     let url: URL
+    let maxWidth: CGFloat
     @State private var previewImage: UIImage?
     @State private var isLoading = false
     @State private var isSaving = false
@@ -417,7 +428,7 @@ private struct GeneratedImageView: View {
                         .cornerRadius(8)
                 }
             }
-            .frame(maxWidth: 260, maxHeight: 260)
+            .frame(maxWidth: maxWidth, maxHeight: maxWidth)
             .background(Color.white)
             .cornerRadius(8)
             .overlay(
@@ -443,7 +454,7 @@ private struct GeneratedImageView: View {
         Text(text)
             .font(.system(size: 11))
             .foregroundColor(AgentClawDesign.secondaryText)
-            .frame(width: 220, height: 150)
+            .frame(width: min(220, maxWidth * 0.85), height: min(150, maxWidth * 0.6))
             .background(Color.white)
     }
 
