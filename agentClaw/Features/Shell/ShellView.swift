@@ -88,7 +88,7 @@ struct ShellView: View {
                     destination = .ideas
                 }
                 sidebarNavItem(icon: "folder", title: "文件", subtitle: "文件与导出") {}
-                sidebarNavItem(icon: "gearshape", title: "设置", subtitle: "服务器、技能、关于") {
+                sidebarNavItem(icon: "gearshape", title: "设置", subtitle: "技能和关于") {
                     isSettingsPresented = true
                 }
             }
@@ -166,27 +166,48 @@ struct ShellView: View {
     private var chatHeader: some View {
         HStack(spacing: 8) {
             Button(action: { withAnimation { isSidebarVisible.toggle() } }) {
-                Image(systemName: "sidebar.left")
-                    .frame(width: 34, height: 34)
+                ZStack {
+                    Color.white.opacity(0.5)
+                        .frame(width: 34, height: 34)
+                        .cornerRadius(8)
+
+                    Image(systemName: "sidebar.left")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(Color.black)
+                }
             }
-            .buttonStyle(HeaderIconButtonStyle())
+            .buttonStyle(PlainButtonStyle())
 
             Button(action: {
                 destination = .chat
                 chatViewModel.createSession()
             }) {
-                Image(systemName: "plus.bubble")
-                    .frame(width: 34, height: 34)
+                ZStack {
+                    Color.white.opacity(0.5)
+                        .frame(width: 34, height: 34)
+                        .cornerRadius(8)
+
+                    Image(systemName: "plus.bubble")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(Color.black)
+                }
             }
-            .buttonStyle(HeaderIconButtonStyle())
+            .buttonStyle(PlainButtonStyle())
 
             Spacer()
 
             Button(action: { isSettingsPresented = true }) {
-                Image(systemName: "gearshape")
-                    .frame(width: 34, height: 34)
+                ZStack {
+                    Color.white.opacity(0.5)
+                        .frame(width: 34, height: 34)
+                        .cornerRadius(8)
+
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(Color.black)
+                }
             }
-            .buttonStyle(HeaderIconButtonStyle())
+            .buttonStyle(PlainButtonStyle())
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
@@ -251,10 +272,13 @@ struct ShellView: View {
     ) -> some View {
         Button(action: action) {
             HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.system(size: 12))
-                    .frame(width: 20)
-                    .foregroundColor(AgentClawDesign.primaryText)
+                ZStack {
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(Color.black)
+                }
+                .frame(width: 20)
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 11, weight: .medium))
@@ -287,6 +311,7 @@ struct ShellView: View {
 private struct HeaderIconButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
+            .imageScale(.medium)
             .foregroundColor(AgentClawDesign.primaryText)
             .background(configuration.isPressed ? Color.black.opacity(0.08) : AgentClawDesign.controlSurface)
             .cornerRadius(8)

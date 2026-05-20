@@ -19,6 +19,13 @@ struct SettingsPanelView: View {
         SkillItem(name: "Multi Search Engine", detail: "多搜索源查询与整理", enabled: false)
     ]
 
+    private var appVersion: String {
+        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+            return "V\(version)"
+        }
+        return "V1.0.0"
+    }
+
     var body: some View {
         GeometryReader { proxy in
             let isCompact = horizontalSizeClass == .compact || proxy.size.width < 560
@@ -172,31 +179,27 @@ struct SettingsPanelView: View {
     }
 
     private var aboutPage: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("关于我们")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(spacing: 4) {
+                    Image("about_icon")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 118, height: 76)
+                    Text("Agent Claw")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 8)
 
-            VStack(spacing: 4) {
-                Image("about_icon")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 118, height: 76)
-                Text("Agent Claw")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+                VStack(spacing: 8) {
+                    aboutListRow(title: "当前版本", detail: appVersion, url: nil)
+                    aboutListRow(title: "用户协议", detail: nil, url: "http://www.cjym123.cn/agreement_agentclaw.html")
+                    aboutListRow(title: "隐私政策", detail: nil, url: "http://www.cjym123.cn/privacy_agentclaw.html")
+                }
+                .padding(.top, 4)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 2)
-
-            VStack(spacing: 8) {
-                aboutListRow(title: "当前版本", detail: "V-")
-                aboutListRow(title: "用户协议")
-                aboutListRow(title: "隐私政策")
-            }
-            .padding(.top, 4)
-
-            Spacer()
         }
     }
 
@@ -303,28 +306,36 @@ struct SettingsPanelView: View {
         .cornerRadius(12)
     }
 
-    private func aboutListRow(title: String, detail: String? = nil) -> some View {
-        HStack {
-            Text(title)
-                .font(.system(size: 12))
-                .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
-            if let detail = detail {
-                Text(detail)
-                    .font(.system(size: 10))
-                    .foregroundColor(Color(red: 0.60, green: 0.60, blue: 0.60))
+    private func aboutListRow(title: String, detail: String? = nil, url: String? = nil) -> some View {
+        Button(action: {
+            if let urlString = url, let url = URL(string: urlString) {
+                UIApplication.shared.open(url)
             }
-            Spacer()
-            if detail == nil {
-                Image("arrow_right")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 18, height: 18)
+        }) {
+            HStack {
+                Text(title)
+                    .font(.system(size: 12))
+                    .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+                if let detail = detail {
+                    Text(detail)
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+                }
+                Spacer()
+                if detail == nil && url != nil {
+                    Image("arrow_right")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 18, height: 18)
+                }
             }
+            .padding(.horizontal, 14)
+            .frame(height: 42)
+            .background(Color.white)
+            .cornerRadius(8)
         }
-        .padding(.horizontal, 14)
-        .frame(height: 42)
-        .background(Color.white)
-        .cornerRadius(8)
+        .buttonStyle(PlainButtonStyle())
+        .disabled(url == nil && detail != nil)
     }
 
     private var settingLeftBackground: Color {
