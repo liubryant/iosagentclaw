@@ -6,7 +6,7 @@ struct GatewaySettingsView: View {
     var body: some View {
         Form {
             Section(header: Text("对话服务器接口")) {
-                TextField("http://39.108.144.196:8066/v1", text: $viewModel.gatewayURLText)
+                TextField("https://www.cjym123.cn/v1", text: $viewModel.gatewayURLText)
                     .font(.system(size: 12))
                     .keyboardType(.URL)
                     .autocapitalization(.none)

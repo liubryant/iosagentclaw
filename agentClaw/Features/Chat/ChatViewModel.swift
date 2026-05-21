@@ -53,6 +53,12 @@ final class ChatViewModel: ObservableObject {
         messagesBySession[selectedSessionID] ?? []
     }
 
+    var allDocuments: [GeneratedDocument] {
+        messagesBySession.values.flatMap { messages in
+            messages.flatMap { $0.generatedDocuments }
+        }
+    }
+
     var selectedSession: LocalChatSession? {
         sessions.first { $0.id == selectedSessionID }
     }

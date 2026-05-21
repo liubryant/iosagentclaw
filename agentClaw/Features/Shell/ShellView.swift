@@ -10,6 +10,7 @@ struct ShellView: View {
     @ObservedObject private var chatViewModel: ChatViewModel
     @State private var isSidebarVisible = true
     @State private var isSettingsPresented = false
+    @State private var isDocumentsPresented = false
     @State private var sidebarQuery = ""
     @State private var destination: Destination = .chat
     @State private var sessionToDelete: LocalChatSession?
@@ -44,6 +45,15 @@ struct ShellView: View {
                     SettingsPanelView(
                         gatewayViewModel: gatewayViewModel,
                         isPresented: $isSettingsPresented
+                    )
+                    .transition(.opacity)
+                    .zIndex(1)
+                }
+
+                if isDocumentsPresented {
+                    DocumentsListView(
+                        chatViewModel: chatViewModel,
+                        isPresented: $isDocumentsPresented
                     )
                     .transition(.opacity)
                     .zIndex(1)
@@ -87,8 +97,10 @@ struct ShellView: View {
                 sidebarNavItem(icon: "sparkles", title: "灵感泉涌", subtitle: "提示词模板") {
                     destination = .ideas
                 }
-                sidebarNavItem(icon: "folder", title: "文件", subtitle: "文件与导出") {}
-                sidebarNavItem(icon: "gearshape", title: "设置", subtitle: "技能和关于") {
+                sidebarNavItem(icon: "folder", title: "文件", subtitle: "文件与导出") {
+                    isDocumentsPresented = true
+                }
+                sidebarNavItem(icon: "slide_setting", title: "设置", subtitle: "技能和关于", isCustomIcon: true) {
                     isSettingsPresented = true
                 }
             }
@@ -202,9 +214,10 @@ struct ShellView: View {
                         .frame(width: 34, height: 34)
                         .cornerRadius(8)
 
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(Color.black)
+                    Image("slide_setting")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
                 }
             }
             .buttonStyle(PlainButtonStyle())
@@ -268,14 +281,22 @@ struct ShellView: View {
         icon: String,
         title: String,
         subtitle: String,
+        isCustomIcon: Bool = false,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
             HStack(spacing: 10) {
                 ZStack {
-                    Image(systemName: icon)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(Color.black)
+                    if isCustomIcon {
+                        Image(icon)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 18, height: 18)
+                    } else {
+                        Image(systemName: icon)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(Color.black)
+                    }
                 }
                 .frame(width: 20)
 
@@ -315,5 +336,193 @@ private struct HeaderIconButtonStyle: ButtonStyle {
             .foregroundColor(AgentClawDesign.primaryText)
             .background(configuration.isPressed ? Color.black.opacity(0.08) : AgentClawDesign.controlSurface)
             .cornerRadius(8)
+    }
+}
+
+struct DocumentsListView: View {
+    @ObservedObject var chatViewModel: ChatViewModel
+    @Binding var isPresented: Bool
+    @State private var activeDocumentSheet: DocumentSheet?
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    
+    private enum DocumentSheet: Identifiable {
+        case preview(GeneratedDocument)
+        case export(GeneratedDocument)
+
+        var id: String {
+            switch self {
+            case .preview(let doc), .export(let doc):
+                return doc.id
+            }
+        }
+    }
+    
+    private var allDocuments: [GeneratedDocument] {
+        chatViewModel.allDocuments.sorted { $0.createdAt > $1.createdAt }
+    }
+    
+    var body: some View {
+        GeometryReader { proxy in
+            let isCompact = horizontalSizeClass == .compact || proxy.size.width < 560
+            let dialogHeight = isCompact ? proxy.size.height * 0.6 : min(proxy.size.height * 0.7, 600)
+            
+            ZStack {
+                Color.black.opacity(0.18).edgesIgnoringSafeArea(.all)
+                    .onTapGesture {
+                        isPresented = false
+                    }
+                
+                VStack(spacing: 0) {
+                    // 标题栏
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "folder")
+                                    .font(.system(size: 18, weight: .semibold))
+                                Text("文件管理")
+                                    .font(.system(size: 20, weight: .bold))
+                                    .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+                            }
+                            Text("所有对话生成的文档")
+                                .font(.system(size: 11))
+                                .foregroundColor(AgentClawDesign.secondaryText)
+                        }
+                        Spacer()
+                        Button(action: { isPresented = false }) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
+                    
+                    Divider()
+                    
+                    // 文档列表
+                    if allDocuments.isEmpty {
+                        VStack(spacing: 16) {
+                            Image(systemName: "doc.text")
+                                .font(.system(size: 48))
+                                .foregroundColor(Color.gray.opacity(0.5))
+                            Text("暂无生成的文档")
+                                .font(.system(size: 14))
+                                .foregroundColor(Color.gray)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        ScrollView {
+                            VStack(spacing: 12) {
+                                ForEach(allDocuments) { document in
+                                    documentRow(document)
+                                }
+                            }
+                            .padding(20)
+                        }
+                    }
+                }
+                .frame(maxWidth: isCompact ? proxy.size.width - 20 : 700)
+                .frame(height: max(dialogHeight, isCompact ? 320 : 420))
+                .background(Color(red: 0.98, green: 0.985, blue: 0.99))
+                .cornerRadius(14)
+                .padding(isCompact ? 8 : 24)
+            }
+        }
+        .sheet(item: $activeDocumentSheet) { sheet in
+            switch sheet {
+            case .preview(let document):
+                DocumentPreviewView(url: chatViewModel.generatedDocumentStore.fileURL(for: document))
+            case .export(let document):
+                DocumentExportView(url: chatViewModel.generatedDocumentStore.fileURL(for: document))
+            }
+        }
+    }
+    
+    private func documentRow(_ document: GeneratedDocument) -> some View {
+        Button(action: { activeDocumentSheet = .preview(document) }) {
+            HStack(spacing: 12) {
+                Image(systemName: documentIcon(for: document.displayName))
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(AgentClawDesign.accent)
+                    .frame(width: 32, height: 32)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(document.displayName)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+                        .lineLimit(1)
+                    HStack(spacing: 4) {
+                        Text("点击预览")
+                            .font(.system(size: 10))
+                            .foregroundColor(AgentClawDesign.secondaryText)
+                        Text("·")
+                            .font(.system(size: 10))
+                            .foregroundColor(AgentClawDesign.secondaryText)
+                        Text(relativeTimeString(from: document.createdAt))
+                            .font(.system(size: 10))
+                            .foregroundColor(AgentClawDesign.secondaryText)
+                    }
+                }
+
+                Spacer()
+
+                Button(action: { activeDocumentSheet = .export(document) }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 12))
+                        Text("导出")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(AgentClawDesign.accent)
+                    .cornerRadius(6)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            .padding(14)
+            .background(Color.white)
+            .cornerRadius(10)
+            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+    
+    private func documentIcon(for fileName: String) -> String {
+        let lower = fileName.lowercased()
+        if lower.hasSuffix(".pdf") {
+            return "doc.text.fill"
+        } else if lower.hasSuffix(".docx") || lower.hasSuffix(".doc") {
+            return "doc.fill"
+        } else if lower.hasSuffix(".xlsx") || lower.hasSuffix(".xls") {
+            return "tablecells.fill"
+        } else if lower.hasSuffix(".pptx") || lower.hasSuffix(".ppt") {
+            return "play.rectangle.fill"
+        } else {
+            return "doc.text.fill"
+        }
+    }
+
+    private func relativeTimeString(from date: Date) -> String {
+        let now = Date()
+        let interval = now.timeIntervalSince(date)
+
+        if interval < 60 {
+            return "刚刚"
+        } else if interval < 3600 {
+            let minutes = Int(interval / 60)
+            return "\(minutes)分钟前"
+        } else if interval < 86400 {
+            let hours = Int(interval / 3600)
+            return "\(hours)小时前"
+        } else if interval < 604800 {
+            let days = Int(interval / 86400)
+            return "\(days)天前"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MM-dd HH:mm"
+            return formatter.string(from: date)
+        }
     }
 }

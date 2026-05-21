@@ -10,6 +10,11 @@ struct SettingsPanelView: View {
     @Binding var isPresented: Bool
     @State private var selectedPage: Page = .skills
     @State private var skillQuery = ""
+    @State private var showEnvironmentAlert = false
+    @State private var currentEnvironment: AppEnvironment = .production
+    @State private var tapCount = 0
+    @State private var lastTapTime = Date()
+    @State private var showEnvironmentOption = false
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     private let skills = [
@@ -33,6 +38,9 @@ struct SettingsPanelView: View {
 
             ZStack {
                 Color.black.opacity(0.18).edgesIgnoringSafeArea(.all)
+                    .onTapGesture {
+                        isPresented = false
+                    }
 
                 settingsPanel(isCompact: isCompact)
                     .padding(10)
@@ -43,14 +51,23 @@ struct SettingsPanelView: View {
                     .padding(isCompact ? 8 : 24)
             }
         }
+        .onAppear {
+            currentEnvironment = EnvironmentManager.shared.currentEnvironment
+        }
     }
 
     private var menu: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("设置")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+                HStack(spacing: 8) {
+                    Image("slide_setting")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 22, height: 22)
+                    Text("设置")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+                }
                 Spacer()
                 Button(action: { isPresented = false }) {
                     Image(systemName: "xmark")
@@ -99,9 +116,15 @@ struct SettingsPanelView: View {
 
     private var compactHeader: some View {
         HStack {
-            Text("设置")
-                .font(.system(size: 15, weight: .bold))
-                .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+            HStack(spacing: 6) {
+                Image("slide_setting")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 18, height: 18)
+                Text("设置")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+            }
             Spacer()
             Button(action: { isPresented = false }) {
                 Image(systemName: "xmark")
@@ -186,6 +209,9 @@ struct SettingsPanelView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 118, height: 76)
+                        .onTapGesture {
+                            handleLogoTap()
+                        }
                     Text("Agent Claw")
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
@@ -195,8 +221,11 @@ struct SettingsPanelView: View {
 
                 VStack(spacing: 8) {
                     aboutListRow(title: "当前版本", detail: appVersion, url: nil)
-                    aboutListRow(title: "用户协议", detail: nil, url: "http://www.cjym123.cn/agreement_agentclaw.html")
-                    aboutListRow(title: "隐私政策", detail: nil, url: "http://www.cjym123.cn/privacy_agentclaw.html")
+                    if showEnvironmentOption {
+                        environmentSwitchRow()
+                    }
+                    aboutListRow(title: "用户协议", detail: nil, url: "https://www.cjym123.cn/agreement_agentclaw.html")
+                    aboutListRow(title: "隐私政策", detail: nil, url: "https://www.cjym123.cn/privacy_agentclaw.html")
                 }
                 .padding(.top, 4)
             }
@@ -336,6 +365,72 @@ struct SettingsPanelView: View {
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(url == nil && detail != nil)
+    }
+
+    private func environmentSwitchRow() -> some View {
+        Button(action: {
+            showEnvironmentAlert = true
+        }) {
+            HStack {
+                Text("运行环境")
+                    .font(.system(size: 12))
+                    .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+                Spacer()
+                Text(currentEnvironment.displayName)
+                    .font(.system(size: 12))
+                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                Image("arrow_right")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 18, height: 18)
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 42)
+            .background(Color.white)
+            .cornerRadius(8)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .alert(isPresented: $showEnvironmentAlert) {
+            Alert(
+                title: Text("选择运行环境"),
+                message: Text("切换环境后将使用对应的服务器地址"),
+                primaryButton: .default(Text("生产环境")) {
+                    switchToEnvironment(.production)
+                },
+                secondaryButton: .default(Text("测试环境")) {
+                    switchToEnvironment(.testing)
+                }
+            )
+        }
+    }
+
+    private func switchToEnvironment(_ environment: AppEnvironment) {
+        currentEnvironment = environment
+        EnvironmentManager.shared.switchEnvironment(to: environment)
+        // 更新网关配置
+        gatewayViewModel.refreshFromEnvironment()
+    }
+
+    private func handleLogoTap() {
+        let now = Date()
+        let timeSinceLastTap = now.timeIntervalSince(lastTapTime)
+
+        // 如果距离上次点击超过0.5秒，重置计数
+        if timeSinceLastTap > 0.5 {
+            tapCount = 1
+        } else {
+            tapCount += 1
+        }
+
+        lastTapTime = now
+
+        // 当点击6次时，切换显示状态
+        if tapCount >= 6 {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                showEnvironmentOption.toggle()
+            }
+            tapCount = 0
+        }
     }
 
     private var settingLeftBackground: Color {

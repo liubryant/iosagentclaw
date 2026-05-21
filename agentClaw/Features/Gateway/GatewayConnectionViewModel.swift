@@ -58,6 +58,15 @@ final class GatewayConnectionViewModel: ObservableObject {
         }
     }
 
+    func refreshFromEnvironment() {
+        // 从环境管理器获取当前环境的 URL
+        let newURL = EnvironmentManager.shared.baseURL
+        gatewayURLText = newURL.absoluteString
+
+        // 自动保存并测试连接
+        saveAndTest()
+    }
+
     private func buildConfig() throws -> GatewayConfig {
         guard let url = URL(string: gatewayURLText.trimmingCharacters(in: .whitespacesAndNewlines)) else {
             throw GatewayConfigError.invalidURL
