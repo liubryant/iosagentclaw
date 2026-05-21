@@ -6,6 +6,7 @@ struct ChatView: View {
     @ObservedObject var viewModel: ChatViewModel
     @State private var activeDocumentSheet: DocumentSheet?
     @State private var inputFocusToken = 0
+    @State private var keyboardHeight: CGFloat = 0
 
     private let quickPrompts = [
         QuickPrompt(
@@ -62,7 +63,14 @@ struct ChatView: View {
 
             composer
         }
+        .padding(.bottom, keyboardHeight)
         .background(Color.white)
+        .onAppear {
+            setupKeyboardObservers()
+        }
+        .onDisappear {
+            removeKeyboardObservers()
+        }
         .sheet(item: $activeDocumentSheet) { sheet in
             switch sheet {
             case .preview(let document):
@@ -304,6 +312,7 @@ struct ChatView: View {
                         onReturn: {
                             if canSend {
                                 viewModel.send()
+                                hideKeyboard()
                             }
                         }
                     )
@@ -330,7 +339,10 @@ struct ChatView: View {
                         .stroke(AgentClawDesign.divider, lineWidth: 1)
                 )
 
-                Button(action: viewModel.send) {
+                Button(action: {
+                    viewModel.send()
+                    hideKeyboard()
+                }) {
                     Image(systemName: viewModel.isSending ? "stop.fill" : "paperplane.fill")
                         .foregroundColor(.white)
                         .frame(width: 40, height: 40)
@@ -383,6 +395,40 @@ struct ChatView: View {
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
+    }
+
+    private func setupKeyboardObservers() {
+        NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillShowNotification,
+            object: nil,
+            queue: .main
+        ) { notification in
+            guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
+                return
+            }
+            withAnimation(.easeOut(duration: 0.25)) {
+                self.keyboardHeight = keyboardFrame.height
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillHideNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            withAnimation(.easeOut(duration: 0.25)) {
+                self.keyboardHeight = 0
+            }
+        }
+    }
+
+    private func removeKeyboardObservers() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
 

@@ -364,7 +364,7 @@ struct DocumentsListView: View {
     var body: some View {
         GeometryReader { proxy in
             let isCompact = horizontalSizeClass == .compact || proxy.size.width < 560
-            let dialogHeight = isCompact ? proxy.size.height * 0.6 : min(proxy.size.height * 0.7, 600)
+            let dialogHeight = isCompact ? proxy.size.height * 0.52 : min(proxy.size.height * 0.62, 500)
             
             ZStack {
                 Color.black.opacity(0.18).edgesIgnoringSafeArea(.all)
@@ -421,7 +421,7 @@ struct DocumentsListView: View {
                         }
                     }
                 }
-                .frame(maxWidth: isCompact ? proxy.size.width - 20 : 700)
+                .frame(maxWidth: isCompact ? proxy.size.width - 20 : 760)
                 .frame(height: max(dialogHeight, isCompact ? 320 : 420))
                 .background(Color(red: 0.98, green: 0.985, blue: 0.99))
                 .cornerRadius(14)
