@@ -170,8 +170,8 @@ struct ChatView: View {
 
         // 图片和文档使用更大的宽度，左右间距相等（各18）
         let mediaMaxWidth = availableWidth - 36
-        // 普通文本消息保持原有布局
-        let textMaxWidth = availableWidth - 36 - 72
+        // 普通文本消息也使用更大宽度，右边只保留少量间距
+        let textMaxWidth = availableWidth - 36 - 20
 
         return HStack(alignment: .top) {
             if message.role == .user {
@@ -204,8 +204,8 @@ struct ChatView: View {
             }
 
             if message.role != .user {
-                // 如果有图片或文档，右边间距设为0，让内容占满可用宽度
-                Spacer(minLength: (hasImage || hasDocuments) ? 0 : 72)
+                // AI消息右边只保留少量间距
+                Spacer(minLength: (hasImage || hasDocuments) ? 0 : 20)
             }
         }
     }

@@ -44,7 +44,7 @@ struct SettingsPanelView: View {
 
                 settingsPanel(isCompact: isCompact)
                     .padding(10)
-                    .frame(maxWidth: isCompact ? proxy.size.width - 20 : 760)
+                    .frame(maxWidth: isCompact ? proxy.size.width - 20 : proxy.size.width - 48)
                     .frame(height: max(dialogHeight, isCompact ? 320 : 420))
                     .background(settingLeftBackground)
                     .cornerRadius(14)

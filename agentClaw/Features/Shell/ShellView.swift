@@ -421,7 +421,7 @@ struct DocumentsListView: View {
                         }
                     }
                 }
-                .frame(maxWidth: isCompact ? proxy.size.width - 20 : 760)
+                .frame(maxWidth: isCompact ? proxy.size.width - 20 : proxy.size.width - 48)
                 .frame(height: max(dialogHeight, isCompact ? 320 : 420))
                 .background(Color(red: 0.98, green: 0.985, blue: 0.99))
                 .cornerRadius(14)
