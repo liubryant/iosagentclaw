@@ -153,30 +153,18 @@ struct SettingsPanelView: View {
         VStack(alignment: .leading, spacing: 14) {
             pageHeader(title: "技能管理", subtitle: "扩展智能体的能力：一键集成精选技能与工具")
 
-            HStack(spacing: 10) {
-                HStack {
-                    Image("icon_search")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                    TextField("搜索技能", text: $skillQuery)
-                        .font(.system(size: 12))
-                }
-                .padding(.horizontal, 12)
-                .frame(height: 40)
-                .background(Color.white.opacity(0.88))
-                .cornerRadius(8)
-
-                Button(action: {}) {
-                    Text("添加技能")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.black)
-                        .frame(width: 74, height: 40)
-                        .background(Color.white)
-                        .cornerRadius(8)
-                }
-                .buttonStyle(PlainButtonStyle())
+            HStack {
+                Image("icon_search")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                TextField("搜索技能", text: $skillQuery)
+                    .font(.system(size: 12))
             }
+            .padding(.horizontal, 12)
+            .frame(height: 40)
+            .background(Color.white.opacity(0.88))
+            .cornerRadius(8)
 
             ScrollView {
                 skillGrid
@@ -348,7 +336,7 @@ struct SettingsPanelView: View {
                 if let detail = detail {
                     Text(detail)
                         .font(.system(size: 12))
-                        .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
                 }
                 Spacer()
                 if detail == nil && url != nil {
