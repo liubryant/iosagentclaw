@@ -90,3 +90,7 @@ iOSInjectionProject/
 
 # Mac
 .DS_Store
+
+# SDK Frameworks (too large for GitHub)
+Frameworks/
+Frameworks_Backup/

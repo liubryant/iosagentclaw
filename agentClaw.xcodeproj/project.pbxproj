@@ -3,10 +3,11 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		MB2000012FB900000000001A /* MockBUAdSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = MB1000012FB900000000001A /* MockBUAdSDK.m */; };
 		0428199B2FB80F5A0002BDC7 /* agentClawApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0428199A2FB80F5A0002BDC7 /* agentClawApp.swift */; };
 		0428199D2FB80F5A0002BDC7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0428199C2FB80F5A0002BDC7 /* ContentView.swift */; };
 		0428199F2FB80F620002BDC7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0428199E2FB80F620002BDC7 /* Assets.xcassets */; };
@@ -14,30 +15,32 @@
 		042819AD2FB80F620002BDC7 /* agentClawTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042819AC2FB80F620002BDC7 /* agentClawTests.swift */; };
 		042819B82FB80F620002BDC7 /* agentClawUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042819B72FB80F620002BDC7 /* agentClawUITests.swift */; };
 		042819FF2FB80F620002BDC8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 042819FE2FB80F620002BDC8 /* LaunchScreen.storyboard */; };
-		AB2000012FB9000000000001 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000012FB9000000000001 /* AppConfig.swift */; };
-		AB2000022FB9000000000002 /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000022FB9000000000002 /* DependencyContainer.swift */; };
-		AB2000032FB9000000000003 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000032FB9000000000003 /* JSONValue.swift */; };
-		AB2000042FB9000000000004 /* NodeFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000042FB9000000000004 /* NodeFrame.swift */; };
-		AB2000052FB9000000000005 /* ChatModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000052FB9000000000005 /* ChatModels.swift */; };
-		AB2000062FB9000000000006 /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000062FB9000000000006 /* HTTPClient.swift */; };
-		AB2000072FB9000000000007 /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000072FB9000000000007 /* AppPreferences.swift */; };
-		AB2000082FB9000000000008 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000082FB9000000000008 /* KeychainStore.swift */; };
-		AB2000092FB9000000000009 /* GatewayConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000092FB9000000000009 /* GatewayConfig.swift */; };
-		AB20000A2FB900000000000A /* GatewayClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000A2FB900000000000A /* GatewayClient.swift */; };
-		AB20000B2FB900000000000B /* GatewayConnectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000B2FB900000000000B /* GatewayConnectionViewModel.swift */; };
-		AB20000C2FB900000000000C /* GatewaySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000C2FB900000000000C /* GatewaySettingsView.swift */; };
-		AB20000D2FB900000000000D /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000D2FB900000000000D /* ChatViewModel.swift */; };
-		AB20000E2FB900000000000E /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000E2FB900000000000E /* ChatView.swift */; };
-		AB20000F2FB900000000000F /* ShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000F2FB900000000000F /* ShellView.swift */; };
-		AB2000102FB9000000000010 /* MultilineTextInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000102FB9000000000010 /* MultilineTextInput.swift */; };
-		AB2000112FB9000000000011 /* AgentClawDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000112FB9000000000011 /* AgentClawDesign.swift */; };
-		AB2000122FB9000000000012 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000122FB9000000000012 /* OnboardingView.swift */; };
-		AB2000132FB9000000000013 /* SettingsPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000132FB9000000000013 /* SettingsPanelView.swift */; };
-		AB2000142FB9000000000014 /* FancyIdeasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000142FB9000000000014 /* FancyIdeasView.swift */; };
-		AB2000152FB9000000000015 /* iOS13Compatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000152FB9000000000015 /* iOS13Compatibility.swift */; };
-		AB2000162FB9000000000016 /* GeneratedDocumentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000162FB9000000000016 /* GeneratedDocumentStore.swift */; };
-		AB2000172FB9000000000017 /* DocumentPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000172FB9000000000017 /* DocumentPreviewView.swift */; };
+		AB2000012FB9000000000001 /* App/AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000012FB9000000000001 /* App/AppConfig.swift */; };
+		AB2000022FB9000000000002 /* App/DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000022FB9000000000002 /* App/DependencyContainer.swift */; };
+		AB2000032FB9000000000003 /* Core/Models/JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000032FB9000000000003 /* Core/Models/JSONValue.swift */; };
+		AB2000042FB9000000000004 /* Core/Models/NodeFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000042FB9000000000004 /* Core/Models/NodeFrame.swift */; };
+		AB2000052FB9000000000005 /* Core/Models/ChatModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000052FB9000000000005 /* Core/Models/ChatModels.swift */; };
+		AB2000062FB9000000000006 /* Core/Networking/HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000062FB9000000000006 /* Core/Networking/HTTPClient.swift */; };
+		AB2000072FB9000000000007 /* Core/Storage/AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000072FB9000000000007 /* Core/Storage/AppPreferences.swift */; };
+		AB2000082FB9000000000008 /* Core/Storage/KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000082FB9000000000008 /* Core/Storage/KeychainStore.swift */; };
+		AB2000092FB9000000000009 /* Features/Gateway/GatewayConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000092FB9000000000009 /* Features/Gateway/GatewayConfig.swift */; };
+		AB20000A2FB900000000000A /* Features/Gateway/GatewayClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000A2FB900000000000A /* Features/Gateway/GatewayClient.swift */; };
+		AB20000B2FB900000000000B /* Features/Gateway/GatewayConnectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000B2FB900000000000B /* Features/Gateway/GatewayConnectionViewModel.swift */; };
+		AB20000C2FB900000000000C /* Features/Gateway/GatewaySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000C2FB900000000000C /* Features/Gateway/GatewaySettingsView.swift */; };
+		AB20000D2FB900000000000D /* Features/Chat/ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000D2FB900000000000D /* Features/Chat/ChatViewModel.swift */; };
+		AB20000E2FB900000000000E /* Features/Chat/ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000E2FB900000000000E /* Features/Chat/ChatView.swift */; };
+		AB20000F2FB900000000000F /* Features/Shell/ShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000F2FB900000000000F /* Features/Shell/ShellView.swift */; };
+		AB2000102FB9000000000010 /* Features/Chat/MultilineTextInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000102FB9000000000010 /* Features/Chat/MultilineTextInput.swift */; };
+		AB2000112FB9000000000011 /* App/AgentClawDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000112FB9000000000011 /* App/AgentClawDesign.swift */; };
+		AB2000122FB9000000000012 /* Features/Onboarding/OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000122FB9000000000012 /* Features/Onboarding/OnboardingView.swift */; };
+		AB2000132FB9000000000013 /* Features/Settings/SettingsPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000132FB9000000000013 /* Features/Settings/SettingsPanelView.swift */; };
+		AB2000142FB9000000000014 /* Features/Ideas/FancyIdeasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000142FB9000000000014 /* Features/Ideas/FancyIdeasView.swift */; };
+		AB2000152FB9000000000015 /* Core/iOS13Compatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000152FB9000000000015 /* Core/iOS13Compatibility.swift */; };
+		AB2000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift */; };
+		AB2000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift */; };
 		CC308AAE82CD3EC440B9B769 /* UMengAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3162F4F2289C0A3263866F2 /* UMengAnalytics.swift */; };
+		PA2000012FB9000000000018 /* PangleAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000012FB9000000000018 /* PangleAdManager.swift */; };
+		PA2000022FB9000000000019 /* PangleSplashAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000022FB9000000000019 /* PangleSplashAdManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,7 +60,33 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		040680582FC169F800185EB0 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0406805F2FC16A3800185EB0 /* Embed PlugIns */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+			);
+			name = "Embed PlugIns";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		0406804F2FC169C800185EB0 /* Frameworks */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Frameworks; sourceTree = "<group>"; };
+		MB1000012FB900000000001A /* MockBUAdSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MockBUAdSDK.m; sourceTree = "<group>"; };
+		MB1000022FB900000000001B /* MockBUAdSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MockBUAdSDK.h; sourceTree = "<group>"; };
 		042819972FB80F5A0002BDC7 /* agentClaw.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = agentClaw.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0428199A2FB80F5A0002BDC7 /* agentClawApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agentClawApp.swift; sourceTree = "<group>"; };
 		0428199C2FB80F5A0002BDC7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -71,30 +100,32 @@
 		042819B72FB80F620002BDC7 /* agentClawUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agentClawUITests.swift; sourceTree = "<group>"; };
 		042819B92FB80F620002BDC7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		042819FE2FB80F620002BDC8 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
-		AB1000012FB9000000000001 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AppConfig.swift; sourceTree = "<group>"; };
-		AB1000022FB9000000000002 /* DependencyContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/DependencyContainer.swift; sourceTree = "<group>"; };
-		AB1000032FB9000000000003 /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/JSONValue.swift; sourceTree = "<group>"; };
-		AB1000042FB9000000000004 /* NodeFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/NodeFrame.swift; sourceTree = "<group>"; };
-		AB1000052FB9000000000005 /* ChatModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/ChatModels.swift; sourceTree = "<group>"; };
-		AB1000062FB9000000000006 /* HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/HTTPClient.swift; sourceTree = "<group>"; };
-		AB1000072FB9000000000007 /* AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/AppPreferences.swift; sourceTree = "<group>"; };
-		AB1000082FB9000000000008 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/KeychainStore.swift; sourceTree = "<group>"; };
-		AB1000092FB9000000000009 /* GatewayConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewayConfig.swift; sourceTree = "<group>"; };
-		AB10000A2FB900000000000A /* GatewayClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewayClient.swift; sourceTree = "<group>"; };
-		AB10000B2FB900000000000B /* GatewayConnectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewayConnectionViewModel.swift; sourceTree = "<group>"; };
-		AB10000C2FB900000000000C /* GatewaySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewaySettingsView.swift; sourceTree = "<group>"; };
-		AB10000D2FB900000000000D /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/ChatViewModel.swift; sourceTree = "<group>"; };
-		AB10000E2FB900000000000E /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/ChatView.swift; sourceTree = "<group>"; };
-		AB10000F2FB900000000000F /* ShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Shell/ShellView.swift; sourceTree = "<group>"; };
-		AB1000102FB9000000000010 /* MultilineTextInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/MultilineTextInput.swift; sourceTree = "<group>"; };
-		AB1000112FB9000000000011 /* AgentClawDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AgentClawDesign.swift; sourceTree = "<group>"; };
-		AB1000122FB9000000000012 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Onboarding/OnboardingView.swift; sourceTree = "<group>"; };
-		AB1000132FB9000000000013 /* SettingsPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Settings/SettingsPanelView.swift; sourceTree = "<group>"; };
-		AB1000142FB9000000000014 /* FancyIdeasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Ideas/FancyIdeasView.swift; sourceTree = "<group>"; };
-		AB1000152FB9000000000015 /* iOS13Compatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/iOS13Compatibility.swift; sourceTree = "<group>"; };
-		AB1000162FB9000000000016 /* GeneratedDocumentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/GeneratedDocumentStore.swift; sourceTree = "<group>"; };
-		AB1000172FB9000000000017 /* DocumentPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/DocumentPreviewView.swift; sourceTree = "<group>"; };
+		AB1000012FB9000000000001 /* App/AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AppConfig.swift; sourceTree = "<group>"; };
+		AB1000022FB9000000000002 /* App/DependencyContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/DependencyContainer.swift; sourceTree = "<group>"; };
+		AB1000032FB9000000000003 /* Core/Models/JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/JSONValue.swift; sourceTree = "<group>"; };
+		AB1000042FB9000000000004 /* Core/Models/NodeFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/NodeFrame.swift; sourceTree = "<group>"; };
+		AB1000052FB9000000000005 /* Core/Models/ChatModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/ChatModels.swift; sourceTree = "<group>"; };
+		AB1000062FB9000000000006 /* Core/Networking/HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/HTTPClient.swift; sourceTree = "<group>"; };
+		AB1000072FB9000000000007 /* Core/Storage/AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/AppPreferences.swift; sourceTree = "<group>"; };
+		AB1000082FB9000000000008 /* Core/Storage/KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/KeychainStore.swift; sourceTree = "<group>"; };
+		AB1000092FB9000000000009 /* Features/Gateway/GatewayConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewayConfig.swift; sourceTree = "<group>"; };
+		AB10000A2FB900000000000A /* Features/Gateway/GatewayClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewayClient.swift; sourceTree = "<group>"; };
+		AB10000B2FB900000000000B /* Features/Gateway/GatewayConnectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewayConnectionViewModel.swift; sourceTree = "<group>"; };
+		AB10000C2FB900000000000C /* Features/Gateway/GatewaySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewaySettingsView.swift; sourceTree = "<group>"; };
+		AB10000D2FB900000000000D /* Features/Chat/ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/ChatViewModel.swift; sourceTree = "<group>"; };
+		AB10000E2FB900000000000E /* Features/Chat/ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/ChatView.swift; sourceTree = "<group>"; };
+		AB10000F2FB900000000000F /* Features/Shell/ShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Shell/ShellView.swift; sourceTree = "<group>"; };
+		AB1000102FB9000000000010 /* Features/Chat/MultilineTextInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/MultilineTextInput.swift; sourceTree = "<group>"; };
+		AB1000112FB9000000000011 /* App/AgentClawDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AgentClawDesign.swift; sourceTree = "<group>"; };
+		AB1000122FB9000000000012 /* Features/Onboarding/OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Onboarding/OnboardingView.swift; sourceTree = "<group>"; };
+		AB1000132FB9000000000013 /* Features/Settings/SettingsPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Settings/SettingsPanelView.swift; sourceTree = "<group>"; };
+		AB1000142FB9000000000014 /* Features/Ideas/FancyIdeasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Ideas/FancyIdeasView.swift; sourceTree = "<group>"; };
+		AB1000152FB9000000000015 /* Core/iOS13Compatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/iOS13Compatibility.swift; sourceTree = "<group>"; };
+		AB1000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/GeneratedDocumentStore.swift; sourceTree = "<group>"; };
+		AB1000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/DocumentPreviewView.swift; sourceTree = "<group>"; };
 		B3162F4F2289C0A3263866F2 /* UMengAnalytics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UMengAnalytics.swift; sourceTree = "<group>"; };
+		PA1000012FB9000000000018 /* PangleAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleAdManager.swift; sourceTree = "<group>"; };
+		PA1000022FB9000000000019 /* PangleSplashAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleSplashAdManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +153,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0406804E2FC169C800185EB0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0406804F2FC169C800185EB0 /* Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		0428198E2FB80F5A0002BDC7 = {
 			isa = PBXGroup;
 			children = (
@@ -129,6 +168,7 @@
 				042819AB2FB80F620002BDC7 /* agentClawTests */,
 				042819B62FB80F620002BDC7 /* agentClawUITests */,
 				042819982FB80F5A0002BDC7 /* Products */,
+				0406804E2FC169C800185EB0 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -148,29 +188,29 @@
 				0428199A2FB80F5A0002BDC7 /* agentClawApp.swift */,
 				0428199C2FB80F5A0002BDC7 /* ContentView.swift */,
 				042819FE2FB80F620002BDC8 /* LaunchScreen.storyboard */,
-				AB1000012FB9000000000001 /* AppConfig.swift */,
-				AB1000112FB9000000000011 /* AgentClawDesign.swift */,
-				AB1000022FB9000000000002 /* DependencyContainer.swift */,
-				AB1000032FB9000000000003 /* JSONValue.swift */,
-				AB1000042FB9000000000004 /* NodeFrame.swift */,
-				AB1000052FB9000000000005 /* ChatModels.swift */,
-				AB1000062FB9000000000006 /* HTTPClient.swift */,
-				AB1000072FB9000000000007 /* AppPreferences.swift */,
-				AB1000082FB9000000000008 /* KeychainStore.swift */,
-				AB1000152FB9000000000015 /* iOS13Compatibility.swift */,
-				AB1000092FB9000000000009 /* GatewayConfig.swift */,
-				AB10000A2FB900000000000A /* GatewayClient.swift */,
-				AB10000B2FB900000000000B /* GatewayConnectionViewModel.swift */,
-				AB10000C2FB900000000000C /* GatewaySettingsView.swift */,
-				AB10000D2FB900000000000D /* ChatViewModel.swift */,
-				AB10000E2FB900000000000E /* ChatView.swift */,
-				AB1000102FB9000000000010 /* MultilineTextInput.swift */,
-				AB1000162FB9000000000016 /* GeneratedDocumentStore.swift */,
-				AB1000172FB9000000000017 /* DocumentPreviewView.swift */,
-				AB10000F2FB900000000000F /* ShellView.swift */,
-				AB1000122FB9000000000012 /* OnboardingView.swift */,
-				AB1000132FB9000000000013 /* SettingsPanelView.swift */,
-				AB1000142FB9000000000014 /* FancyIdeasView.swift */,
+				AB1000012FB9000000000001 /* App/AppConfig.swift */,
+				AB1000112FB9000000000011 /* App/AgentClawDesign.swift */,
+				AB1000022FB9000000000002 /* App/DependencyContainer.swift */,
+				AB1000032FB9000000000003 /* Core/Models/JSONValue.swift */,
+				AB1000042FB9000000000004 /* Core/Models/NodeFrame.swift */,
+				AB1000052FB9000000000005 /* Core/Models/ChatModels.swift */,
+				AB1000062FB9000000000006 /* Core/Networking/HTTPClient.swift */,
+				AB1000072FB9000000000007 /* Core/Storage/AppPreferences.swift */,
+				AB1000082FB9000000000008 /* Core/Storage/KeychainStore.swift */,
+				AB1000152FB9000000000015 /* Core/iOS13Compatibility.swift */,
+				AB1000092FB9000000000009 /* Features/Gateway/GatewayConfig.swift */,
+				AB10000A2FB900000000000A /* Features/Gateway/GatewayClient.swift */,
+				AB10000B2FB900000000000B /* Features/Gateway/GatewayConnectionViewModel.swift */,
+				AB10000C2FB900000000000C /* Features/Gateway/GatewaySettingsView.swift */,
+				AB10000D2FB900000000000D /* Features/Chat/ChatViewModel.swift */,
+				AB10000E2FB900000000000E /* Features/Chat/ChatView.swift */,
+				AB1000102FB9000000000010 /* Features/Chat/MultilineTextInput.swift */,
+				AB1000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift */,
+				AB1000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift */,
+				AB10000F2FB900000000000F /* Features/Shell/ShellView.swift */,
+				AB1000122FB9000000000012 /* Features/Onboarding/OnboardingView.swift */,
+				AB1000132FB9000000000013 /* Features/Settings/SettingsPanelView.swift */,
+				AB1000142FB9000000000014 /* Features/Ideas/FancyIdeasView.swift */,
 				0428199E2FB80F620002BDC7 /* Assets.xcassets */,
 				042819A32FB80F620002BDC7 /* Info.plist */,
 				042819A02FB80F620002BDC7 /* Preview Content */,
@@ -209,8 +249,11 @@
 			isa = PBXGroup;
 			children = (
 				B3162F4F2289C0A3263866F2 /* UMengAnalytics.swift */,
+				PA1000012FB9000000000018 /* PangleAdManager.swift */,
+				PA1000022FB9000000000019 /* PangleSplashAdManager.swift */,
+				MB1000012FB900000000001A /* MockBUAdSDK.m */,
+				MB1000022FB900000000001B /* MockBUAdSDK.h */,
 			);
-			name = Analytics;
 			path = Analytics;
 			sourceTree = "<group>";
 		};
@@ -219,7 +262,6 @@
 			children = (
 				6F05E827D276C9301AD50DA5 /* Analytics */,
 			);
-			name = Core;
 			path = Core;
 			sourceTree = "<group>";
 		};
@@ -233,6 +275,8 @@
 				042819932FB80F5A0002BDC7 /* Sources */,
 				042819942FB80F5A0002BDC7 /* Frameworks */,
 				042819952FB80F5A0002BDC7 /* Resources */,
+				040680582FC169F800185EB0 /* Embed Frameworks */,
+				0406805F2FC16A3800185EB0 /* Embed PlugIns */,
 			);
 			buildRules = (
 			);
@@ -353,32 +397,35 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AB20000D2FB900000000000D /* ChatViewModel.swift in Sources */,
-				AB20000B2FB900000000000B /* GatewayConnectionViewModel.swift in Sources */,
-				AB20000E2FB900000000000E /* ChatView.swift in Sources */,
-				AB2000102FB9000000000010 /* MultilineTextInput.swift in Sources */,
-				AB2000132FB9000000000013 /* SettingsPanelView.swift in Sources */,
-				AB2000142FB9000000000014 /* FancyIdeasView.swift in Sources */,
-				AB2000052FB9000000000005 /* ChatModels.swift in Sources */,
-				AB20000A2FB900000000000A /* GatewayClient.swift in Sources */,
-				AB2000072FB9000000000007 /* AppPreferences.swift in Sources */,
-				AB2000062FB9000000000006 /* HTTPClient.swift in Sources */,
+				AB20000D2FB900000000000D /* Features/Chat/ChatViewModel.swift in Sources */,
+				AB20000B2FB900000000000B /* Features/Gateway/GatewayConnectionViewModel.swift in Sources */,
+				AB20000E2FB900000000000E /* Features/Chat/ChatView.swift in Sources */,
+				AB2000102FB9000000000010 /* Features/Chat/MultilineTextInput.swift in Sources */,
+				AB2000132FB9000000000013 /* Features/Settings/SettingsPanelView.swift in Sources */,
+				AB2000142FB9000000000014 /* Features/Ideas/FancyIdeasView.swift in Sources */,
+				AB2000052FB9000000000005 /* Core/Models/ChatModels.swift in Sources */,
+				AB20000A2FB900000000000A /* Features/Gateway/GatewayClient.swift in Sources */,
+				AB2000072FB9000000000007 /* Core/Storage/AppPreferences.swift in Sources */,
+				AB2000062FB9000000000006 /* Core/Networking/HTTPClient.swift in Sources */,
 				0428199D2FB80F5A0002BDC7 /* ContentView.swift in Sources */,
-				AB20000F2FB900000000000F /* ShellView.swift in Sources */,
-				AB2000082FB9000000000008 /* KeychainStore.swift in Sources */,
-				AB2000022FB9000000000002 /* DependencyContainer.swift in Sources */,
-				AB20000C2FB900000000000C /* GatewaySettingsView.swift in Sources */,
-				AB2000112FB9000000000011 /* AgentClawDesign.swift in Sources */,
-				AB2000042FB9000000000004 /* NodeFrame.swift in Sources */,
-				AB2000012FB9000000000001 /* AppConfig.swift in Sources */,
-				AB2000092FB9000000000009 /* GatewayConfig.swift in Sources */,
+				AB20000F2FB900000000000F /* Features/Shell/ShellView.swift in Sources */,
+				AB2000082FB9000000000008 /* Core/Storage/KeychainStore.swift in Sources */,
+				AB2000022FB9000000000002 /* App/DependencyContainer.swift in Sources */,
+				AB20000C2FB900000000000C /* Features/Gateway/GatewaySettingsView.swift in Sources */,
+				AB2000112FB9000000000011 /* App/AgentClawDesign.swift in Sources */,
+				AB2000042FB9000000000004 /* Core/Models/NodeFrame.swift in Sources */,
+				AB2000012FB9000000000001 /* App/AppConfig.swift in Sources */,
+				AB2000092FB9000000000009 /* Features/Gateway/GatewayConfig.swift in Sources */,
 				0428199B2FB80F5A0002BDC7 /* agentClawApp.swift in Sources */,
-				AB2000122FB9000000000012 /* OnboardingView.swift in Sources */,
-				AB2000032FB9000000000003 /* JSONValue.swift in Sources */,
-				AB2000152FB9000000000015 /* iOS13Compatibility.swift in Sources */,
-				AB2000162FB9000000000016 /* GeneratedDocumentStore.swift in Sources */,
-				AB2000172FB9000000000017 /* DocumentPreviewView.swift in Sources */,
+				AB2000122FB9000000000012 /* Features/Onboarding/OnboardingView.swift in Sources */,
+				AB2000032FB9000000000003 /* Core/Models/JSONValue.swift in Sources */,
+				AB2000152FB9000000000015 /* Core/iOS13Compatibility.swift in Sources */,
+				AB2000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift in Sources */,
+				AB2000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift in Sources */,
 				CC308AAE82CD3EC440B9B769 /* UMengAnalytics.swift in Sources */,
+				PA2000012FB9000000000018 /* PangleAdManager.swift in Sources */,
+				PA2000022FB9000000000019 /* PangleSplashAdManager.swift in Sources */,
+				MB2000012FB900000000001A /* MockBUAdSDK.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -471,6 +518,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OBJC_BRIDGING_HEADER = "agentClaw/agentClaw-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -525,6 +573,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OBJC_BRIDGING_HEADER = "agentClaw/agentClaw-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -538,12 +587,24 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"agentClaw/Preview Content\"";
 				DEVELOPMENT_TEAM = 2Y5CF6LA99;
+				ENABLE_BITCODE = NO;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = agentClaw/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-lc++",
+					"-lresolv",
+					"-lz",
+					"-lsqlite3",
+					"-lbz2",
+					"-lxml2",
+					"-liconv",
+					"-lc++abi",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.liubryant.agentClaw;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -560,12 +621,24 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"agentClaw/Preview Content\"";
 				DEVELOPMENT_TEAM = 2Y5CF6LA99;
+				ENABLE_BITCODE = NO;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = agentClaw/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-lc++",
+					"-lresolv",
+					"-lz",
+					"-lsqlite3",
+					"-lbz2",
+					"-lxml2",
+					"-liconv",
+					"-lc++abi",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.liubryant.agentClaw;
 				PRODUCT_NAME = "$(TARGET_NAME)";
