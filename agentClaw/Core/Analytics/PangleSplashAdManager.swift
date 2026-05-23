@@ -2,7 +2,7 @@
 //  PangleSplashAdManager.swift
 //  agentClaw
 //
-//  Created by Claude on 2026/5/23.
+//  Created by Liuzheng on 2026/5/23.
 //
 
 import Foundation

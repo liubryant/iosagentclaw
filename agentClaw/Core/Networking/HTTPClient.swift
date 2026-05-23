@@ -26,9 +26,13 @@ final class URLSessionHTTPClient: HTTPClient {
     }
 
     func data(for request: URLRequest, completion: @escaping (Result<Data, Error>) -> Void) {
+        #if DEBUG
         HTTPDebugLogger.logRequest(request)
+        #endif
         let task = session.dataTask(with: request) { data, response, error in
+            #if DEBUG
             HTTPDebugLogger.logResponse(data: data, response: response, error: error)
+            #endif
 
             if let error = error {
                 completion(.failure(error))

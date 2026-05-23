@@ -3,13 +3,17 @@ import SwiftUI
 struct OnboardingView: View {
     var onContinue: () -> Void
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @State private var showDisagreeAlert = false
+    @State private var showGoodbyeScreen = false
 
     var body: some View {
-        GeometryReader { geometry in
-            let isCompact = horizontalSizeClass == .compact || geometry.size.width < 560
+        ZStack {
+            // 主隐私政策界面
+            GeometryReader { geometry in
+                let isCompact = horizontalSizeClass == .compact || geometry.size.width < 560
 
-            ZStack {
-                Color.black.opacity(0.3).edgesIgnoringSafeArea(.all)
+                ZStack {
+                    Color.black.opacity(0.3).edgesIgnoringSafeArea(.all)
 
                 VStack(spacing: 0) {
                     Spacer(minLength: isCompact ? 40 : 80)
@@ -90,8 +94,8 @@ struct OnboardingView: View {
                         // 按钮区域
                         HStack(spacing: 12) {
                             Button(action: {
-                                // 不同意，退出应用
-                                exit(0)
+                                // 显示提示对话框，告知用户必须同意才能使用
+                                showDisagreeAlert = true
                             }) {
                                 Text("不同意")
                                     .font(.system(size: 15, weight: .medium))
@@ -130,6 +134,50 @@ struct OnboardingView: View {
                     Spacer(minLength: isCompact ? 40 : 80)
                 }
                 .padding(.horizontal, 20)
+            }
+        }
+        .alert(isPresented: $showDisagreeAlert) {
+            Alert(
+                title: Text("温馨提示"),
+                message: Text("如果您不同意《用户协议》和《隐私政策》，很遗憾我们将无法为您提供服务。"),
+                primaryButton: .default(Text("同意并继续")) {
+                    // 用户在二次确认中选择同意
+                    UMengAnalytics.shared.initialize()
+                    onContinue()
+                },
+                secondaryButton: .destructive(Text("放弃使用")) {
+                    // 显示告别界面，然后温和退出
+                    showGoodbyeScreen = true
+                    // 延迟2秒后退出，给用户一个过渡
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        exit(0)
+                    }
+                }
+            )
+        }
+
+            // 告别界面
+            if showGoodbyeScreen {
+                ZStack {
+                    Color.black.opacity(0.9).edgesIgnoringSafeArea(.all)
+
+                    VStack(spacing: 24) {
+                        Text("👋")
+                            .font(.system(size: 72))
+
+                        VStack(spacing: 12) {
+                            Text("感谢您的访问")
+                                .font(.system(size: 24, weight: .semibold))
+                                .foregroundColor(.white)
+
+                            Text("期待下次与您相见")
+                                .font(.system(size: 16))
+                                .foregroundColor(Color.white.opacity(0.7))
+                        }
+                    }
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.3), value: showGoodbyeScreen)
             }
         }
     }
