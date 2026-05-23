@@ -103,7 +103,12 @@ struct OnboardingView: View {
                             }
                             .buttonStyle(PlainButtonStyle())
 
-                            Button(action: onContinue) {
+                            Button(action: {
+                                // 用户同意隐私政策后，初始化友盟统计（合规要求）
+                                UMengAnalytics.shared.initialize()
+                                // 继续进入应用
+                                onContinue()
+                            }) {
                                 Text("同意并继续")
                                     .font(.system(size: 15, weight: .semibold))
                                     .foregroundColor(.white)
