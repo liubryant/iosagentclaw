@@ -85,13 +85,28 @@ private struct DocumentWebPreview: UIViewRepresentable {
 struct DocumentExportView: UIViewControllerRepresentable {
     let url: URL
 
-    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        if #available(iOS 14.0, *) {
-            return UIDocumentPickerViewController(forExporting: [url], asCopy: true)
-        } else {
-            return UIDocumentPickerViewController(url: url, in: .exportToService)
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let activityVC = UIActivityViewController(
+            activityItems: [url],
+            applicationActivities: nil
+        )
+
+        // 对于iPad，设置popover的源位置
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first,
+           let rootVC = window.rootViewController {
+            activityVC.popoverPresentationController?.sourceView = rootVC.view
+            activityVC.popoverPresentationController?.sourceRect = CGRect(
+                x: rootVC.view.bounds.midX,
+                y: rootVC.view.bounds.midY,
+                width: 0,
+                height: 0
+            )
+            activityVC.popoverPresentationController?.permittedArrowDirections = []
         }
+
+        return activityVC
     }
 
-    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

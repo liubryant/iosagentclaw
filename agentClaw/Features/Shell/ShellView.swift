@@ -97,7 +97,7 @@ struct ShellView: View {
                 sidebarNavItem(icon: "sparkles", title: "灵感泉涌", subtitle: "提示词模板") {
                     destination = .ideas
                 }
-                sidebarNavItem(icon: "folder", title: "文件", subtitle: "文件与导出") {
+                sidebarNavItem(icon: "folder", title: "文件", subtitle: "文件与分享") {
                     isDocumentsPresented = true
                 }
                 sidebarNavItem(icon: "slide_setting", title: "设置", subtitle: "技能和关于", isCustomIcon: true) {
@@ -470,7 +470,7 @@ struct DocumentsListView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "square.and.arrow.up")
                             .font(.system(size: 12))
-                        Text("导出")
+                        Text("分享")
                             .font(.system(size: 12, weight: .medium))
                     }
                     .foregroundColor(.white)

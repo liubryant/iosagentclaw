@@ -193,16 +193,13 @@ struct SettingsPanelView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(spacing: 4) {
-                    Image("about_icon")
+                    Image("app_icon_display")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 118, height: 76)
+                        .frame(width: 59, height: 59)
                         .onTapGesture {
                             handleLogoTap()
                         }
-                    Text("Agent Claw")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 8)

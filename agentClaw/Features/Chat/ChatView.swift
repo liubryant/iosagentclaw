@@ -106,15 +106,10 @@ struct ChatView: View {
 
     private var welcomeState: some View {
         VStack(spacing: 0) {
-            Image("img_chat_lobster")
+            Image("app_icon_display")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 100, height: 60)
-
-            Text("Agent Claw")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
-                .padding(.top, 22)
+                .frame(width: 45, height: 45)
 
             Text("7x24小时，随时随地召唤的全能电脑AI助手")
                 .font(.system(size: 12))
@@ -240,7 +235,7 @@ struct ChatView: View {
                 .buttonStyle(DocumentActionButtonStyle())
 
                 Button(action: { activeDocumentSheet = .export(document) }) {
-                    Text("导出")
+                    Text("分享")
                         .font(.system(size: 11, weight: .medium))
                         .frame(width: 80, height: 32)
                 }
