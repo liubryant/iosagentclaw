@@ -44,6 +44,7 @@ struct ShellView: View {
                 if isSettingsPresented {
                     SettingsPanelView(
                         gatewayViewModel: gatewayViewModel,
+                        chatViewModel: chatViewModel,
                         isPresented: $isSettingsPresented
                     )
                     .transition(.opacity)

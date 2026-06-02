@@ -236,4 +236,21 @@ final class ChatViewModel: ObservableObject {
             entryModesBySession: entryModesBySession
         )
     }
+
+    func clearAllData() {
+        // 重置为初始状态
+        let initialSession = LocalChatSession(title: "新对话")
+        self.sessions = [initialSession]
+        self.selectedSessionID = initialSession.id
+        self.messagesBySession = [initialSession.id: []]
+        self.entryModesBySession = [initialSession.id: .default]
+        self.draft = ""
+        self.errorMessage = nil
+
+        // 清除持久化数据
+        preferences.chatHistorySnapshot = nil
+
+        // 通知视图更新
+        objectWillChange.send()
+    }
 }

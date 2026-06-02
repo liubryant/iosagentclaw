@@ -3,11 +3,10 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 50;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		MB2000012FB900000000001A /* MockBUAdSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = MB1000012FB900000000001A /* MockBUAdSDK.m */; };
 		0428199B2FB80F5A0002BDC7 /* agentClawApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0428199A2FB80F5A0002BDC7 /* agentClawApp.swift */; };
 		0428199D2FB80F5A0002BDC7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0428199C2FB80F5A0002BDC7 /* ContentView.swift */; };
 		0428199F2FB80F620002BDC7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0428199E2FB80F620002BDC7 /* Assets.xcassets */; };
@@ -39,6 +38,7 @@
 		AB2000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift */; };
 		AB2000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift */; };
 		CC308AAE82CD3EC440B9B769 /* UMengAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3162F4F2289C0A3263866F2 /* UMengAnalytics.swift */; };
+		MB2000012FB900000000001A /* MockBUAdSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = MB1000012FB900000000001A /* MockBUAdSDK.m */; };
 		PA2000012FB9000000000018 /* PangleAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000012FB9000000000018 /* PangleAdManager.swift */; };
 		PA2000022FB9000000000019 /* PangleSplashAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000022FB9000000000019 /* PangleSplashAdManager.swift */; };
 /* End PBXBuildFile section */
@@ -85,8 +85,6 @@
 
 /* Begin PBXFileReference section */
 		0406804F2FC169C800185EB0 /* Frameworks */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Frameworks; sourceTree = "<group>"; };
-		MB1000012FB900000000001A /* MockBUAdSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MockBUAdSDK.m; sourceTree = "<group>"; };
-		MB1000022FB900000000001B /* MockBUAdSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MockBUAdSDK.h; sourceTree = "<group>"; };
 		042819972FB80F5A0002BDC7 /* agentClaw.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = agentClaw.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0428199A2FB80F5A0002BDC7 /* agentClawApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agentClawApp.swift; sourceTree = "<group>"; };
 		0428199C2FB80F5A0002BDC7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -124,6 +122,8 @@
 		AB1000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/GeneratedDocumentStore.swift; sourceTree = "<group>"; };
 		AB1000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/DocumentPreviewView.swift; sourceTree = "<group>"; };
 		B3162F4F2289C0A3263866F2 /* UMengAnalytics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UMengAnalytics.swift; sourceTree = "<group>"; };
+		MB1000012FB900000000001A /* MockBUAdSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MockBUAdSDK.m; sourceTree = "<group>"; };
+		MB1000022FB900000000001B /* MockBUAdSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MockBUAdSDK.h; sourceTree = "<group>"; };
 		PA1000012FB9000000000018 /* PangleAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleAdManager.swift; sourceTree = "<group>"; };
 		PA1000022FB9000000000019 /* PangleSplashAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleSplashAdManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -586,7 +586,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"agentClaw/Preview Content\"";
-				DEVELOPMENT_TEAM = 2Y5CF6LA99;
+				DEVELOPMENT_TEAM = MF7G4UB9D9;
 				ENABLE_BITCODE = NO;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = agentClaw/Info.plist;
@@ -606,7 +606,7 @@
 					"-liconv",
 					"-lc++abi",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.liubryant.agentClaw;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.cjym.agentclaw;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -620,7 +620,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"agentClaw/Preview Content\"";
-				DEVELOPMENT_TEAM = 2Y5CF6LA99;
+				DEVELOPMENT_TEAM = MF7G4UB9D9;
 				ENABLE_BITCODE = NO;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = agentClaw/Info.plist;
@@ -640,7 +640,7 @@
 					"-liconv",
 					"-lc++abi",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.liubryant.agentClaw;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.cjym.agentclaw;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -660,7 +660,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.liubryant.agentClawTests;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.cjym.agentclawTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -681,7 +681,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.liubryant.agentClawTests;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.cjym.agentclawTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -700,7 +700,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.liubryant.agentClawUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.cjym.agentclawUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -719,7 +719,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.liubryant.agentClawUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.cjym.agentclawUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

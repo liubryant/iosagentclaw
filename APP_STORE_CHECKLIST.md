@@ -98,7 +98,7 @@ func data(for request: URLRequest, completion: @escaping (Result<Data, Error>) -
 ---
 
 ### 2. Bundle Identifier 确认
-**当前**: `com.liubryant.agentClaw`
+**当前**: `ai.cjym.agentclaw`
 
 **需要确认**:
 - [ ] 已在Apple Developer账号中注册此Bundle ID

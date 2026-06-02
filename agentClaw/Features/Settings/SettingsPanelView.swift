@@ -7,10 +7,11 @@ struct SettingsPanelView: View {
     }
 
     @ObservedObject var gatewayViewModel: GatewayConnectionViewModel
+    @ObservedObject var chatViewModel: ChatViewModel
     @Binding var isPresented: Bool
     @State private var selectedPage: Page = .skills
-    @State private var skillQuery = ""
     @State private var showEnvironmentAlert = false
+    @State private var showClearDataAlert = false
     @State private var currentEnvironment: AppEnvironment = .production
     @State private var tapCount = 0
     @State private var lastTapTime = Date()
@@ -65,7 +66,7 @@ struct SettingsPanelView: View {
                         .scaledToFit()
                         .frame(width: 22, height: 22)
                     Text("设置")
-                        .font(.system(size: 20, weight: .bold))
+                        .font(.system(size: 16, weight: .bold))
                         .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                 }
                 Spacer()
@@ -122,7 +123,7 @@ struct SettingsPanelView: View {
                     .scaledToFit()
                     .frame(width: 18, height: 18)
                 Text("设置")
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 13, weight: .bold))
                     .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
             }
             Spacer()
@@ -153,19 +154,6 @@ struct SettingsPanelView: View {
         VStack(alignment: .leading, spacing: 14) {
             pageHeader(title: "技能管理", subtitle: "扩展智能体的能力：一键集成精选技能与工具")
 
-            HStack {
-                Image("icon_search")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20, height: 20)
-                TextField("搜索技能", text: $skillQuery)
-                    .font(.system(size: 12))
-            }
-            .padding(.horizontal, 12)
-            .frame(height: 40)
-            .background(Color.white.opacity(0.88))
-            .cornerRadius(8)
-
             ScrollView {
                 skillGrid
                     .padding(.bottom, 4)
@@ -190,47 +178,44 @@ struct SettingsPanelView: View {
     }
 
     private var aboutPage: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(spacing: 4) {
-                    Image("app_icon_display")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 59, height: 59)
-                        .onTapGesture {
-                            handleLogoTap()
-                        }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.top, 8)
-
-                VStack(spacing: 8) {
-                    aboutListRow(title: "当前版本", detail: appVersion, url: nil)
-                    if showEnvironmentOption {
-                        environmentSwitchRow()
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    VStack(spacing: 4) {
+                        Image("app_icon_display")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 59, height: 59)
+                            .onTapGesture {
+                                handleLogoTap()
+                            }
                     }
-                    aboutListRow(title: "用户协议", detail: nil, url: "https://www.cjym123.cn/agreement_agentclaw.html")
-                    aboutListRow(title: "隐私政策", detail: nil, url: "https://www.cjym123.cn/privacy_agentclaw.html")
-                }
-                .padding(.top, 4)
-            }
-        }
-    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 8)
 
-    private var filteredSkills: [SkillItem] {
-        let query = skillQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        if query.isEmpty {
-            return skills
-        }
-        return skills.filter {
-            $0.name.localizedCaseInsensitiveContains(query) ||
-                $0.detail.localizedCaseInsensitiveContains(query)
+                    VStack(spacing: 8) {
+                        versionInfoRow(title: "当前版本", detail: appVersion)
+                        if showEnvironmentOption {
+                            environmentSwitchRow()
+                        }
+                        aboutListRow(title: "用户协议", detail: nil, url: "https://www.cjym123.cn/agreement_agentclaw.html")
+                        aboutListRow(title: "隐私政策", detail: nil, url: "https://www.cjym123.cn/privacy_agentclaw.html")
+
+                        clearDataButton()
+                    }
+                    .padding(.top, 4)
+                }
+            }
+
+            icpFilingRow()
+                .padding(.top, 30)
+                .padding(.bottom, 16)
         }
     }
 
     private var skillRows: [[SkillItem]] {
-        stride(from: 0, to: filteredSkills.count, by: 2).map { index in
-            Array(filteredSkills[index..<min(index + 2, filteredSkills.count)])
+        stride(from: 0, to: skills.count, by: 2).map { index in
+            Array(skills[index..<min(index + 2, skills.count)])
         }
     }
 
@@ -242,7 +227,7 @@ struct SettingsPanelView: View {
                     .scaledToFit()
                     .frame(width: 20, height: 20)
                 Text(title)
-                    .font(.system(size: 14, weight: selectedPage == page ? .semibold : .regular))
+                    .font(.system(size: 12, weight: selectedPage == page ? .semibold : .regular))
                     .lineLimit(1)
                     .minimumScaleFactor(0.82)
                 Spacer()
@@ -259,12 +244,12 @@ struct SettingsPanelView: View {
     private func pageHeader(title: String, subtitle: String) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(title)
-                .font(.system(size: 16, weight: .bold))
+                .font(.system(size: 14, weight: .bold))
                 .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                 .lineLimit(2)
                 .minimumScaleFactor(0.88)
             Text(subtitle)
-                .font(.system(size: 12))
+                .font(.system(size: 11))
                 .foregroundColor(AgentClawDesign.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -279,7 +264,7 @@ struct SettingsPanelView: View {
                     .frame(width: 23, height: 30)
 
                 Text(skill.name)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundColor(Color(red: 0.12, green: 0.12, blue: 0.12))
                     .lineLimit(1)
 
@@ -292,7 +277,7 @@ struct SettingsPanelView: View {
             }
 
             Text(skill.detail)
-                .font(.system(size: 11))
+                .font(.system(size: 10))
                 .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
                 .lineLimit(2)
                 .padding(.leading, 33)
@@ -301,7 +286,7 @@ struct SettingsPanelView: View {
 
             HStack {
                 Text("内置技能")
-                    .font(.system(size: 10))
+                    .font(.system(size: 9))
                     .foregroundColor(.black)
                     .padding(.horizontal, 8)
                     .frame(height: 24)
@@ -320,6 +305,22 @@ struct SettingsPanelView: View {
         .cornerRadius(12)
     }
 
+    private func versionInfoRow(title: String, detail: String) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 11))
+                .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+            Text(detail)
+                .font(.system(size: 11))
+                .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+            Spacer()
+        }
+        .padding(.horizontal, 14)
+        .frame(height: 42)
+        .background(Color.white)
+        .cornerRadius(8)
+    }
+
     private func aboutListRow(title: String, detail: String? = nil, url: String? = nil) -> some View {
         Button(action: {
             if let urlString = url, let url = URL(string: urlString) {
@@ -328,12 +329,12 @@ struct SettingsPanelView: View {
         }) {
             HStack {
                 Text(title)
-                    .font(.system(size: 12))
+                    .font(.system(size: 11))
                     .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                 if let detail = detail {
                     Text(detail)
-                        .font(.system(size: 12))
-                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                 }
                 Spacer()
                 if detail == nil && url != nil {
@@ -349,7 +350,38 @@ struct SettingsPanelView: View {
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
-        .disabled(url == nil && detail != nil)
+    }
+
+    private func clearDataButton() -> some View {
+        Button(action: {
+            showClearDataAlert = true
+        }) {
+            HStack {
+                Text("清除所有数据")
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+                Spacer()
+                Image("arrow_right")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 18, height: 18)
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 42)
+            .background(Color.white)
+            .cornerRadius(8)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .alert(isPresented: $showClearDataAlert) {
+            Alert(
+                title: Text("清除所有数据"),
+                message: Text("此操作将清除所有聊天记录、网关配置等数据，且无法恢复。确定要继续吗？"),
+                primaryButton: .destructive(Text("清除")) {
+                    clearAllData()
+                },
+                secondaryButton: .cancel(Text("取消"))
+            )
+        }
     }
 
     private func environmentSwitchRow() -> some View {
@@ -358,11 +390,11 @@ struct SettingsPanelView: View {
         }) {
             HStack {
                 Text("运行环境")
-                    .font(.system(size: 12))
+                    .font(.system(size: 11))
                     .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                 Spacer()
                 Text(currentEnvironment.displayName)
-                    .font(.system(size: 12))
+                    .font(.system(size: 11))
                     .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
                 Image("arrow_right")
                     .resizable()
@@ -415,6 +447,45 @@ struct SettingsPanelView: View {
                 showEnvironmentOption.toggle()
             }
             tapCount = 0
+        }
+    }
+
+    private func clearAllData() {
+        // 清除聊天历史（包括内存中的数据）
+        chatViewModel.clearAllData()
+
+        // 清除网关token
+        let keychain = KeychainStore()
+        try? keychain.setString(nil, for: GatewayTokenKey.gatewayToken)
+
+        // 通知用户数据已清除
+        showClearDataAlert = false
+
+        // 刷新网关视图状态
+        gatewayViewModel.refreshFromEnvironment()
+    }
+
+    private func icpFilingRow() -> some View {
+        HStack(spacing: 0) {
+            Spacer()
+
+            Text("ICP备案号：")
+                .font(.system(size: 10))
+                .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
+
+            Button(action: {
+                if let url = URL(string: "https://beian.miit.gov.cn/") {
+                    UIApplication.shared.open(url)
+                }
+            }) {
+                Text("粤ICP备2024188934号-2A")
+                    .font(.system(size: 10))
+                    .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
+                    .underline()
+            }
+            .buttonStyle(PlainButtonStyle())
+
+            Spacer()
         }
     }
 
