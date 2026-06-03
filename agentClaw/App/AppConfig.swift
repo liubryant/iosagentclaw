@@ -26,7 +26,11 @@ enum AppEnvironment {
         case .production:
             return "https://www.cjym123.cn/v1"
         case .testing:
+            #if DEBUG
             return "http://192.168.1.17:8066/v1"
+            #else
+            return "https://www.cjym123.cn/v1"  // Release版本使用生产环境
+            #endif
         }
     }
 
