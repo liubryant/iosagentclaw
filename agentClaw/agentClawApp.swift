@@ -4,7 +4,8 @@
 //  agentClawApp.swift
 //  agentClaw
 //
-//  Created by MAC on 2026/5/16.
+//  Created by Liuzheng on 2026/5/16.
+//  Email: bryant_liu24@126.com
 //
 
 import SwiftUI

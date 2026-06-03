@@ -346,6 +346,12 @@ struct ChatView: View {
                 }
                 .disabled(canSend == false)
             }
+
+            Text("内容由AI生成，仅供参考")
+                .font(.system(size: 10))
+                .foregroundColor(AgentClawDesign.secondaryText)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 4)
         }
         .padding(.leading, 16)
         .padding(.trailing, 8)
