@@ -14,31 +14,33 @@
 		042819AD2FB80F620002BDC7 /* agentClawTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042819AC2FB80F620002BDC7 /* agentClawTests.swift */; };
 		042819B82FB80F620002BDC7 /* agentClawUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 042819B72FB80F620002BDC7 /* agentClawUITests.swift */; };
 		042819FF2FB80F620002BDC8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 042819FE2FB80F620002BDC8 /* LaunchScreen.storyboard */; };
-		AB2000012FB9000000000001 /* App/AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000012FB9000000000001 /* App/AppConfig.swift */; };
-		AB2000022FB9000000000002 /* App/DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000022FB9000000000002 /* App/DependencyContainer.swift */; };
-		AB2000032FB9000000000003 /* Core/Models/JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000032FB9000000000003 /* Core/Models/JSONValue.swift */; };
-		AB2000042FB9000000000004 /* Core/Models/NodeFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000042FB9000000000004 /* Core/Models/NodeFrame.swift */; };
-		AB2000052FB9000000000005 /* Core/Models/ChatModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000052FB9000000000005 /* Core/Models/ChatModels.swift */; };
-		AB2000062FB9000000000006 /* Core/Networking/HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000062FB9000000000006 /* Core/Networking/HTTPClient.swift */; };
-		AB2000072FB9000000000007 /* Core/Storage/AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000072FB9000000000007 /* Core/Storage/AppPreferences.swift */; };
-		AB2000082FB9000000000008 /* Core/Storage/KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000082FB9000000000008 /* Core/Storage/KeychainStore.swift */; };
-		AB2000092FB9000000000009 /* Features/Gateway/GatewayConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000092FB9000000000009 /* Features/Gateway/GatewayConfig.swift */; };
-		AB20000A2FB900000000000A /* Features/Gateway/GatewayClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000A2FB900000000000A /* Features/Gateway/GatewayClient.swift */; };
-		AB20000B2FB900000000000B /* Features/Gateway/GatewayConnectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000B2FB900000000000B /* Features/Gateway/GatewayConnectionViewModel.swift */; };
-		AB20000C2FB900000000000C /* Features/Gateway/GatewaySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000C2FB900000000000C /* Features/Gateway/GatewaySettingsView.swift */; };
-		AB20000D2FB900000000000D /* Features/Chat/ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000D2FB900000000000D /* Features/Chat/ChatViewModel.swift */; };
-		AB20000E2FB900000000000E /* Features/Chat/ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000E2FB900000000000E /* Features/Chat/ChatView.swift */; };
-		AB20000F2FB900000000000F /* Features/Shell/ShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000F2FB900000000000F /* Features/Shell/ShellView.swift */; };
-		AB2000102FB9000000000010 /* Features/Chat/MultilineTextInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000102FB9000000000010 /* Features/Chat/MultilineTextInput.swift */; };
-		AB2000112FB9000000000011 /* App/AgentClawDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000112FB9000000000011 /* App/AgentClawDesign.swift */; };
-		AB2000122FB9000000000012 /* Features/Onboarding/OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000122FB9000000000012 /* Features/Onboarding/OnboardingView.swift */; };
-		AB2000132FB9000000000013 /* Features/Settings/SettingsPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000132FB9000000000013 /* Features/Settings/SettingsPanelView.swift */; };
-		AB2000142FB9000000000014 /* Features/Ideas/FancyIdeasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000142FB9000000000014 /* Features/Ideas/FancyIdeasView.swift */; };
-		AB2000152FB9000000000015 /* Core/iOS13Compatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000152FB9000000000015 /* Core/iOS13Compatibility.swift */; };
-		AB2000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift */; };
-		AB2000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift */; };
+		5BA6E84D2781105A3123C53A /* Pods_agentClawTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C20DA3A51EB9D34EEE38A237 /* Pods_agentClawTests.framework */; };
+		92EA3475F0E4A4759EF733BA /* Pods_agentClaw.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A620269336620E002B83212 /* Pods_agentClaw.framework */; };
+		AB2000012FB9000000000001 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000012FB9000000000001 /* AppConfig.swift */; };
+		AB2000022FB9000000000002 /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000022FB9000000000002 /* DependencyContainer.swift */; };
+		AB2000032FB9000000000003 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000032FB9000000000003 /* JSONValue.swift */; };
+		AB2000042FB9000000000004 /* NodeFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000042FB9000000000004 /* NodeFrame.swift */; };
+		AB2000052FB9000000000005 /* ChatModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000052FB9000000000005 /* ChatModels.swift */; };
+		AB2000062FB9000000000006 /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000062FB9000000000006 /* HTTPClient.swift */; };
+		AB2000072FB9000000000007 /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000072FB9000000000007 /* AppPreferences.swift */; };
+		AB2000082FB9000000000008 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000082FB9000000000008 /* KeychainStore.swift */; };
+		AB2000092FB9000000000009 /* GatewayConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000092FB9000000000009 /* GatewayConfig.swift */; };
+		AB20000A2FB900000000000A /* GatewayClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000A2FB900000000000A /* GatewayClient.swift */; };
+		AB20000B2FB900000000000B /* GatewayConnectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000B2FB900000000000B /* GatewayConnectionViewModel.swift */; };
+		AB20000C2FB900000000000C /* GatewaySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000C2FB900000000000C /* GatewaySettingsView.swift */; };
+		AB20000D2FB900000000000D /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000D2FB900000000000D /* ChatViewModel.swift */; };
+		AB20000E2FB900000000000E /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000E2FB900000000000E /* ChatView.swift */; };
+		AB20000F2FB900000000000F /* ShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000F2FB900000000000F /* ShellView.swift */; };
+		AB2000102FB9000000000010 /* MultilineTextInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000102FB9000000000010 /* MultilineTextInput.swift */; };
+		AB2000112FB9000000000011 /* AgentClawDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000112FB9000000000011 /* AgentClawDesign.swift */; };
+		AB2000122FB9000000000012 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000122FB9000000000012 /* OnboardingView.swift */; };
+		AB2000132FB9000000000013 /* SettingsPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000132FB9000000000013 /* SettingsPanelView.swift */; };
+		AB2000142FB9000000000014 /* FancyIdeasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000142FB9000000000014 /* FancyIdeasView.swift */; };
+		AB2000152FB9000000000015 /* iOS13Compatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000152FB9000000000015 /* iOS13Compatibility.swift */; };
+		AB2000162FB9000000000016 /* GeneratedDocumentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000162FB9000000000016 /* GeneratedDocumentStore.swift */; };
+		AB2000172FB9000000000017 /* DocumentPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000172FB9000000000017 /* DocumentPreviewView.swift */; };
 		CC308AAE82CD3EC440B9B769 /* UMengAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3162F4F2289C0A3263866F2 /* UMengAnalytics.swift */; };
-		MB2000012FB900000000001A /* MockBUAdSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = MB1000012FB900000000001A /* MockBUAdSDK.m */; };
+		CD2E6AA7994A88C382BC4DC9 /* Pods_agentClaw_agentClawUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DDA556783F6D708372A46AB /* Pods_agentClaw_agentClawUITests.framework */; };
 		PA2000012FB9000000000018 /* PangleAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000012FB9000000000018 /* PangleAdManager.swift */; };
 		PA2000022FB9000000000019 /* PangleSplashAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000022FB9000000000019 /* PangleSplashAdManager.swift */; };
 /* End PBXBuildFile section */
@@ -98,30 +100,39 @@
 		042819B72FB80F620002BDC7 /* agentClawUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agentClawUITests.swift; sourceTree = "<group>"; };
 		042819B92FB80F620002BDC7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		042819FE2FB80F620002BDC8 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
-		AB1000012FB9000000000001 /* App/AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AppConfig.swift; sourceTree = "<group>"; };
-		AB1000022FB9000000000002 /* App/DependencyContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/DependencyContainer.swift; sourceTree = "<group>"; };
-		AB1000032FB9000000000003 /* Core/Models/JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/JSONValue.swift; sourceTree = "<group>"; };
-		AB1000042FB9000000000004 /* Core/Models/NodeFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/NodeFrame.swift; sourceTree = "<group>"; };
-		AB1000052FB9000000000005 /* Core/Models/ChatModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/ChatModels.swift; sourceTree = "<group>"; };
-		AB1000062FB9000000000006 /* Core/Networking/HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/HTTPClient.swift; sourceTree = "<group>"; };
-		AB1000072FB9000000000007 /* Core/Storage/AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/AppPreferences.swift; sourceTree = "<group>"; };
-		AB1000082FB9000000000008 /* Core/Storage/KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/KeychainStore.swift; sourceTree = "<group>"; };
-		AB1000092FB9000000000009 /* Features/Gateway/GatewayConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewayConfig.swift; sourceTree = "<group>"; };
-		AB10000A2FB900000000000A /* Features/Gateway/GatewayClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewayClient.swift; sourceTree = "<group>"; };
-		AB10000B2FB900000000000B /* Features/Gateway/GatewayConnectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewayConnectionViewModel.swift; sourceTree = "<group>"; };
-		AB10000C2FB900000000000C /* Features/Gateway/GatewaySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewaySettingsView.swift; sourceTree = "<group>"; };
-		AB10000D2FB900000000000D /* Features/Chat/ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/ChatViewModel.swift; sourceTree = "<group>"; };
-		AB10000E2FB900000000000E /* Features/Chat/ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/ChatView.swift; sourceTree = "<group>"; };
-		AB10000F2FB900000000000F /* Features/Shell/ShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Shell/ShellView.swift; sourceTree = "<group>"; };
-		AB1000102FB9000000000010 /* Features/Chat/MultilineTextInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/MultilineTextInput.swift; sourceTree = "<group>"; };
-		AB1000112FB9000000000011 /* App/AgentClawDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AgentClawDesign.swift; sourceTree = "<group>"; };
-		AB1000122FB9000000000012 /* Features/Onboarding/OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Onboarding/OnboardingView.swift; sourceTree = "<group>"; };
-		AB1000132FB9000000000013 /* Features/Settings/SettingsPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Settings/SettingsPanelView.swift; sourceTree = "<group>"; };
-		AB1000142FB9000000000014 /* Features/Ideas/FancyIdeasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Ideas/FancyIdeasView.swift; sourceTree = "<group>"; };
-		AB1000152FB9000000000015 /* Core/iOS13Compatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/iOS13Compatibility.swift; sourceTree = "<group>"; };
-		AB1000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/GeneratedDocumentStore.swift; sourceTree = "<group>"; };
-		AB1000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/DocumentPreviewView.swift; sourceTree = "<group>"; };
+		2A620269336620E002B83212 /* Pods_agentClaw.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_agentClaw.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		78521DBD727E84000D04F889 /* Pods-agentClaw-agentClawUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-agentClaw-agentClawUITests.release.xcconfig"; path = "Target Support Files/Pods-agentClaw-agentClawUITests/Pods-agentClaw-agentClawUITests.release.xcconfig"; sourceTree = "<group>"; };
+		7DDA556783F6D708372A46AB /* Pods_agentClaw_agentClawUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_agentClaw_agentClawUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		8ECB66A3E729933A32DE1FB0 /* Pods-agentClaw-agentClawUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-agentClaw-agentClawUITests.debug.xcconfig"; path = "Target Support Files/Pods-agentClaw-agentClawUITests/Pods-agentClaw-agentClawUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		9955DB3920049987D27BA2D7 /* Pods-agentClaw.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-agentClaw.release.xcconfig"; path = "Target Support Files/Pods-agentClaw/Pods-agentClaw.release.xcconfig"; sourceTree = "<group>"; };
+		AB1000012FB9000000000001 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AppConfig.swift; sourceTree = "<group>"; };
+		AB1000022FB9000000000002 /* DependencyContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/DependencyContainer.swift; sourceTree = "<group>"; };
+		AB1000032FB9000000000003 /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/JSONValue.swift; sourceTree = "<group>"; };
+		AB1000042FB9000000000004 /* NodeFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/NodeFrame.swift; sourceTree = "<group>"; };
+		AB1000052FB9000000000005 /* ChatModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/ChatModels.swift; sourceTree = "<group>"; };
+		AB1000062FB9000000000006 /* HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/HTTPClient.swift; sourceTree = "<group>"; };
+		AB1000072FB9000000000007 /* AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/AppPreferences.swift; sourceTree = "<group>"; };
+		AB1000082FB9000000000008 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/KeychainStore.swift; sourceTree = "<group>"; };
+		AB1000092FB9000000000009 /* GatewayConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewayConfig.swift; sourceTree = "<group>"; };
+		AB10000A2FB900000000000A /* GatewayClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewayClient.swift; sourceTree = "<group>"; };
+		AB10000B2FB900000000000B /* GatewayConnectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewayConnectionViewModel.swift; sourceTree = "<group>"; };
+		AB10000C2FB900000000000C /* GatewaySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Gateway/GatewaySettingsView.swift; sourceTree = "<group>"; };
+		AB10000D2FB900000000000D /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/ChatViewModel.swift; sourceTree = "<group>"; };
+		AB10000E2FB900000000000E /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/ChatView.swift; sourceTree = "<group>"; };
+		AB10000F2FB900000000000F /* ShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Shell/ShellView.swift; sourceTree = "<group>"; };
+		AB1000102FB9000000000010 /* MultilineTextInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/MultilineTextInput.swift; sourceTree = "<group>"; };
+		AB1000112FB9000000000011 /* AgentClawDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AgentClawDesign.swift; sourceTree = "<group>"; };
+		AB1000122FB9000000000012 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Onboarding/OnboardingView.swift; sourceTree = "<group>"; };
+		AB1000132FB9000000000013 /* SettingsPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Settings/SettingsPanelView.swift; sourceTree = "<group>"; };
+		AB1000142FB9000000000014 /* FancyIdeasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Ideas/FancyIdeasView.swift; sourceTree = "<group>"; };
+		AB1000152FB9000000000015 /* iOS13Compatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/iOS13Compatibility.swift; sourceTree = "<group>"; };
+		AB1000162FB9000000000016 /* GeneratedDocumentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/GeneratedDocumentStore.swift; sourceTree = "<group>"; };
+		AB1000172FB9000000000017 /* DocumentPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/DocumentPreviewView.swift; sourceTree = "<group>"; };
 		B3162F4F2289C0A3263866F2 /* UMengAnalytics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UMengAnalytics.swift; sourceTree = "<group>"; };
+		C20DA3A51EB9D34EEE38A237 /* Pods_agentClawTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_agentClawTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEF2B5FD08883030247D489C /* Pods-agentClawTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-agentClawTests.release.xcconfig"; path = "Target Support Files/Pods-agentClawTests/Pods-agentClawTests.release.xcconfig"; sourceTree = "<group>"; };
+		D22DCA3E14169DEE7190CBA5 /* Pods-agentClaw.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-agentClaw.debug.xcconfig"; path = "Target Support Files/Pods-agentClaw/Pods-agentClaw.debug.xcconfig"; sourceTree = "<group>"; };
+		E2BAAA0614CC04E059D04687 /* Pods-agentClawTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-agentClawTests.debug.xcconfig"; path = "Target Support Files/Pods-agentClawTests/Pods-agentClawTests.debug.xcconfig"; sourceTree = "<group>"; };
 		MB1000012FB900000000001A /* MockBUAdSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MockBUAdSDK.m; sourceTree = "<group>"; };
 		MB1000022FB900000000001B /* MockBUAdSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MockBUAdSDK.h; sourceTree = "<group>"; };
 		PA1000012FB9000000000018 /* PangleAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleAdManager.swift; sourceTree = "<group>"; };
@@ -133,6 +144,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				92EA3475F0E4A4759EF733BA /* Pods_agentClaw.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,6 +152,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5BA6E84D2781105A3123C53A /* Pods_agentClawTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -147,6 +160,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CD2E6AA7994A88C382BC4DC9 /* Pods_agentClaw_agentClawUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -157,6 +171,9 @@
 			isa = PBXGroup;
 			children = (
 				0406804F2FC169C800185EB0 /* Frameworks */,
+				2A620269336620E002B83212 /* Pods_agentClaw.framework */,
+				7DDA556783F6D708372A46AB /* Pods_agentClaw_agentClawUITests.framework */,
+				C20DA3A51EB9D34EEE38A237 /* Pods_agentClawTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -169,6 +186,7 @@
 				042819B62FB80F620002BDC7 /* agentClawUITests */,
 				042819982FB80F5A0002BDC7 /* Products */,
 				0406804E2FC169C800185EB0 /* Frameworks */,
+				0B02C1BF5F68EDEC10005534 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -188,29 +206,29 @@
 				0428199A2FB80F5A0002BDC7 /* agentClawApp.swift */,
 				0428199C2FB80F5A0002BDC7 /* ContentView.swift */,
 				042819FE2FB80F620002BDC8 /* LaunchScreen.storyboard */,
-				AB1000012FB9000000000001 /* App/AppConfig.swift */,
-				AB1000112FB9000000000011 /* App/AgentClawDesign.swift */,
-				AB1000022FB9000000000002 /* App/DependencyContainer.swift */,
-				AB1000032FB9000000000003 /* Core/Models/JSONValue.swift */,
-				AB1000042FB9000000000004 /* Core/Models/NodeFrame.swift */,
-				AB1000052FB9000000000005 /* Core/Models/ChatModels.swift */,
-				AB1000062FB9000000000006 /* Core/Networking/HTTPClient.swift */,
-				AB1000072FB9000000000007 /* Core/Storage/AppPreferences.swift */,
-				AB1000082FB9000000000008 /* Core/Storage/KeychainStore.swift */,
-				AB1000152FB9000000000015 /* Core/iOS13Compatibility.swift */,
-				AB1000092FB9000000000009 /* Features/Gateway/GatewayConfig.swift */,
-				AB10000A2FB900000000000A /* Features/Gateway/GatewayClient.swift */,
-				AB10000B2FB900000000000B /* Features/Gateway/GatewayConnectionViewModel.swift */,
-				AB10000C2FB900000000000C /* Features/Gateway/GatewaySettingsView.swift */,
-				AB10000D2FB900000000000D /* Features/Chat/ChatViewModel.swift */,
-				AB10000E2FB900000000000E /* Features/Chat/ChatView.swift */,
-				AB1000102FB9000000000010 /* Features/Chat/MultilineTextInput.swift */,
-				AB1000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift */,
-				AB1000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift */,
-				AB10000F2FB900000000000F /* Features/Shell/ShellView.swift */,
-				AB1000122FB9000000000012 /* Features/Onboarding/OnboardingView.swift */,
-				AB1000132FB9000000000013 /* Features/Settings/SettingsPanelView.swift */,
-				AB1000142FB9000000000014 /* Features/Ideas/FancyIdeasView.swift */,
+				AB1000012FB9000000000001 /* AppConfig.swift */,
+				AB1000112FB9000000000011 /* AgentClawDesign.swift */,
+				AB1000022FB9000000000002 /* DependencyContainer.swift */,
+				AB1000032FB9000000000003 /* JSONValue.swift */,
+				AB1000042FB9000000000004 /* NodeFrame.swift */,
+				AB1000052FB9000000000005 /* ChatModels.swift */,
+				AB1000062FB9000000000006 /* HTTPClient.swift */,
+				AB1000072FB9000000000007 /* AppPreferences.swift */,
+				AB1000082FB9000000000008 /* KeychainStore.swift */,
+				AB1000152FB9000000000015 /* iOS13Compatibility.swift */,
+				AB1000092FB9000000000009 /* GatewayConfig.swift */,
+				AB10000A2FB900000000000A /* GatewayClient.swift */,
+				AB10000B2FB900000000000B /* GatewayConnectionViewModel.swift */,
+				AB10000C2FB900000000000C /* GatewaySettingsView.swift */,
+				AB10000D2FB900000000000D /* ChatViewModel.swift */,
+				AB10000E2FB900000000000E /* ChatView.swift */,
+				AB1000102FB9000000000010 /* MultilineTextInput.swift */,
+				AB1000162FB9000000000016 /* GeneratedDocumentStore.swift */,
+				AB1000172FB9000000000017 /* DocumentPreviewView.swift */,
+				AB10000F2FB900000000000F /* ShellView.swift */,
+				AB1000122FB9000000000012 /* OnboardingView.swift */,
+				AB1000132FB9000000000013 /* SettingsPanelView.swift */,
+				AB1000142FB9000000000014 /* FancyIdeasView.swift */,
 				0428199E2FB80F620002BDC7 /* Assets.xcassets */,
 				042819A32FB80F620002BDC7 /* Info.plist */,
 				042819A02FB80F620002BDC7 /* Preview Content */,
@@ -245,6 +263,20 @@
 			path = agentClawUITests;
 			sourceTree = "<group>";
 		};
+		0B02C1BF5F68EDEC10005534 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				D22DCA3E14169DEE7190CBA5 /* Pods-agentClaw.debug.xcconfig */,
+				9955DB3920049987D27BA2D7 /* Pods-agentClaw.release.xcconfig */,
+				8ECB66A3E729933A32DE1FB0 /* Pods-agentClaw-agentClawUITests.debug.xcconfig */,
+				78521DBD727E84000D04F889 /* Pods-agentClaw-agentClawUITests.release.xcconfig */,
+				E2BAAA0614CC04E059D04687 /* Pods-agentClawTests.debug.xcconfig */,
+				CEF2B5FD08883030247D489C /* Pods-agentClawTests.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		6F05E827D276C9301AD50DA5 /* Analytics */ = {
 			isa = PBXGroup;
 			children = (
@@ -272,11 +304,14 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 042819BC2FB80F620002BDC7 /* Build configuration list for PBXNativeTarget "agentClaw" */;
 			buildPhases = (
+				06CF03D04A3EBCE24BE161AE /* [CP] Check Pods Manifest.lock */,
 				042819932FB80F5A0002BDC7 /* Sources */,
 				042819942FB80F5A0002BDC7 /* Frameworks */,
 				042819952FB80F5A0002BDC7 /* Resources */,
 				040680582FC169F800185EB0 /* Embed Frameworks */,
 				0406805F2FC16A3800185EB0 /* Embed PlugIns */,
+				3A881711DE20AC2BBE76AB27 /* [CP] Embed Pods Frameworks */,
+				5F6247BBC3F56AEA330620CD /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -291,6 +326,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 042819BF2FB80F620002BDC7 /* Build configuration list for PBXNativeTarget "agentClawTests" */;
 			buildPhases = (
+				8660A4BFFE3AE6F688A98B30 /* [CP] Check Pods Manifest.lock */,
 				042819A42FB80F620002BDC7 /* Sources */,
 				042819A52FB80F620002BDC7 /* Frameworks */,
 				042819A62FB80F620002BDC7 /* Resources */,
@@ -309,9 +345,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 042819C22FB80F620002BDC7 /* Build configuration list for PBXNativeTarget "agentClawUITests" */;
 			buildPhases = (
+				BAD1DFD276A2A7FC2E28A270 /* [CP] Check Pods Manifest.lock */,
 				042819AF2FB80F620002BDC7 /* Sources */,
 				042819B02FB80F620002BDC7 /* Frameworks */,
 				042819B12FB80F620002BDC7 /* Resources */,
+				342A13DF88F2B3273C464622 /* [CP] Embed Pods Frameworks */,
+				6377D3A7810ABCBB64A7BC6A /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -392,40 +431,176 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		06CF03D04A3EBCE24BE161AE /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-agentClaw-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		342A13DF88F2B3273C464622 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-agentClaw-agentClawUITests/Pods-agentClaw-agentClawUITests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-agentClaw-agentClawUITests/Pods-agentClaw-agentClawUITests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-agentClaw-agentClawUITests/Pods-agentClaw-agentClawUITests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		3A881711DE20AC2BBE76AB27 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-agentClaw/Pods-agentClaw-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-agentClaw/Pods-agentClaw-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-agentClaw/Pods-agentClaw-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		5F6247BBC3F56AEA330620CD /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-agentClaw/Pods-agentClaw-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-agentClaw/Pods-agentClaw-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-agentClaw/Pods-agentClaw-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		6377D3A7810ABCBB64A7BC6A /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-agentClaw-agentClawUITests/Pods-agentClaw-agentClawUITests-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-agentClaw-agentClawUITests/Pods-agentClaw-agentClawUITests-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-agentClaw-agentClawUITests/Pods-agentClaw-agentClawUITests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		8660A4BFFE3AE6F688A98B30 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-agentClawTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		BAD1DFD276A2A7FC2E28A270 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-agentClaw-agentClawUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		042819932FB80F5A0002BDC7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AB20000D2FB900000000000D /* Features/Chat/ChatViewModel.swift in Sources */,
-				AB20000B2FB900000000000B /* Features/Gateway/GatewayConnectionViewModel.swift in Sources */,
-				AB20000E2FB900000000000E /* Features/Chat/ChatView.swift in Sources */,
-				AB2000102FB9000000000010 /* Features/Chat/MultilineTextInput.swift in Sources */,
-				AB2000132FB9000000000013 /* Features/Settings/SettingsPanelView.swift in Sources */,
-				AB2000142FB9000000000014 /* Features/Ideas/FancyIdeasView.swift in Sources */,
-				AB2000052FB9000000000005 /* Core/Models/ChatModels.swift in Sources */,
-				AB20000A2FB900000000000A /* Features/Gateway/GatewayClient.swift in Sources */,
-				AB2000072FB9000000000007 /* Core/Storage/AppPreferences.swift in Sources */,
-				AB2000062FB9000000000006 /* Core/Networking/HTTPClient.swift in Sources */,
+				AB20000D2FB900000000000D /* ChatViewModel.swift in Sources */,
+				AB20000B2FB900000000000B /* GatewayConnectionViewModel.swift in Sources */,
+				AB20000E2FB900000000000E /* ChatView.swift in Sources */,
+				AB2000102FB9000000000010 /* MultilineTextInput.swift in Sources */,
+				AB2000132FB9000000000013 /* SettingsPanelView.swift in Sources */,
+				AB2000142FB9000000000014 /* FancyIdeasView.swift in Sources */,
+				AB2000052FB9000000000005 /* ChatModels.swift in Sources */,
+				AB20000A2FB900000000000A /* GatewayClient.swift in Sources */,
+				AB2000072FB9000000000007 /* AppPreferences.swift in Sources */,
+				AB2000062FB9000000000006 /* HTTPClient.swift in Sources */,
 				0428199D2FB80F5A0002BDC7 /* ContentView.swift in Sources */,
-				AB20000F2FB900000000000F /* Features/Shell/ShellView.swift in Sources */,
-				AB2000082FB9000000000008 /* Core/Storage/KeychainStore.swift in Sources */,
-				AB2000022FB9000000000002 /* App/DependencyContainer.swift in Sources */,
-				AB20000C2FB900000000000C /* Features/Gateway/GatewaySettingsView.swift in Sources */,
-				AB2000112FB9000000000011 /* App/AgentClawDesign.swift in Sources */,
-				AB2000042FB9000000000004 /* Core/Models/NodeFrame.swift in Sources */,
-				AB2000012FB9000000000001 /* App/AppConfig.swift in Sources */,
-				AB2000092FB9000000000009 /* Features/Gateway/GatewayConfig.swift in Sources */,
+				AB20000F2FB900000000000F /* ShellView.swift in Sources */,
+				AB2000082FB9000000000008 /* KeychainStore.swift in Sources */,
+				AB2000022FB9000000000002 /* DependencyContainer.swift in Sources */,
+				AB20000C2FB900000000000C /* GatewaySettingsView.swift in Sources */,
+				AB2000112FB9000000000011 /* AgentClawDesign.swift in Sources */,
+				AB2000042FB9000000000004 /* NodeFrame.swift in Sources */,
+				AB2000012FB9000000000001 /* AppConfig.swift in Sources */,
+				AB2000092FB9000000000009 /* GatewayConfig.swift in Sources */,
 				0428199B2FB80F5A0002BDC7 /* agentClawApp.swift in Sources */,
-				AB2000122FB9000000000012 /* Features/Onboarding/OnboardingView.swift in Sources */,
-				AB2000032FB9000000000003 /* Core/Models/JSONValue.swift in Sources */,
-				AB2000152FB9000000000015 /* Core/iOS13Compatibility.swift in Sources */,
-				AB2000162FB9000000000016 /* Features/Chat/GeneratedDocumentStore.swift in Sources */,
-				AB2000172FB9000000000017 /* Features/Chat/DocumentPreviewView.swift in Sources */,
+				AB2000122FB9000000000012 /* OnboardingView.swift in Sources */,
+				AB2000032FB9000000000003 /* JSONValue.swift in Sources */,
+				AB2000152FB9000000000015 /* iOS13Compatibility.swift in Sources */,
+				AB2000162FB9000000000016 /* GeneratedDocumentStore.swift in Sources */,
+				AB2000172FB9000000000017 /* DocumentPreviewView.swift in Sources */,
 				CC308AAE82CD3EC440B9B769 /* UMengAnalytics.swift in Sources */,
 				PA2000012FB9000000000018 /* PangleAdManager.swift in Sources */,
 				PA2000022FB9000000000019 /* PangleSplashAdManager.swift in Sources */,
-				MB2000012FB900000000001A /* MockBUAdSDK.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -557,11 +732,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_POSTPROCESSING = YES;
-				STRIP_INSTALLED_PRODUCT = YES;
-				STRIP_SWIFT_SYMBOLS = YES;
-				DEAD_CODE_STRIPPING = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -576,6 +749,8 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRIP_INSTALLED_PRODUCT = YES;
+				STRIP_SWIFT_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OBJC_BRIDGING_HEADER = "agentClaw/agentClaw-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
@@ -585,6 +760,7 @@
 		};
 		042819BD2FB80F620002BDC7 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D22DCA3E14169DEE7190CBA5 /* Pods-agentClaw.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -600,6 +776,7 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_LDFLAGS = (
+					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 					"-lresolv",
@@ -619,10 +796,14 @@
 		};
 		042819BE2FB80F620002BDC7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9955DB3920049987D27BA2D7 /* Pods-agentClaw.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = YES;
+				DEAD_CODE_STRIPPING = YES;
+				DEPLOYMENT_POSTPROCESSING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"agentClaw/Preview Content\"";
 				DEVELOPMENT_TEAM = MF7G4UB9D9;
 				ENABLE_BITCODE = NO;
@@ -634,6 +815,7 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_LDFLAGS = (
+					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 					"-lresolv",
@@ -646,18 +828,16 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = ai.cjym.agentclaw;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				COPY_PHASE_STRIP = YES;
-				DEPLOYMENT_POSTPROCESSING = YES;
 				STRIP_INSTALLED_PRODUCT = YES;
 				STRIP_SWIFT_SYMBOLS = YES;
-				DEAD_CODE_STRIPPING = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
 		042819C02FB80F620002BDC7 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E2BAAA0614CC04E059D04687 /* Pods-agentClawTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -679,6 +859,7 @@
 		};
 		042819C12FB80F620002BDC7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CEF2B5FD08883030247D489C /* Pods-agentClawTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -700,6 +881,7 @@
 		};
 		042819C32FB80F620002BDC7 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8ECB66A3E729933A32DE1FB0 /* Pods-agentClaw-agentClawUITests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -719,6 +901,7 @@
 		};
 		042819C42FB80F620002BDC7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 78521DBD727E84000D04F889 /* Pods-agentClaw-agentClawUITests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;

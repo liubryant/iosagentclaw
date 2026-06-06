@@ -478,7 +478,7 @@ struct SettingsPanelView: View {
                     UIApplication.shared.open(url)
                 }
             }) {
-                Text("粤ICP备2024188934号-2A")
+                Text("粤ICP备2024188934号-3A")
                     .font(.system(size: 10))
                     .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
                     .underline()

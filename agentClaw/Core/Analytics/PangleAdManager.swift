@@ -24,25 +24,43 @@ class PangleAdManager {
     static let shared = PangleAdManager()
 
     // 穿山甲应用ID
-    private let appID = "5830164"
+    let appID = "5830164"
     private var isInitialized = false
+    private var isInitializing = false
+    private var pendingInitializationCallbacks: [(Bool) -> Void] = []
 
     private init() {}
 
     /// 初始化穿山甲广告SDK（聚合版本）
     /// ⚠️ 注意：仅在用户同意隐私政策后调用此方法
     /// ⚠️ 重要：SDK仅支持初始化一次，避免多次初始化
-    func initialize() {
+    func initialize(completion: ((Bool) -> Void)? = nil) {
         // 防止重复初始化
         guard !isInitialized else {
+            completion?(true)
+            print("csjad sdk_already_initialized appID=\(appID)")
             print("⚠️ 穿山甲广告SDK已初始化，跳过重复初始化")
             return
         }
+
+        if let completion {
+            pendingInitializationCallbacks.append(completion)
+        }
+
+        guard !isInitializing else {
+            print("csjad sdk_init_waiting appID=\(appID)")
+            return
+        }
+        isInitializing = true
 
         #if canImport(BUAdSDK)
         // 创建配置对象
         let configuration = BUAdSDKConfiguration()
         configuration.appID = appID
+        #if DEBUG
+        configuration.sdkdebug = true
+        configuration.debugLog = NSNumber(value: 1)
+        #endif
 
         // 使用聚合功能（重要：仅可设置一次，不支持后续修改）
         configuration.useMediation = true
@@ -52,6 +70,8 @@ class PangleAdManager {
         configuration.mediation.limitPersonalAds = NSNumber(integerLiteral: 0)
         // 是否限制程序化广告（0=不限制，1=限制）
         configuration.mediation.limitProgrammaticAds = NSNumber(integerLiteral: 0)
+        // 是否禁止IDFA（0=不禁止，1=禁止）
+        configuration.mediation.forbiddenIDFA = NSNumber(integerLiteral: 0)
 
         // 主题模式（0=跟随系统，1=浅色，2=深色）
         configuration.themeStatus = NSNumber(integerLiteral: 0)
@@ -64,17 +84,24 @@ class PangleAdManager {
         // #endif
 
         // 异步初始化SDK（推荐方式）
+        print("csjad sdk_start appID=\(appID), useMediation=true")
         BUAdSDKManager.start(asyncCompletionHandler: { [weak self] success, error in
             if success {
                 self?.isInitialized = true
+                print("csjad sdk_init_success appID=\(self?.appID ?? ""), sdkVersion=\(BUAdSDKManager.sdkVersion)")
                 print("✅ 穿山甲广告SDK初始化成功 - AppID: \(self?.appID ?? "")")
                 print("✅ 聚合功能已启用")
+                self?.finishPendingInitializationCallbacks(success: true)
             } else {
+                print("csjad sdk_init_fail appID=\(self?.appID ?? ""), error=\(error?.localizedDescription ?? "未知错误")")
                 print("❌ 穿山甲广告SDK初始化失败: \(error?.localizedDescription ?? "未知错误")")
+                self?.finishPendingInitializationCallbacks(success: false)
             }
         })
         #else
+        print("csjad sdk_missing")
         print("⚠️ 穿山甲广告SDK未安装，请先执行 pod install")
+        finishPendingInitializationCallbacks(success: false)
         #endif
     }
 
@@ -101,6 +128,13 @@ class PangleAdManager {
         print("   - 限制个性化广告: \(limitPersonalAds)")
         print("   - 限制程序化广告: \(limitProgrammaticAds)")
         #endif
+    }
+
+    private func finishPendingInitializationCallbacks(success: Bool) {
+        isInitializing = false
+        let callbacks = pendingInitializationCallbacks
+        pendingInitializationCallbacks.removeAll()
+        callbacks.forEach { $0(success) }
     }
 
 }

@@ -12,10 +12,6 @@ import Foundation
 import UMCommon
 #endif
 
-#if canImport(UMCAnalytics)
-import UMCAnalytics
-#endif
-
 /// 友盟统计管理类
 ///
 /// 合规说明：
@@ -40,7 +36,7 @@ class UMengAnalytics {
             print("⚠️ 友盟统计已初始化，跳过重复初始化")
             return
         }
-        #if canImport(UMCommon) && canImport(UMCAnalytics)
+        #if canImport(UMCommon)
         // 设置友盟appkey
         UMConfigure.initWithAppkey(appKey, channel: channel)
 
@@ -50,12 +46,6 @@ class UMengAnalytics {
         #else
         UMConfigure.setLogEnabled(false)
         #endif
-
-        // 开启crash统计（可选）
-        MobClick.setCrashReportEnabled(true)
-
-        // 设置统计场景类型
-        MobClick.setScenarioType(MobClickScenarioType.E_UM_NORMAL)
 
         isInitialized = true
         print("✅ 友盟统计初始化成功 - AppKey: \(appKey)")
@@ -69,7 +59,7 @@ class UMengAnalytics {
     ///   - eventId: 事件ID
     ///   - attributes: 事件属性（可选）
     func logEvent(_ eventId: String, attributes: [String: Any]? = nil) {
-        #if canImport(UMCAnalytics)
+        #if canImport(UMCommon)
         if let attributes = attributes {
             MobClick.event(eventId, attributes: attributes)
         } else {
@@ -81,7 +71,7 @@ class UMengAnalytics {
     /// 页面开始统计
     /// - Parameter pageName: 页面名称
     func pageBegin(_ pageName: String) {
-        #if canImport(UMCAnalytics)
+        #if canImport(UMCommon)
         MobClick.beginLogPageView(pageName)
         #endif
     }
@@ -89,7 +79,7 @@ class UMengAnalytics {
     /// 页面结束统计
     /// - Parameter pageName: 页面名称
     func pageEnd(_ pageName: String) {
-        #if canImport(UMCAnalytics)
+        #if canImport(UMCommon)
         MobClick.endLogPageView(pageName)
         #endif
     }

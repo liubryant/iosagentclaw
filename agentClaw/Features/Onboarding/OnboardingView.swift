@@ -16,80 +16,95 @@ struct OnboardingView: View {
                     Color.black.opacity(0.3).edgesIgnoringSafeArea(.all)
 
                 VStack(spacing: 0) {
-                    Spacer(minLength: isCompact ? 40 : 80)
+                    Spacer(minLength: isCompact ? 24 : 48)
 
-                    VStack(spacing: 24) {
+                    VStack(spacing: 16) {
                         // Logo 和标题
-                        VStack(spacing: 16) {
+                        VStack(spacing: 10) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 20, style: .continuous)
                                     .fill(Color(red: 1.0, green: 0.93, blue: 0.86))
-                                    .frame(width: 100, height: 80)
+                                    .frame(width: 72, height: 56)
 
                                 Text("🦞")
-                                    .font(.system(size: 48))
+                                    .font(.system(size: 34))
                             }
 
-                            VStack(spacing: 8) {
-                                Text("欢迎使用 AgentClaw")
-                                    .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(.black)
-
-                                Text("您的智能 AI 助手")
-                                    .font(.system(size: 15))
-                                    .foregroundColor(.secondary)
-                            }
+                            Text("个人信息保护提示")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.black)
                         }
 
                         // 介绍内容
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("AgentClaw 是一款强大的 AI 智能助手，为您提供智能对话、任务处理和多种实用技能。我们致力于保护您的隐私和数据安全。")
+                        ScrollView(showsIndicators: true) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("欢迎来到Agent小龙虾！")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.black)
+
+                                VStack(alignment: .leading, spacing: 6) {
+                                    HStack(spacing: 0) {
+                                        Text("我们将通过")
+                                            .font(.system(size: 13))
+                                            .foregroundColor(.secondary)
+
+                                        Button(action: {
+                                            if let url = URL(string: "https://www.cjym123.cn/agreement_agentclaw.html") {
+                                                UIApplication.shared.open(url)
+                                            }
+                                        }) {
+                                            Text("《用户协议》")
+                                                .font(.system(size: 13, weight: .medium))
+                                                .foregroundColor(AgentClawDesign.accent)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+
+                                        Text("和")
+                                            .font(.system(size: 13))
+                                            .foregroundColor(.secondary)
+
+                                        Button(action: {
+                                            if let url = URL(string: "https://www.cjym123.cn/privacy_agentclaw.html") {
+                                                UIApplication.shared.open(url)
+                                            }
+                                        }) {
+                                            Text("《隐私政策》")
+                                                .font(.system(size: 13, weight: .medium))
+                                                .foregroundColor(AgentClawDesign.accent)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                    }
+
+                                    Text("帮助您了解我们为您提供的服务、我们如何处理个人信息以及您享有的权利。我们会严格按照相关法律法规要求，采取各种安全措施来保护您的个人信息。")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.secondary)
+                                        .lineSpacing(4)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+
+                                Text("点击\"同意\"按钮，表示您已知情并同意以上协议和以下约定。")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.secondary)
+                                    .lineSpacing(4)
+                                    .fixedSize(horizontal: false, vertical: true)
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("1.   为了保障软件的安全运行和账户安全，我们会申请收集您的设备信息、IP地址、MAC地址。")
+                                    Text("2.   保存图片、视频，需要使用您的存储、相机、麦克风权限。")
+                                    Text("3.   我们可能会申请位置权限，用于为您推荐您可能感兴趣的内容。")
+                                    Text("4.   我们尊重您的选择权，您可以删除您的个人数据并管理，我们也为您提供反馈投诉渠道。")
+                                }
                                 .font(.system(size: 13))
                                 .foregroundColor(.secondary)
                                 .lineSpacing(4)
                                 .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding(16)
                         }
-                        .padding(16)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxHeight: isCompact ? 220 : 250)
                         .background(Color.black.opacity(0.035))
                         .cornerRadius(12)
-
-                        // 协议说明
-                        VStack(spacing: 10) {
-                            HStack(spacing: 4) {
-                                Text("继续使用即表示您同意")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.secondary)
-                            }
-
-                            HStack(spacing: 8) {
-                                Button(action: {
-                                    if let url = URL(string: "https://www.cjym123.cn/agreement_agentclaw.html") {
-                                        UIApplication.shared.open(url)
-                                    }
-                                }) {
-                                    Text("《用户协议》")
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundColor(AgentClawDesign.accent)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-
-                                Text("和")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.secondary)
-
-                                Button(action: {
-                                    if let url = URL(string: "https://www.cjym123.cn/privacy_agentclaw.html") {
-                                        UIApplication.shared.open(url)
-                                    }
-                                }) {
-                                    Text("《隐私政策》")
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundColor(AgentClawDesign.accent)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
 
                         // 按钮区域
                         HStack(spacing: 12) {
@@ -113,7 +128,7 @@ struct OnboardingView: View {
                                 // 继续进入应用
                                 onContinue()
                             }) {
-                                Text("同意并继续")
+                                Text("同意")
                                     .font(.system(size: 15, weight: .semibold))
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
@@ -124,14 +139,14 @@ struct OnboardingView: View {
                             .buttonStyle(PlainButtonStyle())
                         }
                     }
-                    .padding(.horizontal, 28)
-                    .padding(.vertical, 36)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 24)
                     .frame(maxWidth: isCompact ? geometry.size.width - 40 : 480)
                     .background(Color.white)
                     .cornerRadius(16)
                     .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 10)
 
-                    Spacer(minLength: isCompact ? 40 : 80)
+                    Spacer(minLength: isCompact ? 24 : 48)
                 }
                 .padding(.horizontal, 20)
             }
@@ -140,7 +155,7 @@ struct OnboardingView: View {
             Alert(
                 title: Text("温馨提示"),
                 message: Text("如果您不同意《用户协议》和《隐私政策》，很遗憾我们将无法为您提供服务。"),
-                primaryButton: .default(Text("同意并继续")) {
+                primaryButton: .default(Text("同意")) {
                     // 用户在二次确认中选择同意
                     UMengAnalytics.shared.initialize()
                     onContinue()
