@@ -21,14 +21,11 @@ struct OnboardingView: View {
                     VStack(spacing: 16) {
                         // Logo 和标题
                         VStack(spacing: 10) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .fill(Color(red: 1.0, green: 0.93, blue: 0.86))
-                                    .frame(width: 72, height: 56)
-
-                                Text("🦞")
-                                    .font(.system(size: 34))
-                            }
+                            Image("app_icon_display")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 72, height: 72)
+                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                             Text("个人信息保护提示")
                                 .font(.system(size: 20, weight: .bold))
@@ -38,7 +35,7 @@ struct OnboardingView: View {
                         // 介绍内容
                         ScrollView(showsIndicators: true) {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("欢迎来到Agent小龙虾！")
+                                Text("欢迎来到Agent智能体生活助手！")
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(.black)
 

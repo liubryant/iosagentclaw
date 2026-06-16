@@ -59,7 +59,7 @@ final class URLSessionHTTPClient: HTTPClient {
 
 enum HTTPDebugLogger {
     static func logRequest(_ request: URLRequest) {
-        print("----- AgentClaw HTTP Request -----")
+        print("----- Agent HTTP Request -----")
         print("URL: \(request.url?.absoluteString ?? "-")")
         print("Method: \(request.httpMethod ?? "-")")
 
@@ -82,7 +82,7 @@ enum HTTPDebugLogger {
     }
 
     static func logResponse(data: Data?, response: URLResponse?, error: Error?) {
-        print("----- AgentClaw HTTP Response ----")
+        print("----- Agent HTTP Response ----")
         if let httpResponse = response as? HTTPURLResponse {
             print("Status: \(httpResponse.statusCode)")
             print("URL: \(httpResponse.url?.absoluteString ?? "-")")

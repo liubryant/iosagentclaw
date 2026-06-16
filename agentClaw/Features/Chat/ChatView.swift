@@ -174,7 +174,7 @@ struct ChatView: View {
             }
 
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 5) {
-                Text(message.role == .user ? "我" : "AgentClaw")
+                Text(message.role == .user ? "我" : "Agent")
                     .font(.system(size: 9, weight: .medium))
                     .foregroundColor(AgentClawDesign.secondaryText)
 
@@ -218,7 +218,7 @@ struct ChatView: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(AgentClawDesign.primaryText)
                         .lineLimit(1)
-                    Text("已保存到 AgentClaw/Exports")
+                    Text("已保存到 Agent/Exports")
                         .font(.system(size: 9))
                         .foregroundColor(AgentClawDesign.secondaryText)
                 }

@@ -11,9 +11,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>$(PRODUCT_NAME)</string>
+	<string>Agent智能体生活助手</string>
 	<key>CFBundleDisplayName</key>
-	<string>Agent小龙虾</string>
+	<string>Agent智能体生活助手</string>
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
@@ -25,7 +25,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>用于连接局域网中的 OpenClaw Gateway。</string>
+	<string>用于连接局域网中的 AI 服务。</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>用于将生成的图片保存到系统相册。</string>
 	<key>NSPhotoLibraryUsageDescription</key>

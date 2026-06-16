@@ -132,9 +132,20 @@ struct ShellView: View {
             Image(systemName: "magnifyingglass")
                     .font(.system(size: 11))
                 .foregroundColor(AgentClawDesign.secondaryText)
-            TextField("搜索历史", text: $sidebarQuery)
-                .font(.system(size: 12))
-                .disableAutocorrection(true)
+            ZStack(alignment: .leading) {
+                if sidebarQuery.isEmpty {
+                    Text("搜索历史")
+                        .font(.system(size: 12))
+                        .foregroundColor(AgentClawDesign.secondaryText)
+                        .allowsHitTesting(false)
+                }
+
+                TextField("", text: $sidebarQuery)
+                    .font(.system(size: 12))
+                    .foregroundColor(AgentClawDesign.primaryText)
+                    .accentColor(AgentClawDesign.accent)
+                    .disableAutocorrection(true)
+            }
         }
         .padding(.horizontal, 8)
         .frame(height: 32)

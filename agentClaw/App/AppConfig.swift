@@ -1,7 +1,7 @@
 import Foundation
 
 enum AppConfig {
-    static let appName = "AgentClaw"
+    static let appName = "Agent"
 
     // 使用环境管理器获取默认网关 URL
     static var defaultGatewayURL: URL {
@@ -27,7 +27,7 @@ enum AppEnvironment {
             return "https://www.cjym123.cn/v1"
         case .testing:
             #if DEBUG
-            return "http://192.168.1.17:8066/v1"
+            return "http://192.168.1.37:8066/v1"
             #else
             return "https://www.cjym123.cn/v1"  // Release版本使用生产环境
             #endif

@@ -7,7 +7,7 @@ struct GeneratedDocumentSaveResult {
 
 final class GeneratedDocumentStore {
     private let fileManager: FileManager
-    private let baseDirectoryName = "AgentClaw/Exports"
+    private let baseDirectoryName = "Agent/Exports"
 
     init(fileManager: FileManager = .default) {
         self.fileManager = fileManager

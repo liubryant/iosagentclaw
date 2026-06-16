@@ -9,7 +9,7 @@ target 'agentClaw' do
   pod 'UMCommon'           # 友盟基础库
 
   # 穿山甲广告 SDK
-  pod 'Ads-CN-Beta', '7.6.0.3', :subspecs => ['CSJMediation']
+  pod 'Ads-CN-Beta', '7.6.0.3', :subspecs => ['CSJMediation-Only']
 
   target 'agentClawTests' do
     inherit! :search_paths

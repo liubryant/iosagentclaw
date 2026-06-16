@@ -158,12 +158,12 @@ final class ChatViewModel: ObservableObject {
     private func outboundContent(for text: String, entryMode: ChatEntryMode) -> String {
         switch entryMode {
         case .image:
-            return "[[OPENCLAW_IMAGE_MODE]] \(text)"
+            return "[[IMAGE_MODE]] \(text)"
         case .video:
-            return "[[OPENCLAW_VIDEO_MODE]] \(text)"
+            return "[[VIDEO_MODE]] \(text)"
         case .default:
             if shouldRequestDocumentFile(for: text) {
-                return "[[OPENCLAW_DOCUMENT_MODE]] \(documentGenerationInstruction)\n\n用户需求：\(text)"
+                return "[[DOCUMENT_MODE]] \(documentGenerationInstruction)\n\n用户需求：\(text)"
             }
             return text
         }

@@ -1,9 +1,9 @@
 import Foundation
 
 final class GatewayClient {
-    private let imageModeMarker = "[[OPENCLAW_IMAGE_MODE]]"
-    private let videoModeMarker = "[[OPENCLAW_VIDEO_MODE]]"
-    private let documentModeMarker = "[[OPENCLAW_DOCUMENT_MODE]]"
+    private let imageModeMarker = "[[IMAGE_MODE]]"
+    private let videoModeMarker = "[[VIDEO_MODE]]"
+    private let documentModeMarker = "[[DOCUMENT_MODE]]"
     private let preferences: AppPreferences
     private let keychain: KeychainStore
     private let httpClient: HTTPClient
