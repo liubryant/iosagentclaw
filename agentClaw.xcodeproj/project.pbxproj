@@ -42,6 +42,7 @@
 		CC308AAE82CD3EC440B9B769 /* UMengAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3162F4F2289C0A3263866F2 /* UMengAnalytics.swift */; };
 		CD2E6AA7994A88C382BC4DC9 /* Pods_agentClaw_agentClawUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DDA556783F6D708372A46AB /* Pods_agentClaw_agentClawUITests.framework */; };
 		PA2000012FB9000000000018 /* PangleAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000012FB9000000000018 /* PangleAdManager.swift */; };
+		TA2000012FB9000000000099 /* TrackingAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = TA1000012FB9000000000099 /* TrackingAuthorization.swift */; };
 		PA2000022FB9000000000019 /* PangleSplashAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000022FB9000000000019 /* PangleSplashAdManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -137,6 +138,7 @@
 		MB1000022FB900000000001B /* MockBUAdSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MockBUAdSDK.h; sourceTree = "<group>"; };
 		PA1000012FB9000000000018 /* PangleAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleAdManager.swift; sourceTree = "<group>"; };
 		PA1000022FB9000000000019 /* PangleSplashAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleSplashAdManager.swift; sourceTree = "<group>"; };
+		TA1000012FB9000000000099 /* TrackingAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingAuthorization.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -283,6 +285,7 @@
 				B3162F4F2289C0A3263866F2 /* UMengAnalytics.swift */,
 				PA1000012FB9000000000018 /* PangleAdManager.swift */,
 				PA1000022FB9000000000019 /* PangleSplashAdManager.swift */,
+				TA1000012FB9000000000099 /* TrackingAuthorization.swift */,
 				MB1000012FB900000000001A /* MockBUAdSDK.m */,
 				MB1000022FB900000000001B /* MockBUAdSDK.h */,
 			);
@@ -565,6 +568,7 @@
 				CC308AAE82CD3EC440B9B769 /* UMengAnalytics.swift in Sources */,
 				PA2000012FB9000000000018 /* PangleAdManager.swift in Sources */,
 				PA2000022FB9000000000019 /* PangleSplashAdManager.swift in Sources */,
+				TA2000012FB9000000000099 /* TrackingAuthorization.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

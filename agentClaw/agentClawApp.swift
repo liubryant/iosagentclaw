@@ -31,14 +31,6 @@ struct agentClawApp {
 struct ModernApp: App {
     private let container = DependencyContainer()
 
-    init() {
-        // 合规初始化：仅在用户已同意隐私政策的情况下初始化SDK
-        if container.preferences.onboardingCompleted {
-            UMengAnalytics.shared.initialize()
-            PangleAdManager.shared.initialize()
-        }
-    }
-
     var body: some Scene {
         WindowGroup {
             ContentView(container: container)

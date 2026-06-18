@@ -16,7 +16,7 @@ struct FancyIdeasView: View {
                 ForEach(groups) { group in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(group.title)
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundColor(AgentClawDesign.primaryText)
                             .padding(.top, 4)
                             .padding(.bottom, 6)
@@ -67,7 +67,7 @@ struct FancyIdeasView: View {
                     .padding(.top, 14)
 
                 Text(idea.subtitle)
-                    .font(.system(size: 10))
+                    .font(.system(size: 12))
                     .foregroundColor(AgentClawDesign.secondaryText)
                     .lineLimit(2)
                     .padding(.top, 4)

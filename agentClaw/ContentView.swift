@@ -32,7 +32,7 @@ struct ContentView: View {
                     splashWaitingView
                 }
             }
-            .onAppear(perform: requestSplashAdIfNeeded)
+            .onAppear(perform: initializeTrackingAndProceed)
         } else {
             OnboardingView {
                 container.preferences.onboardingCompleted = true
@@ -46,6 +46,14 @@ struct ContentView: View {
     private var splashWaitingView: some View {
         Color.white
             .edgesIgnoringSafeArea(.all)
+    }
+
+    private func initializeTrackingAndProceed() {
+        // ATT 权限请求必须先于统计/广告 SDK 初始化出现
+        TrackingAuthorization.requestIfNeeded {
+            UMengAnalytics.shared.initialize()
+            requestSplashAdIfNeeded()
+        }
     }
 
     private func requestSplashAdIfNeeded() {

@@ -70,8 +70,8 @@ class PangleAdManager {
         configuration.mediation.limitPersonalAds = NSNumber(integerLiteral: 0)
         // 是否限制程序化广告（0=不限制，1=限制）
         configuration.mediation.limitProgrammaticAds = NSNumber(integerLiteral: 0)
-        // 是否禁止IDFA（0=不禁止，1=禁止）
-        configuration.mediation.forbiddenIDFA = NSNumber(integerLiteral: 0)
+        // 是否禁止IDFA（0=不禁止，1=禁止）：根据 ATT 授权结果动态设置，未授权时禁止采集 IDFA
+        configuration.mediation.forbiddenIDFA = NSNumber(integerLiteral: TrackingAuthorization.isTrackingAuthorized ? 0 : 1)
 
         // 主题模式（0=跟随系统，1=浅色，2=深色）
         configuration.themeStatus = NSNumber(integerLiteral: 0)

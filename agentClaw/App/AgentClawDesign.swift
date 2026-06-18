@@ -6,7 +6,7 @@ enum AgentClawDesign {
     static let chatSurface = Color.white
     static let controlSurface = Color(red: 0.96, green: 0.97, blue: 0.98)
     static let primaryText = Color(red: 0.08, green: 0.08, blue: 0.09)
-    static let secondaryText = Color(red: 0.45, green: 0.47, blue: 0.52)
+    static let secondaryText = Color(red: 0.38, green: 0.40, blue: 0.44)
     static let accent = Color(red: 0.23, green: 0.47, blue: 0.95)
     static let divider = Color.black.opacity(0.06)
 

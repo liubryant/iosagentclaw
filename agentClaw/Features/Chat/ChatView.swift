@@ -130,7 +130,7 @@ struct ChatView: View {
                                     .lineLimit(1)
 
                                 Text(item.subtitle)
-                                    .font(.system(size: 10))
+                                    .font(.system(size: 12))
                                     .foregroundColor(AgentClawDesign.secondaryText)
                                     .lineLimit(2)
                             }
@@ -175,7 +175,7 @@ struct ChatView: View {
 
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 5) {
                 Text(message.role == .user ? "我" : "Agent")
-                    .font(.system(size: 9, weight: .medium))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundColor(AgentClawDesign.secondaryText)
 
                 if displayContent.isEmpty == false || imageURL == nil {
@@ -219,7 +219,7 @@ struct ChatView: View {
                         .foregroundColor(AgentClawDesign.primaryText)
                         .lineLimit(1)
                     Text("已保存到 Agent/Exports")
-                        .font(.system(size: 9))
+                        .font(.system(size: 11))
                         .foregroundColor(AgentClawDesign.secondaryText)
                 }
 
@@ -229,14 +229,14 @@ struct ChatView: View {
             HStack(spacing: 12) {
                 Button(action: { activeDocumentSheet = .preview(document) }) {
                     Text("预览")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                         .frame(width: 80, height: 32)
                 }
                 .buttonStyle(DocumentActionButtonStyle())
 
                 Button(action: { activeDocumentSheet = .export(document) }) {
                     Text("分享")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                         .frame(width: 80, height: 32)
                 }
                 .buttonStyle(DocumentActionButtonStyle())
@@ -269,7 +269,7 @@ struct ChatView: View {
             CompatProgressView()
                 .scaleEffect(0.72)
             Text("思考中")
-                .font(.system(size: 11))
+                .font(.system(size: 12))
                 .foregroundColor(AgentClawDesign.secondaryText)
         }
         .padding(.vertical, 8)
@@ -279,7 +279,7 @@ struct ChatView: View {
         HStack(spacing: 8) {
             Image(systemName: "exclamationmark.triangle")
             Text(text)
-                .font(.system(size: 10))
+                .font(.system(size: 12))
                 .lineLimit(2)
             Spacer()
         }
@@ -348,7 +348,7 @@ struct ChatView: View {
             }
 
             Text("内容由AI生成，仅供参考")
-                .font(.system(size: 10))
+                .font(.system(size: 12))
                 .foregroundColor(AgentClawDesign.secondaryText)
                 .frame(maxWidth: .infinity)
                 .padding(.top, 4)
@@ -383,7 +383,7 @@ struct ChatView: View {
                 Image(systemName: icon)
                     .font(.system(size: 12))
                 Text(title)
-                    .font(.system(size: 10))
+                    .font(.system(size: 12))
             }
             .foregroundColor(AgentClawDesign.primaryText)
             .padding(.horizontal, 10)
@@ -499,7 +499,7 @@ private struct GeneratedImageView: View {
 
     private func placeholder(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 11))
+            .font(.system(size: 12))
             .foregroundColor(AgentClawDesign.secondaryText)
             .frame(width: min(220, maxWidth * 0.85), height: min(150, maxWidth * 0.6))
             .background(Color.white)

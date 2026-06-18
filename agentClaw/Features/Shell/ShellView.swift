@@ -260,12 +260,12 @@ struct ShellView: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(session.title)
-                        .font(.system(size: 11, weight: selected ? .semibold : .regular))
+                        .font(.system(size: 12, weight: selected ? .semibold : .regular))
                         .foregroundColor(AgentClawDesign.primaryText)
                         .lineLimit(1)
                         .minimumScaleFactor(0.82)
                     Text(relativeDate(session.updatedAt))
-                        .font(.system(size: 8))
+                        .font(.system(size: 11))
                         .foregroundColor(AgentClawDesign.secondaryText)
                 }
 
@@ -314,10 +314,10 @@ struct ShellView: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(AgentClawDesign.primaryText)
                     Text(subtitle)
-                        .font(.system(size: 9))
+                        .font(.system(size: 11))
                         .foregroundColor(AgentClawDesign.secondaryText)
                 }
                 Spacer()
@@ -396,7 +396,7 @@ struct DocumentsListView: View {
                                     .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                             }
                             Text("所有对话生成的文档")
-                                .font(.system(size: 11))
+                                .font(.system(size: 12))
                                 .foregroundColor(AgentClawDesign.secondaryText)
                         }
                         Spacer()
@@ -465,13 +465,13 @@ struct DocumentsListView: View {
                         .lineLimit(1)
                     HStack(spacing: 4) {
                         Text("点击预览")
-                            .font(.system(size: 10))
+                            .font(.system(size: 12))
                             .foregroundColor(AgentClawDesign.secondaryText)
                         Text("·")
-                            .font(.system(size: 10))
+                            .font(.system(size: 12))
                             .foregroundColor(AgentClawDesign.secondaryText)
                         Text(relativeTimeString(from: document.createdAt))
-                            .font(.system(size: 10))
+                            .font(.system(size: 12))
                             .foregroundColor(AgentClawDesign.secondaryText)
                     }
                 }

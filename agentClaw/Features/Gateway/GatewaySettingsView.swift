@@ -47,7 +47,7 @@ struct GatewaySettingsView: View {
 
                 if case .failed(let message) = viewModel.status {
                     Text(message)
-                        .font(.system(size: 11))
+                        .font(.system(size: 12))
                         .foregroundColor(.red)
                         .fixedSize(horizontal: false, vertical: true)
                 }

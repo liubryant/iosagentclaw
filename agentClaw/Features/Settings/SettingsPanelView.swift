@@ -249,7 +249,7 @@ struct SettingsPanelView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.88)
             Text(subtitle)
-                .font(.system(size: 11))
+                .font(.system(size: 12))
                 .foregroundColor(AgentClawDesign.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -277,7 +277,7 @@ struct SettingsPanelView: View {
             }
 
             Text(skill.detail)
-                .font(.system(size: 10))
+                .font(.system(size: 12))
                 .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
                 .lineLimit(2)
                 .padding(.leading, 33)
@@ -286,7 +286,7 @@ struct SettingsPanelView: View {
 
             HStack {
                 Text("内置技能")
-                    .font(.system(size: 9))
+                    .font(.system(size: 12))
                     .foregroundColor(.black)
                     .padding(.horizontal, 8)
                     .frame(height: 24)
@@ -308,10 +308,10 @@ struct SettingsPanelView: View {
     private func versionInfoRow(title: String, detail: String) -> some View {
         HStack {
             Text(title)
-                .font(.system(size: 11))
+                .font(.system(size: 12))
                 .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
             Text(detail)
-                .font(.system(size: 11))
+                .font(.system(size: 12))
                 .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
             Spacer()
         }
@@ -329,11 +329,11 @@ struct SettingsPanelView: View {
         }) {
             HStack {
                 Text(title)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                 if let detail = detail {
                     Text(detail)
-                        .font(.system(size: 11))
+                        .font(.system(size: 12))
                         .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                 }
                 Spacer()
@@ -358,7 +358,7 @@ struct SettingsPanelView: View {
         }) {
             HStack {
                 Text("清除所有数据")
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                 Spacer()
                 Image("arrow_right")
@@ -390,11 +390,11 @@ struct SettingsPanelView: View {
         }) {
             HStack {
                 Text("运行环境")
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                 Spacer()
                 Text(currentEnvironment.displayName)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
                 Image("arrow_right")
                     .resizable()
@@ -470,7 +470,7 @@ struct SettingsPanelView: View {
             Spacer()
 
             Text("ICP备案号：")
-                .font(.system(size: 10))
+                .font(.system(size: 12))
                 .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
 
             Button(action: {
@@ -479,7 +479,7 @@ struct SettingsPanelView: View {
                 }
             }) {
                 Text("粤ICP备2024188934号-3A")
-                    .font(.system(size: 10))
+                    .font(.system(size: 12))
                     .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
                     .underline()
             }

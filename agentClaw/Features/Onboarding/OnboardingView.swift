@@ -120,10 +120,12 @@ struct OnboardingView: View {
                             .buttonStyle(PlainButtonStyle())
 
                             Button(action: {
-                                // 用户同意隐私政策后，初始化友盟统计（合规要求）
-                                UMengAnalytics.shared.initialize()
-                                // 继续进入应用
-                                onContinue()
+                                // 用户同意隐私政策后，先请求 ATT 权限，再初始化友盟统计（合规要求）
+                                TrackingAuthorization.requestIfNeeded {
+                                    UMengAnalytics.shared.initialize()
+                                    // 继续进入应用
+                                    onContinue()
+                                }
                             }) {
                                 Text("同意")
                                     .font(.system(size: 15, weight: .semibold))
@@ -153,9 +155,11 @@ struct OnboardingView: View {
                 title: Text("温馨提示"),
                 message: Text("如果您不同意《用户协议》和《隐私政策》，很遗憾我们将无法为您提供服务。"),
                 primaryButton: .default(Text("同意")) {
-                    // 用户在二次确认中选择同意
-                    UMengAnalytics.shared.initialize()
-                    onContinue()
+                    // 用户在二次确认中选择同意：先请求 ATT 权限，再初始化友盟统计
+                    TrackingAuthorization.requestIfNeeded {
+                        UMengAnalytics.shared.initialize()
+                        onContinue()
+                    }
                 },
                 secondaryButton: .destructive(Text("放弃使用")) {
                     // 显示告别界面，然后温和退出
