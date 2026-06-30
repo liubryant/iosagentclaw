@@ -60,4 +60,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window.makeKeyAndVisible()
         return true
     }
+
+    func application(
+        _ app: UIApplication,
+        open url: URL,
+        options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+    ) -> Bool {
+        // 支付宝回调处理
+        if AlipayBridge.shared.handleOpenURL(url) { return true }
+        return false
+    }
 }

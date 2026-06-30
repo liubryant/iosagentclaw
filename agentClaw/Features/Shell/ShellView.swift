@@ -1,9 +1,14 @@
 import SwiftUI
+import UIKit
 
 struct ShellView: View {
     private enum Destination {
-        case chat
-        case ideas
+        case chat, ideas, creation, profile
+    }
+
+    private enum ShellImagePickerSource: Int, Identifiable {
+        case camera, gallery
+        var id: Int { rawValue }
     }
 
     @ObservedObject private var gatewayViewModel: GatewayConnectionViewModel
@@ -11,10 +16,20 @@ struct ShellView: View {
     @State private var isSidebarVisible = true
     @State private var isSettingsPresented = false
     @State private var isDocumentsPresented = false
+    @State private var showLogin = false
+    @State private var showVip = false
     @State private var sidebarQuery = ""
-    @State private var destination: Destination = .chat
+    // 应用启动（包括关闭开屏广告后）默认进入画图首页。
+    @State private var destination: Destination = .creation
     @State private var sessionToDelete: LocalChatSession?
     @State private var showDeleteAlert = false
+    @State private var showImagePickerOverlay = false
+    @State private var activeImagePickerSource: ShellImagePickerSource?
+    @State private var isAccountLoggedIn = {
+        let preferences = AppPreferences()
+        return preferences.isLoggedIn && !(preferences.userPhone?.isEmpty ?? true)
+    }()
+    @State private var accountPhone = AppPreferences().userPhone ?? ""
 
     init(container: DependencyContainer) {
         self.gatewayViewModel = GatewayConnectionViewModel(gatewayClient: container.gatewayClient)
@@ -25,11 +40,20 @@ struct ShellView: View {
         )
     }
 
+    // Matches Android: sidebar hidden on CREATE/PROFILE, forced on IDEAS, toggle on CHAT
+    private var effectiveSidebarVisible: Bool {
+        switch destination {
+        case .creation, .profile: return false
+        case .ideas: return true
+        case .chat: return isSidebarVisible
+        }
+    }
+
     var body: some View {
         GeometryReader { proxy in
             ZStack {
                 HStack(spacing: 0) {
-                    if isSidebarVisible {
+                    if effectiveSidebarVisible {
                         sidebar
                             .frame(width: sidebarWidth(for: proxy.size.width))
                             .transition(.move(edge: .leading))
@@ -59,9 +83,223 @@ struct ShellView: View {
                     .transition(.opacity)
                     .zIndex(1)
                 }
+
+                if showLogin {
+                    LoginView(
+                        onLoggedIn: {
+                            refreshAuthState()
+                            withAnimation { showLogin = false }
+                        },
+                        onDismiss: { withAnimation { showLogin = false } }
+                    )
+                    .transition(.opacity)
+                    .zIndex(8)
+                }
+
+                if showImagePickerOverlay {
+                    ImagePickerOptionsOverlay(
+                        onDismiss: { withAnimation { showImagePickerOverlay = false } },
+                        onCamera: { presentRootImagePicker(.camera) },
+                        onGallery: { presentRootImagePicker(.gallery) }
+                    )
+                    .zIndex(10)
+                }
+
+                Color.clear
+                    .frame(width: 0, height: 0)
+                    .allowsHitTesting(false)
+                    .sheet(item: $activeImagePickerSource) { source in
+                        ImagePickerView(
+                            sourceType: source == .camera ? .camera : .photoLibrary,
+                            onImagePicked: { image in chatViewModel.attachImage(image) }
+                        )
+                    }
+            }
+        }
+        .vipFullScreenCover(isPresented: $showVip) {
+            VipView(isPresented: $showVip)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .authStateDidChange)) { _ in
+            refreshAuthState()
+        }
+    }
+
+    // MARK: - Main Panel
+
+    private var mainPanel: some View {
+        VStack(spacing: 0) {
+            chatHeader
+            Divider().background(AgentClawDesign.divider)
+            contentArea
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Divider().background(AgentClawDesign.divider)
+            bottomTabBar
+        }
+        .background(AgentClawDesign.chatSurface)
+        .cornerRadius(10)
+    }
+
+    // Content area — each destination is a separate panel (matches Android fragment container)
+    private var contentArea: some View {
+        Group {
+            switch destination {
+            case .chat:
+                ChatView(
+                    viewModel: chatViewModel,
+                    onRequestImagePicker: {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            showImagePickerOverlay = true
+                        }
+                    }
+                )
+            case .ideas:
+                FancyIdeasView { idea in
+                    destination = .chat
+                    chatViewModel.createSession(withDraft: idea.prompt)
+                }
+            case .creation:
+                CreationGalleryView(
+                    onLaunchImageChat: {
+                        destination = .chat
+                        chatViewModel.createSession(entryMode: .image)
+                    },
+                    onLaunchVideoChat: {
+                        destination = .chat
+                        chatViewModel.createSession(entryMode: .video)
+                    }
+                )
+            case .profile:
+                ProfileView(
+                    isPresented: Binding(get: { true }, set: { _ in destination = .creation }),
+                    showNavigation: false,
+                    onOpenDocuments: { isDocumentsPresented = true },
+                    onOpenSettings: { isSettingsPresented = true },
+                    onOpenAccount: { withAnimation { showLogin = true } }
+                )
             }
         }
     }
+
+    // MARK: - Bottom Tab Bar (matches Android bottomNavigationBar)
+
+    private var bottomTabBar: some View {
+        HStack(spacing: 0) {
+            bottomTabItem(
+                icon: "photo.on.rectangle.angled",
+                label: "画图",
+                isSelected: destination == .creation
+            ) {
+                destination = .creation
+            }
+
+            // 对话 tab is hidden when already on chat (matches Android)
+            if destination != .chat {
+                bottomTabItem(
+                    icon: "bubble.left.and.bubble.right",
+                    label: "对话",
+                    isSelected: destination == .chat || destination == .ideas
+                ) {
+                    destination = .chat
+                }
+            }
+
+            bottomTabItem(
+                icon: "person.circle",
+                label: "我的",
+                isSelected: destination == .profile
+            ) {
+                destination = .profile
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 7)
+        .padding(.bottom, 7)
+        .frame(minHeight: 56)
+        .modifier(TabBarStyleModifier())
+    }
+
+    private func bottomTabItem(
+        icon: String,
+        label: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            VStack(spacing: 3) {
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(isSelected ? AgentClawDesign.accent : .gray)
+                Text(label)
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
+                    .foregroundColor(isSelected ? AgentClawDesign.accent : .gray)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 2)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+        .scaleEffect(isSelected ? 1.0 : 0.94)
+        .animation(.easeInOut(duration: 0.18), value: isSelected)
+    }
+
+    private func presentRootImagePicker(_ source: ShellImagePickerSource) {
+        withAnimation { showImagePickerOverlay = false }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            activeImagePickerSource = source
+        }
+    }
+
+    // MARK: - Chat Header (top bar in main panel)
+
+    private var chatHeader: some View {
+        HStack(spacing: 8) {
+            Button(action: { withAnimation { isSidebarVisible.toggle() } }) {
+                ZStack {
+                    Color.white.opacity(0.5)
+                        .frame(width: 34, height: 34)
+                        .cornerRadius(8)
+                    Image(systemName: "sidebar.left")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(Color.black)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+
+            Button(action: {
+                destination = .chat
+                chatViewModel.createSession()
+            }) {
+                ZStack {
+                    Color.white.opacity(0.5)
+                        .frame(width: 34, height: 34)
+                        .cornerRadius(8)
+                    Image(systemName: "plus.bubble")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(Color.black)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+
+            Spacer()
+
+            Button(action: { isSettingsPresented = true }) {
+                ZStack {
+                    Color.white.opacity(0.5)
+                        .frame(width: 34, height: 34)
+                        .cornerRadius(8)
+                    Image("slide_setting")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+    }
+
+    // MARK: - Sidebar
 
     private var sidebar: some View {
         VStack(spacing: 12) {
@@ -94,6 +332,7 @@ struct ShellView: View {
                 .padding(.top, 2)
             }
 
+            // Bottom nav items (matches Android sidebar bottom section)
             VStack(spacing: 4) {
                 sidebarNavItem(icon: "sparkles", title: "灵感泉涌", subtitle: "提示词模板") {
                     destination = .ideas
@@ -101,9 +340,44 @@ struct ShellView: View {
                 sidebarNavItem(icon: "folder", title: "文件", subtitle: "文件与分享") {
                     isDocumentsPresented = true
                 }
+                sidebarNavItem(
+                    icon: "person.badge.key",
+                    title: isAccountLoggedIn ? "账号" : "登录",
+                    subtitle: isAccountLoggedIn ? maskedAccountPhone : "登录解锁"
+                ) {
+                    showLogin = true
+                }
                 sidebarNavItem(icon: "slide_setting", title: "设置", subtitle: "技能和关于", isCustomIcon: true) {
                     isSettingsPresented = true
                 }
+
+                // VIP card with golden gradient (matches Android bg_sidebar_vip_entry)
+                Button(action: { showVip = true }) {
+                    HStack(spacing: 10) {
+                        Text("✦")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(Color(hex: "#F5D69D"))
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("VIP 会员")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(Color(hex: "#F5D69D"))
+                            Text("解锁满血 AI")
+                                .font(.system(size: 10))
+                                .foregroundColor(Color(hex: "#C9AA79"))
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 12)
+                    .frame(height: 50)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "#3A1F0D"), Color(hex: "#6B3A1F"), Color(hex: "#3A1F0D")],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(8)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
         }
         .padding(.leading, 12)
@@ -130,7 +404,7 @@ struct ShellView: View {
     private var searchField: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
-                    .font(.system(size: 11))
+                .font(.system(size: 11))
                 .foregroundColor(AgentClawDesign.secondaryText)
             ZStack(alignment: .leading) {
                 if sidebarQuery.isEmpty {
@@ -139,7 +413,6 @@ struct ShellView: View {
                         .foregroundColor(AgentClawDesign.secondaryText)
                         .allowsHitTesting(false)
                 }
-
                 TextField("", text: $sidebarQuery)
                     .font(.system(size: 12))
                     .foregroundColor(AgentClawDesign.primaryText)
@@ -153,102 +426,16 @@ struct ShellView: View {
         .cornerRadius(8)
     }
 
-    private var mainPanel: some View {
-        Group {
-            switch destination {
-            case .chat:
-                chatPanel
-            case .ideas:
-                ideasPanel
-            }
-        }
-    }
-
-    private var chatPanel: some View {
-        VStack(spacing: 0) {
-            chatHeader
-            Divider().background(AgentClawDesign.divider)
-            ChatView(viewModel: chatViewModel)
-        }
-        .background(AgentClawDesign.chatSurface)
-        .cornerRadius(10)
-    }
-
-    private var ideasPanel: some View {
-        VStack(spacing: 0) {
-            chatHeader
-            Divider().background(AgentClawDesign.divider)
-            FancyIdeasView { idea in
-                destination = .chat
-                chatViewModel.createSession(withDraft: idea.prompt)
-            }
-        }
-        .background(AgentClawDesign.chatSurface)
-        .cornerRadius(10)
-    }
-
-    private var chatHeader: some View {
-        HStack(spacing: 8) {
-            Button(action: { withAnimation { isSidebarVisible.toggle() } }) {
-                ZStack {
-                    Color.white.opacity(0.5)
-                        .frame(width: 34, height: 34)
-                        .cornerRadius(8)
-
-                    Image(systemName: "sidebar.left")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(Color.black)
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
-
-            Button(action: {
-                destination = .chat
-                chatViewModel.createSession()
-            }) {
-                ZStack {
-                    Color.white.opacity(0.5)
-                        .frame(width: 34, height: 34)
-                        .cornerRadius(8)
-
-                    Image(systemName: "plus.bubble")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(Color.black)
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
-
-            Spacer()
-
-            Button(action: { isSettingsPresented = true }) {
-                ZStack {
-                    Color.white.opacity(0.5)
-                        .frame(width: 34, height: 34)
-                        .cornerRadius(8)
-
-                    Image("slide_setting")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-    }
+    // MARK: - Helpers
 
     private var filteredSessions: [LocalChatSession] {
         let query = sidebarQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        if query.isEmpty {
-            return chatViewModel.sessions
-        }
+        if query.isEmpty { return chatViewModel.sessions }
         return chatViewModel.sessions.filter { $0.title.localizedCaseInsensitiveContains(query) }
     }
 
     private func sessionRow(_ session: LocalChatSession) -> some View {
         let selected = session.id == chatViewModel.selectedSessionID
-
         return Button(action: {
             destination = .chat
             chatViewModel.selectSession(session)
@@ -334,10 +521,59 @@ struct ShellView: View {
         width * 2 / 5.5
     }
 
+    private var maskedAccountPhone: String {
+        guard accountPhone.count >= 7 else { return accountPhone.isEmpty ? "账号管理" : accountPhone }
+        return String(accountPhone.prefix(3)) + "****" + String(accountPhone.suffix(4))
+    }
+
+    private func refreshAuthState() {
+        let preferences = AppPreferences()
+        isAccountLoggedIn = preferences.isLoggedIn && !(preferences.userPhone?.isEmpty ?? true)
+        accountPhone = preferences.userPhone ?? ""
+    }
+
     private func relativeDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
+    }
+}
+
+private struct TabBarStyleModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect()
+                .overlay(
+                    Rectangle()
+                        .fill(Color.white.opacity(0.42))
+                        .frame(height: 0.5),
+                    alignment: .top
+                )
+        } else {
+            content
+                .background(VisualEffectBlur(style: .systemUltraThinMaterialLight))
+                .background(Color.white.opacity(0.48))
+                .overlay(
+                    Rectangle()
+                        .fill(Color.white.opacity(0.72))
+                        .frame(height: 0.5),
+                    alignment: .top
+                )
+                .shadow(color: Color.black.opacity(0.06), radius: 14, x: 0, y: -5)
+        }
+    }
+}
+
+private struct VisualEffectBlur: UIViewRepresentable {
+    let style: UIBlurEffect.Style
+
+    func makeUIView(context: Context) -> UIVisualEffectView {
+        UIVisualEffectView(effect: UIBlurEffect(style: style))
+    }
+
+    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {
+        uiView.effect = UIBlurEffect(style: style)
     }
 }
 
@@ -356,7 +592,7 @@ struct DocumentsListView: View {
     @Binding var isPresented: Bool
     @State private var activeDocumentSheet: DocumentSheet?
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    
+
     private enum DocumentSheet: Identifiable {
         case preview(GeneratedDocument)
         case export(GeneratedDocument)
@@ -368,24 +604,21 @@ struct DocumentsListView: View {
             }
         }
     }
-    
+
     private var allDocuments: [GeneratedDocument] {
         chatViewModel.allDocuments.sorted { $0.createdAt > $1.createdAt }
     }
-    
+
     var body: some View {
         GeometryReader { proxy in
             let isCompact = horizontalSizeClass == .compact || proxy.size.width < 560
             let dialogHeight = isCompact ? proxy.size.height * 0.52 : min(proxy.size.height * 0.62, 500)
-            
+
             ZStack {
                 Color.black.opacity(0.18).edgesIgnoringSafeArea(.all)
-                    .onTapGesture {
-                        isPresented = false
-                    }
-                
+                    .onTapGesture { isPresented = false }
+
                 VStack(spacing: 0) {
-                    // 标题栏
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 8) {
@@ -395,7 +628,7 @@ struct DocumentsListView: View {
                                     .font(.system(size: 20, weight: .bold))
                                     .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                             }
-                            Text("所有对话生成的文档")
+                            Text("所有对话生成并保存的文件")
                                 .font(.system(size: 12))
                                 .foregroundColor(AgentClawDesign.secondaryText)
                         }
@@ -408,10 +641,9 @@ struct DocumentsListView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
-                    
+
                     Divider()
-                    
-                    // 文档列表
+
                     if allDocuments.isEmpty {
                         VStack(spacing: 16) {
                             Image(systemName: "doc.text")
@@ -449,7 +681,7 @@ struct DocumentsListView: View {
             }
         }
     }
-    
+
     private func documentRow(_ document: GeneratedDocument) -> some View {
         Button(action: { activeDocumentSheet = .preview(document) }) {
             HStack(spacing: 12) {
@@ -500,41 +732,28 @@ struct DocumentsListView: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
-    
+
     private func documentIcon(for fileName: String) -> String {
         let lower = fileName.lowercased()
-        if lower.hasSuffix(".pdf") {
-            return "doc.text.fill"
-        } else if lower.hasSuffix(".docx") || lower.hasSuffix(".doc") {
-            return "doc.fill"
-        } else if lower.hasSuffix(".xlsx") || lower.hasSuffix(".xls") {
-            return "tablecells.fill"
-        } else if lower.hasSuffix(".pptx") || lower.hasSuffix(".ppt") {
+        if lower.hasSuffix(".mp4") || lower.hasSuffix(".mov") || lower.hasSuffix(".m4v") {
             return "play.rectangle.fill"
-        } else {
-            return "doc.text.fill"
         }
+        if lower.hasSuffix(".pdf") { return "doc.text.fill" }
+        if lower.hasSuffix(".docx") || lower.hasSuffix(".doc") { return "doc.fill" }
+        if lower.hasSuffix(".xlsx") || lower.hasSuffix(".xls") { return "tablecells.fill" }
+        if lower.hasSuffix(".pptx") || lower.hasSuffix(".ppt") { return "play.rectangle.fill" }
+        return "doc.text.fill"
     }
 
     private func relativeTimeString(from date: Date) -> String {
         let now = Date()
         let interval = now.timeIntervalSince(date)
-
-        if interval < 60 {
-            return "刚刚"
-        } else if interval < 3600 {
-            let minutes = Int(interval / 60)
-            return "\(minutes)分钟前"
-        } else if interval < 86400 {
-            let hours = Int(interval / 3600)
-            return "\(hours)小时前"
-        } else if interval < 604800 {
-            let days = Int(interval / 86400)
-            return "\(days)天前"
-        } else {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "MM-dd HH:mm"
-            return formatter.string(from: date)
-        }
+        if interval < 60 { return "刚刚" }
+        if interval < 3600 { return "\(Int(interval / 60))分钟前" }
+        if interval < 86400 { return "\(Int(interval / 3600))小时前" }
+        if interval < 604800 { return "\(Int(interval / 86400))天前" }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM-dd HH:mm"
+        return formatter.string(from: date)
     }
 }

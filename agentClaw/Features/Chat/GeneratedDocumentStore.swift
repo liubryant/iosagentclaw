@@ -22,6 +22,28 @@ final class GeneratedDocumentStore {
         exportsDirectory.appendingPathComponent(document.relativePath)
     }
 
+    func allExportedFiles() -> [GeneratedDocument] {
+        createExportsDirectoryIfNeeded()
+        let keys: [URLResourceKey] = [.isRegularFileKey, .creationDateKey, .contentModificationDateKey]
+        let urls = (try? fileManager.contentsOfDirectory(
+            at: exportsDirectory,
+            includingPropertiesForKeys: keys,
+            options: [.skipsHiddenFiles]
+        )) ?? []
+        return urls.compactMap { url in
+            let values = try? url.resourceValues(forKeys: Set(keys))
+            guard values?.isRegularFile != false else { return nil }
+            return GeneratedDocument(
+                id: url.lastPathComponent,
+                displayName: url.lastPathComponent,
+                relativePath: url.lastPathComponent,
+                mimeType: mimeType(for: url.pathExtension),
+                createdAt: values?.creationDate ?? values?.contentModificationDate ?? Date()
+            )
+        }
+        .sorted { $0.createdAt > $1.createdAt }
+    }
+
     func saveGeneratedDocuments(from assistantContent: String, fallbackTitle: String) -> GeneratedDocumentSaveResult {
         let blocks = parseFileBlocks(in: assistantContent)
         guard blocks.isEmpty == false else {
@@ -51,6 +73,66 @@ final class GeneratedDocumentStore {
             displayContent: display.isEmpty ? fallbackDisplay : display,
             documents: saved
         )
+    }
+
+    func downloadAndSaveMedia(
+        from remoteURL: URL,
+        defaultPrefix: String,
+        mimeType: String,
+        completion: @escaping (Result<GeneratedDocument, Error>) -> Void
+    ) {
+        createExportsDirectoryIfNeeded()
+        let fileName = mediaFileName(from: remoteURL, defaultPrefix: defaultPrefix, mimeType: mimeType)
+        let destination = exportsDirectory.appendingPathComponent(fileName)
+
+        if fileManager.fileExists(atPath: destination.path) {
+            completion(.success(GeneratedDocument(
+                displayName: destination.lastPathComponent,
+                relativePath: destination.lastPathComponent,
+                mimeType: mimeType
+            )))
+            return
+        }
+
+        URLSession.shared.downloadTask(with: remoteURL) { [weak self] temporaryURL, response, error in
+            guard let self = self else { return }
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            if let httpResponse = response as? HTTPURLResponse,
+               !(200...299).contains(httpResponse.statusCode) {
+                completion(.failure(NSError(
+                    domain: "GeneratedDocumentStore.Media",
+                    code: httpResponse.statusCode,
+                    userInfo: [NSLocalizedDescriptionKey: "视频下载失败（HTTP \(httpResponse.statusCode)）"]
+                )))
+                return
+            }
+            guard let temporaryURL = temporaryURL else {
+                completion(.failure(NSError(
+                    domain: "GeneratedDocumentStore.Media",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "视频下载失败"]
+                )))
+                return
+            }
+
+            do {
+                self.createExportsDirectoryIfNeeded()
+                if self.fileManager.fileExists(atPath: destination.path) == false {
+                    try self.fileManager.moveItem(at: temporaryURL, to: destination)
+                }
+                let resolvedMime = (response as? HTTPURLResponse)?.mimeType ?? mimeType
+                completion(.success(GeneratedDocument(
+                    displayName: destination.lastPathComponent,
+                    relativePath: destination.lastPathComponent,
+                    mimeType: resolvedMime
+                )))
+            } catch {
+                completion(.failure(error))
+            }
+        }.resume()
     }
 
     private struct FileBlock {
@@ -152,6 +234,26 @@ final class GeneratedDocumentStore {
         }
     }
 
+    private func mediaFileName(from remoteURL: URL, defaultPrefix: String, mimeType: String) -> String {
+        let remoteName = remoteURL.lastPathComponent
+            .replacingOccurrences(of: #"[\\/:*?\"<>|]"#, with: "_", options: .regularExpression)
+        let fallbackExtension = mimeType == "video/mp4" ? "mp4" : "bin"
+        if !remoteName.isEmpty, remoteName.contains(".") {
+            return remoteName
+        }
+        let stableID = stableIdentifier(for: remoteURL.absoluteString)
+        return "\(defaultPrefix)-\(stableID).\(fallbackExtension)"
+    }
+
+    private func stableIdentifier(for value: String) -> String {
+        var hash: UInt64 = 14_695_981_039_346_656_037
+        for byte in value.utf8 {
+            hash ^= UInt64(byte)
+            hash &*= 1_099_511_628_211
+        }
+        return String(hash, radix: 16)
+    }
+
     private func createExportsDirectoryIfNeeded() {
         try? fileManager.createDirectory(at: exportsDirectory, withIntermediateDirectories: true)
     }
@@ -175,6 +277,16 @@ final class GeneratedDocumentStore {
             return "text/markdown"
         case "txt":
             return "text/plain"
+        case "mp4":
+            return "video/mp4"
+        case "mov":
+            return "video/quicktime"
+        case "m4v":
+            return "video/x-m4v"
+        case "png":
+            return "image/png"
+        case "jpg", "jpeg":
+            return "image/jpeg"
         default:
             return "application/octet-stream"
         }

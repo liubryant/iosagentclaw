@@ -39,11 +39,24 @@
 		AB2000152FB9000000000015 /* iOS13Compatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000152FB9000000000015 /* iOS13Compatibility.swift */; };
 		AB2000162FB9000000000016 /* GeneratedDocumentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000162FB9000000000016 /* GeneratedDocumentStore.swift */; };
 		AB2000172FB9000000000017 /* DocumentPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000172FB9000000000017 /* DocumentPreviewView.swift */; };
+		AB2000182FB9000000000018 /* TodayHotspotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000182FB9000000000018 /* TodayHotspotService.swift */; };
 		CC308AAE82CD3EC440B9B769 /* UMengAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3162F4F2289C0A3263866F2 /* UMengAnalytics.swift */; };
 		CD2E6AA7994A88C382BC4DC9 /* Pods_agentClaw_agentClawUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DDA556783F6D708372A46AB /* Pods_agentClaw_agentClawUITests.framework */; };
 		PA2000012FB9000000000018 /* PangleAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000012FB9000000000018 /* PangleAdManager.swift */; };
 		TA2000012FB9000000000099 /* TrackingAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = TA1000012FB9000000000099 /* TrackingAuthorization.swift */; };
 		PA2000022FB9000000000019 /* PangleSplashAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000022FB9000000000019 /* PangleSplashAdManager.swift */; };
+		NE200182FB9000000000018 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE100182FB9000000000018 /* AuthService.swift */; };
+		NE200192FB9000000000019 /* PaymentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE100192FB9000000000019 /* PaymentService.swift */; };
+		NE20001A2FB900000000001A /* QuotaManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE10001A2FB900000000001A /* QuotaManager.swift */; };
+		NE20001B2FB900000000001B /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE10001B2FB900000000001B /* LoginView.swift */; };
+		NE20001C2FB900000000001C /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE10001C2FB900000000001C /* ProfileView.swift */; };
+		NE20001D2FB900000000001D /* VipViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE10001D2FB900000000001D /* VipViewModel.swift */; };
+		NE20001E2FB900000000001E /* VipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE10001E2FB900000000001E /* VipView.swift */; };
+		NE20001F2FB900000000001F /* AlipayBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE10001F2FB900000000001F /* AlipayBridge.swift */; };
+		NE2000202FB9000000000020 /* CreationAssetLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE1000202FB9000000000020 /* CreationAssetLoader.swift */; };
+		NE2000212FB9000000000021 /* CreationGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE1000212FB9000000000021 /* CreationGalleryView.swift */; };
+		NE2000222FB9000000000022 /* CreationViewerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE1000222FB9000000000022 /* CreationViewerView.swift */; };
+		NE2000232FB9000000000023 /* creation in Resources */ = {isa = PBXBuildFile; fileRef = NE1000232FB9000000000023 /* creation */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -129,6 +142,7 @@
 		AB1000152FB9000000000015 /* iOS13Compatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/iOS13Compatibility.swift; sourceTree = "<group>"; };
 		AB1000162FB9000000000016 /* GeneratedDocumentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/GeneratedDocumentStore.swift; sourceTree = "<group>"; };
 		AB1000172FB9000000000017 /* DocumentPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/DocumentPreviewView.swift; sourceTree = "<group>"; };
+		AB1000182FB9000000000018 /* TodayHotspotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Chat/TodayHotspotService.swift; sourceTree = "<group>"; };
 		B3162F4F2289C0A3263866F2 /* UMengAnalytics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UMengAnalytics.swift; sourceTree = "<group>"; };
 		C20DA3A51EB9D34EEE38A237 /* Pods_agentClawTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_agentClawTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEF2B5FD08883030247D489C /* Pods-agentClawTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-agentClawTests.release.xcconfig"; path = "Target Support Files/Pods-agentClawTests/Pods-agentClawTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -139,6 +153,18 @@
 		PA1000012FB9000000000018 /* PangleAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleAdManager.swift; sourceTree = "<group>"; };
 		PA1000022FB9000000000019 /* PangleSplashAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleSplashAdManager.swift; sourceTree = "<group>"; };
 		TA1000012FB9000000000099 /* TrackingAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingAuthorization.swift; sourceTree = "<group>"; };
+		NE100182FB9000000000018 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/AuthService.swift; sourceTree = "<group>"; };
+		NE100192FB9000000000019 /* PaymentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/PaymentService.swift; sourceTree = "<group>"; };
+		NE10001A2FB900000000001A /* QuotaManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/QuotaManager.swift; sourceTree = "<group>"; };
+		NE10001B2FB900000000001B /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Auth/LoginView.swift; sourceTree = "<group>"; };
+		NE10001C2FB900000000001C /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Profile/ProfileView.swift; sourceTree = "<group>"; };
+		NE10001D2FB900000000001D /* VipViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Vip/VipViewModel.swift; sourceTree = "<group>"; };
+		NE10001E2FB900000000001E /* VipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Vip/VipView.swift; sourceTree = "<group>"; };
+		NE10001F2FB900000000001F /* AlipayBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Vip/AlipayBridge.swift; sourceTree = "<group>"; };
+		NE1000202FB9000000000020 /* CreationAssetLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Creation/CreationAssetLoader.swift; sourceTree = "<group>"; };
+		NE1000212FB9000000000021 /* CreationGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Creation/CreationGalleryView.swift; sourceTree = "<group>"; };
+		NE1000222FB9000000000022 /* CreationViewerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Creation/CreationViewerView.swift; sourceTree = "<group>"; };
+		NE1000232FB9000000000023 /* creation */ = {isa = PBXFileReference; lastKnownFileType = folder; name = creation; path = Resources/creation; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -227,10 +253,23 @@
 				AB1000102FB9000000000010 /* MultilineTextInput.swift */,
 				AB1000162FB9000000000016 /* GeneratedDocumentStore.swift */,
 				AB1000172FB9000000000017 /* DocumentPreviewView.swift */,
+				AB1000182FB9000000000018 /* TodayHotspotService.swift */,
 				AB10000F2FB900000000000F /* ShellView.swift */,
 				AB1000122FB9000000000012 /* OnboardingView.swift */,
 				AB1000132FB9000000000013 /* SettingsPanelView.swift */,
 				AB1000142FB9000000000014 /* FancyIdeasView.swift */,
+				NE100182FB9000000000018 /* AuthService.swift */,
+				NE100192FB9000000000019 /* PaymentService.swift */,
+				NE10001A2FB900000000001A /* QuotaManager.swift */,
+				NE10001B2FB900000000001B /* LoginView.swift */,
+				NE10001C2FB900000000001C /* ProfileView.swift */,
+				NE10001D2FB900000000001D /* VipViewModel.swift */,
+				NE10001E2FB900000000001E /* VipView.swift */,
+				NE10001F2FB900000000001F /* AlipayBridge.swift */,
+				NE1000202FB9000000000020 /* CreationAssetLoader.swift */,
+				NE1000212FB9000000000021 /* CreationGalleryView.swift */,
+				NE1000222FB9000000000022 /* CreationViewerView.swift */,
+				NE1000232FB9000000000023 /* creation */,
 				0428199E2FB80F620002BDC7 /* Assets.xcassets */,
 				042819A32FB80F620002BDC7 /* Info.plist */,
 				042819A02FB80F620002BDC7 /* Preview Content */,
@@ -413,6 +452,7 @@
 				042819A22FB80F620002BDC7 /* Preview Assets.xcassets in Resources */,
 				0428199F2FB80F620002BDC7 /* Assets.xcassets in Resources */,
 				042819FF2FB80F620002BDC8 /* LaunchScreen.storyboard in Resources */,
+				NE2000232FB9000000000023 /* creation in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -565,10 +605,22 @@
 				AB2000152FB9000000000015 /* iOS13Compatibility.swift in Sources */,
 				AB2000162FB9000000000016 /* GeneratedDocumentStore.swift in Sources */,
 				AB2000172FB9000000000017 /* DocumentPreviewView.swift in Sources */,
+				AB2000182FB9000000000018 /* TodayHotspotService.swift in Sources */,
 				CC308AAE82CD3EC440B9B769 /* UMengAnalytics.swift in Sources */,
 				PA2000012FB9000000000018 /* PangleAdManager.swift in Sources */,
 				PA2000022FB9000000000019 /* PangleSplashAdManager.swift in Sources */,
 				TA2000012FB9000000000099 /* TrackingAuthorization.swift in Sources */,
+				NE200182FB9000000000018 /* AuthService.swift in Sources */,
+				NE200192FB9000000000019 /* PaymentService.swift in Sources */,
+				NE20001A2FB900000000001A /* QuotaManager.swift in Sources */,
+				NE20001B2FB900000000001B /* LoginView.swift in Sources */,
+				NE20001C2FB900000000001C /* ProfileView.swift in Sources */,
+				NE20001D2FB900000000001D /* VipViewModel.swift in Sources */,
+				NE20001E2FB900000000001E /* VipView.swift in Sources */,
+				NE20001F2FB900000000001F /* AlipayBridge.swift in Sources */,
+				NE2000202FB9000000000020 /* CreationAssetLoader.swift in Sources */,
+				NE2000212FB9000000000021 /* CreationGalleryView.swift in Sources */,
+				NE2000222FB9000000000022 /* CreationViewerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

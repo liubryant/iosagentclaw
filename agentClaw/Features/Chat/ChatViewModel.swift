@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import UIKit
 
 final class ChatViewModel: ObservableObject {
     @Published private(set) var sessions: [LocalChatSession]
@@ -7,6 +8,7 @@ final class ChatViewModel: ObservableObject {
     @Published var draft: String = ""
     @Published private(set) var isSending = false
     @Published var errorMessage: String?
+    @Published var attachedImages: [UIImage] = []
 
     private let gatewayClient: GatewayClient
     private let preferences: AppPreferences
@@ -54,8 +56,12 @@ final class ChatViewModel: ObservableObject {
     }
 
     var allDocuments: [GeneratedDocument] {
-        messagesBySession.values.flatMap { messages in
+        let messageFiles = messagesBySession.values.flatMap { messages in
             messages.flatMap { $0.generatedDocuments }
+        }
+        var seen = Set<String>()
+        return (generatedDocumentStore.allExportedFiles() + messageFiles).filter {
+            seen.insert($0.relativePath).inserted
         }
     }
 
@@ -65,6 +71,25 @@ final class ChatViewModel: ObservableObject {
 
     var selectedEntryMode: ChatEntryMode {
         entryModesBySession[selectedSessionID] ?? .default
+    }
+
+    func saveGeneratedVideo(
+        from url: URL,
+        completion: @escaping (Result<GeneratedDocument, Error>) -> Void
+    ) {
+        generatedDocumentStore.downloadAndSaveMedia(
+            from: url,
+            defaultPrefix: "generated-video",
+            mimeType: "video/mp4"
+        ) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                if case .success = result {
+                    self.objectWillChange.send()
+                }
+                completion(result)
+            }
+        }
     }
 
     func createSession(entryMode: ChatEntryMode = .default) {
@@ -81,6 +106,15 @@ final class ChatViewModel: ObservableObject {
     func createSession(withDraft draft: String, entryMode: ChatEntryMode = .default) {
         createSession(entryMode: entryMode)
         self.draft = draft
+    }
+
+    /// 切换到纯文本模式：清除当前 session 的图文/视频选中状态，并清除已附加的图片。
+    /// 用于点击"今日热点"等场景——不创建新对话，只重置输入区状态。
+    func resetToDefaultMode() {
+        entryModesBySession[selectedSessionID] = .default
+        attachedImages = []
+        saveHistory()
+        objectWillChange.send()
     }
 
     func selectSession(_ session: LocalChatSession) {
@@ -109,29 +143,38 @@ final class ChatViewModel: ObservableObject {
         objectWillChange.send()
     }
 
+    func attachImage(_ image: UIImage) {
+        attachedImages.append(image)
+    }
+
+    func removeAttachedImage(at index: Int) {
+        guard attachedImages.indices.contains(index) else { return }
+        attachedImages.remove(at: index)
+    }
+
     func send() {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard text.isEmpty == false, isSending == false else {
+        let images = attachedImages
+        let entryMode = selectedEntryMode
+        guard (text.isEmpty == false || images.isEmpty == false), isSending == false else {
             return
         }
 
         draft = ""
+        attachedImages = []
         errorMessage = nil
-        let userMessage = ChatMessage(role: .user, content: text)
+        let displayText = text.isEmpty ? "发送了\(images.count)张图片" : text
+        let userMessage = ChatMessage(
+            role: .user,
+            content: displayText,
+            attachedImageData: images.compactMap(chatPreviewData)
+        )
         append(userMessage)
-        updateSelectedSessionTitleIfNeeded(text)
+        updateSelectedSessionTitleIfNeeded(displayText)
         saveHistory()
         isSending = true
 
-        let requestMessages = messages.map { message -> ChatMessage in
-            guard message.id == userMessage.id else {
-                return message
-            }
-            var outboundMessage = message
-            outboundMessage.content = outboundContent(for: text, entryMode: selectedEntryMode)
-            return outboundMessage
-        }
-        gatewayClient.sendChat(messages: requestMessages) { [weak self] result in
+        let handleResult: (Result<String, Error>) -> Void = { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let reply):
@@ -153,20 +196,83 @@ final class ChatViewModel: ObservableObject {
                 self?.isSending = false
             }
         }
+
+        // 视频生成是异步任务：直接提交 /videos/generations 并轮询结果，
+        // 与 Android 保持一致，避免 chat/completions 只返回任务提交状态。
+        if entryMode == .video {
+            gatewayClient.generateVideo(prompt: text, completion: handleResult)
+            return
+        }
+
+        // 与 Android 保持一致：图片模式携带源图时使用独立图生图接口，
+        // 不再落入 glm-image 的文生图聊天请求。
+        if entryMode == .image, let sourceImage = images.first {
+            guard let imageData = sourceImage.jpegData(compressionQuality: 0.75) else {
+                handleResult(.failure(NSError(
+                    domain: "ChatViewModel.ImageEdit",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "所选图片无法处理，请重新选择"]
+                )))
+                return
+            }
+            let editPrompt = text.isEmpty ? "基于这张图片生成一张新图片" : text
+            gatewayClient.editImage(
+                prompt: editPrompt,
+                imageBase64: imageData.base64EncodedString(),
+                completion: handleResult
+            )
+            return
+        }
+
+        let outbound = outboundContent(for: text, images: images, entryMode: entryMode)
+        let requestMessages = messages.map { message -> ChatMessage in
+            guard message.id == userMessage.id else {
+                return message
+            }
+            var outboundMessage = message
+            outboundMessage.content = outbound
+            return outboundMessage
+        }
+        gatewayClient.sendChat(messages: requestMessages, completion: handleResult)
     }
 
-    private func outboundContent(for text: String, entryMode: ChatEntryMode) -> String {
+    private func outboundContent(for text: String, images: [UIImage] = [], entryMode: ChatEntryMode) -> String {
+        let imageParts: [String] = images.compactMap { img in
+            guard let data = img.jpegData(compressionQuality: 0.75) else { return nil }
+            return "![图片](data:image/jpeg;base64,\(data.base64EncodedString()))"
+        }
         switch entryMode {
         case .image:
-            return "[[IMAGE_MODE]] \(text)"
+            let parts = imageParts + (text.isEmpty ? [] : [text])
+            return "[[IMAGE_MODE]] " + parts.joined(separator: "\n")
         case .video:
-            return "[[VIDEO_MODE]] \(text)"
+            let parts = imageParts + (text.isEmpty ? [] : [text])
+            return "[[VIDEO_MODE]] " + parts.joined(separator: "\n")
         case .default:
             if shouldRequestDocumentFile(for: text) {
                 return "[[DOCUMENT_MODE]] \(documentGenerationInstruction)\n\n用户需求：\(text)"
             }
-            return text
+            if imageParts.isEmpty { return text }
+            return (imageParts + (text.isEmpty ? [] : [text])).joined(separator: "\n")
         }
+    }
+
+    private func chatPreviewData(for image: UIImage) -> Data? {
+        let maxDimension: CGFloat = 800
+        let originalSize = image.size
+        let scale = min(maxDimension / max(originalSize.width, originalSize.height), 1)
+        let preview: UIImage
+
+        if scale < 1 {
+            let targetSize = CGSize(width: originalSize.width * scale, height: originalSize.height * scale)
+            UIGraphicsBeginImageContextWithOptions(targetSize, false, 1)
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+            preview = UIGraphicsGetImageFromCurrentImageContext() ?? image
+            UIGraphicsEndImageContext()
+        } else {
+            preview = image
+        }
+        return preview.jpegData(compressionQuality: 0.68)
     }
 
     private var documentGenerationInstruction: String {

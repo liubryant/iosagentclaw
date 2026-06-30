@@ -195,8 +195,6 @@ extension PangleSplashAdManager: BUMSplashAdDelegate {
     /// 广告已展示回调
     func splashAdDidShow(_ splashAd: BUSplashAd) {
         isLoading = false
-        completionHandler?(true, nil)
-        completionHandler = nil
         print("csjad splash_did_show slotID=\(splashAd.slotID)")
         print("✅ 开屏广告已展示")
     }
@@ -212,6 +210,8 @@ extension PangleSplashAdManager: BUMSplashAdDelegate {
         isLoading = false
         print("csjad splash_close slotID=\(splashAd.slotID), closeType=\(closeType.rawValue)")
         print("🔚 开屏广告已关闭，类型: \(closeType.rawValue)")
+        completionHandler?(true, nil)
+        completionHandler = nil
         splashAd.mediation?.destoryAd()
         self.splashAd = nil
     }
@@ -220,6 +220,9 @@ extension PangleSplashAdManager: BUMSplashAdDelegate {
     func splashAdViewControllerDidClose(_ splashAd: BUSplashAd) {
         print("csjad splash_view_controller_close slotID=\(splashAd.slotID)")
         print("🔚 开屏广告控制器已关闭")
+        // 部分聚合广告源只回调控制器关闭，作为关闭完成的兜底。
+        completionHandler?(true, nil)
+        completionHandler = nil
     }
 
     /// 其他控制器关闭回调

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum AgentClawDesign {
     static let appBackground = Color(red: 0.94, green: 0.95, blue: 0.97)
@@ -13,6 +14,28 @@ enum AgentClawDesign {
     static func roundedCard(radius: CGFloat = 8) -> some View {
         RoundedRectangle(cornerRadius: radius, style: .continuous)
             .fill(chatSurface)
+    }
+}
+
+// MARK: - Rounded corners on specific edges (iOS 13 compatible)
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat
+    var corners: UIRectCorner
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
+    }
+}
+
+extension View {
+    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
+        clipShape(RoundedCorner(radius: radius, corners: corners))
     }
 }
 

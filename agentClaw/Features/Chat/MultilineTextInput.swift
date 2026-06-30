@@ -24,6 +24,7 @@ struct MultilineTextInput: UIViewRepresentable {
         textView.isScrollEnabled = true
         textView.textContainerInset = UIEdgeInsets(top: 8, left: 6, bottom: 8, right: 6)
         textView.textContainer.lineFragmentPadding = 0
+        textView.returnKeyType = .done
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return textView
@@ -77,6 +78,7 @@ struct MultilineTextInput: UIViewRepresentable {
 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
             if text == "\n" {
+                textView.resignFirstResponder()
                 onReturn?()
                 return false
             }

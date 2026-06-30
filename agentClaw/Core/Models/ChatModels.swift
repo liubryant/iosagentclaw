@@ -19,19 +19,22 @@ struct ChatMessage: Identifiable, Codable, Equatable {
     var content: String
     var createdAt: Date
     var generatedDocuments: [GeneratedDocument]
+    var attachedImageData: [Data]
 
     init(
         id: String = UUID().uuidString,
         role: ChatRole,
         content: String,
         createdAt: Date = Date(),
-        generatedDocuments: [GeneratedDocument] = []
+        generatedDocuments: [GeneratedDocument] = [],
+        attachedImageData: [Data] = []
     ) {
         self.id = id
         self.role = role
         self.content = content
         self.createdAt = createdAt
         self.generatedDocuments = generatedDocuments
+        self.attachedImageData = attachedImageData
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -40,6 +43,7 @@ struct ChatMessage: Identifiable, Codable, Equatable {
         case content
         case createdAt
         case generatedDocuments
+        case attachedImageData
     }
 
     init(from decoder: Decoder) throws {
@@ -49,6 +53,7 @@ struct ChatMessage: Identifiable, Codable, Equatable {
         content = try container.decode(String.self, forKey: .content)
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         generatedDocuments = try container.decodeIfPresent([GeneratedDocument].self, forKey: .generatedDocuments) ?? []
+        attachedImageData = try container.decodeIfPresent([Data].self, forKey: .attachedImageData) ?? []
     }
 }
 

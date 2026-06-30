@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import WebKit
+import AVKit
 
 struct DocumentPreviewView: View {
     let url: URL
@@ -17,8 +18,62 @@ struct DocumentPreviewView: View {
             .frame(height: 44)
             .background(AgentClawDesign.controlSurface)
 
-            DocumentWebPreview(url: url)
+            if isVideo {
+                LocalVideoPreview(url: url)
+            } else {
+                DocumentWebPreview(url: url)
+            }
         }
+    }
+
+    private var isVideo: Bool {
+        ["mp4", "mov", "m4v"].contains(url.pathExtension.lowercased())
+    }
+}
+
+private struct LocalVideoPreview: View {
+    let url: URL
+    @State private var player: AVPlayer?
+
+    var body: some View {
+        ZStack {
+            Color.black
+            if let player = player {
+                LocalVideoPlayerController(player: player)
+            }
+        }
+        .onAppear {
+            let nextPlayer = AVPlayer(url: url)
+            player = nextPlayer
+            nextPlayer.play()
+        }
+        .onDisappear {
+            player?.pause()
+            player?.replaceCurrentItem(with: nil)
+            player = nil
+        }
+    }
+}
+
+private struct LocalVideoPlayerController: UIViewControllerRepresentable {
+    let player: AVPlayer
+
+    func makeUIViewController(context: Context) -> AVPlayerViewController {
+        let controller = AVPlayerViewController()
+        controller.player = player
+        controller.showsPlaybackControls = true
+        controller.videoGravity = .resizeAspect
+        return controller
+    }
+
+    func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {
+        controller.player = player
+    }
+
+    static func dismantleUIViewController(_ controller: AVPlayerViewController, coordinator: ()) {
+        controller.player?.pause()
+        controller.player?.replaceCurrentItem(with: nil)
+        controller.player = nil
     }
 }
 

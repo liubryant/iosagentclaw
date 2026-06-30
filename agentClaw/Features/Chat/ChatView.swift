@@ -1,12 +1,23 @@
 import SwiftUI
 import Photos
 import UIKit
+import AVKit
 
 struct ChatView: View {
     @ObservedObject var viewModel: ChatViewModel
+    var onRequestImagePicker: (() -> Void)? = nil
     @State private var activeDocumentSheet: DocumentSheet?
     @State private var inputFocusToken = 0
-    @State private var keyboardHeight: CGFloat = 0
+    @State private var showPickerOverlay = false
+    @State private var activePickerSource: ImagePickerSource? = nil
+    @State private var activeVideoPlayback: VideoPlaybackItem?
+    @State private var videoSaveStatus = ""
+    @State private var hotspots: [TodayHotspotItem] = []
+
+    private enum ImagePickerSource: Identifiable {
+        case camera, gallery
+        var id: Int { self == .camera ? 0 : 1 }
+    }
 
     private let quickPrompts = [
         QuickPrompt(
@@ -54,22 +65,28 @@ struct ChatView: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            content
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                content
 
-            if let errorMessage = viewModel.errorMessage {
-                errorBanner(errorMessage)
+                if let errorMessage = viewModel.errorMessage {
+                    errorBanner(errorMessage)
+                }
+
+                composer
             }
+            .background(Color.white)
 
-            composer
+            if showPickerOverlay {
+                ImagePickerOptionsOverlay(
+                    onDismiss: { withAnimation { showPickerOverlay = false } },
+                    onCamera: { presentImagePicker(.camera) },
+                    onGallery: { presentImagePicker(.gallery) }
+                )
+            }
         }
-        .padding(.bottom, keyboardHeight)
-        .background(Color.white)
         .onAppear {
-            setupKeyboardObservers()
-        }
-        .onDisappear {
-            removeKeyboardObservers()
+            loadHotspots()
         }
         .sheet(item: $activeDocumentSheet) { sheet in
             switch sheet {
@@ -78,6 +95,22 @@ struct ChatView: View {
             case .export(let document):
                 DocumentExportView(url: viewModel.generatedDocumentStore.fileURL(for: document))
             }
+        }
+        .sheet(item: $activePickerSource) { source in
+            ImagePickerView(
+                sourceType: source == .camera ? .camera : .photoLibrary,
+                onImagePicked: { image in viewModel.attachImage(image) }
+            )
+        }
+        .chatFullScreenCover(item: $activeVideoPlayback) { item in
+            FullScreenGeneratedVideoView(item: item, saveStatus: $videoSaveStatus)
+        }
+    }
+
+    private func presentImagePicker(_ source: ImagePickerSource) {
+        withAnimation { showPickerOverlay = false }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            activePickerSource = source
         }
     }
 
@@ -106,10 +139,28 @@ struct ChatView: View {
 
     private var welcomeState: some View {
         VStack(spacing: 0) {
-            Image("app_icon_display")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 45, height: 45)
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "#7658F7"), Color(hex: "#C85CC7")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                Circle()
+                    .stroke(Color.white.opacity(0.75), lineWidth: 2)
+                    .padding(4)
+                Image(systemName: "person.fill")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(.white)
+                Image(systemName: "sparkles")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundColor(.white)
+                    .offset(x: 13, y: -13)
+            }
+            .frame(width: 48, height: 48)
+            .shadow(color: Color(hex: "#7658F7").opacity(0.22), radius: 8, x: 0, y: 4)
 
             Text("7x24小时，随时随地召唤的全能电脑AI助手")
                 .font(.system(size: 12))
@@ -118,8 +169,9 @@ struct ChatView: View {
                 .padding(.top, 18)
 
             VStack(spacing: 8) {
-                ForEach(quickPrompts) { item in
+                ForEach(displayPrompts) { item in
                     Button(action: {
+                        viewModel.resetToDefaultMode()
                         viewModel.draft = item.prompt
                     }) {
                         HStack(alignment: .top, spacing: 8) {
@@ -158,16 +210,26 @@ struct ChatView: View {
     }
 
     private func messageBubble(_ message: ChatMessage, availableWidth: CGFloat) -> some View {
-        let imageURL = message.role == .assistant ? ChatMediaParser.firstImageURL(in: message.content) : nil
-        let displayContent = imageURL == nil ? message.content : ChatMediaParser.stripMedia(from: message.content)
+        // 图生图响应偶尔会回显作为输入的 data:image/...;base64 数据。
+        // 只在助手消息的展示层清理，保留原始响应和发送逻辑不变。
+        let mediaContent = message.role == .assistant
+            ? ChatMediaParser.stripEmbeddedInputImages(from: message.content)
+            : message.content
+        let imageURL = message.role == .assistant ? ChatMediaParser.firstImageURL(in: mediaContent) : nil
+        let videoURL = message.role == .assistant ? ChatMediaParser.firstVideoURL(in: mediaContent) : nil
+        let videoCoverURL = message.role == .assistant ? ChatMediaParser.firstVideoCoverURL(in: mediaContent) : nil
+        let displayContent = (imageURL == nil && videoURL == nil)
+            ? mediaContent
+            : ChatMediaParser.stripMedia(from: mediaContent)
         let hasImage = imageURL != nil
+        let hasVideo = videoURL != nil
         let hasDocuments = message.generatedDocuments.isEmpty == false
+        let uploadedImages = message.role == .user
+            ? message.attachedImageData.compactMap(UIImage.init(data:))
+            : []
 
         // 图片和文档使用更大的宽度，左右间距相等（各18）
         let mediaMaxWidth = availableWidth - 36
-        // 普通文本消息也使用更大宽度，右边只保留少量间距
-        let textMaxWidth = availableWidth - 36 - 20
-
         return HStack(alignment: .top) {
             if message.role == .user {
                 Spacer(minLength: 72)
@@ -178,7 +240,16 @@ struct ChatView: View {
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(AgentClawDesign.secondaryText)
 
-                if displayContent.isEmpty == false || imageURL == nil {
+                ForEach(Array(uploadedImages.enumerated()), id: \.offset) { _, image in
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: min(220, mediaMaxWidth * 0.72), maxHeight: 240)
+                        .background(Color.black.opacity(0.035))
+                        .cornerRadius(10)
+                }
+
+                if displayContent.isEmpty == false || (!hasImage && !hasVideo) {
                     Text(displayContent.isEmpty ? "..." : displayContent)
                         .font(.system(size: 13))
                         .foregroundColor(AgentClawDesign.primaryText)
@@ -193,6 +264,15 @@ struct ChatView: View {
                     GeneratedImageView(url: imageURL, maxWidth: mediaMaxWidth)
                 }
 
+                if let videoURL = videoURL {
+                    GeneratedVideoView(
+                        url: videoURL,
+                        coverURL: videoCoverURL,
+                        maxWidth: mediaMaxWidth,
+                        onPlay: { openGeneratedVideo(url: videoURL, coverURL: videoCoverURL) }
+                    )
+                }
+
                 ForEach(message.generatedDocuments) { document in
                     generatedDocumentCard(document, maxWidth: mediaMaxWidth)
                 }
@@ -200,7 +280,20 @@ struct ChatView: View {
 
             if message.role != .user {
                 // AI消息右边只保留少量间距
-                Spacer(minLength: (hasImage || hasDocuments) ? 0 : 20)
+                Spacer(minLength: (hasImage || hasVideo || hasDocuments) ? 0 : 20)
+            }
+        }
+    }
+
+    private func openGeneratedVideo(url: URL, coverURL: URL?) {
+        videoSaveStatus = "正在保存到文件管理…"
+        activeVideoPlayback = VideoPlaybackItem(url: url, coverURL: coverURL)
+        viewModel.saveGeneratedVideo(from: url) { result in
+            switch result {
+            case .success:
+                videoSaveStatus = "已保存到文件管理"
+            case .failure(let error):
+                videoSaveStatus = "保存失败：\(error.localizedDescription)"
             }
         }
     }
@@ -289,8 +382,11 @@ struct ChatView: View {
         .background(Color(red: 1.0, green: 0.93, blue: 0.93))
     }
 
+    // MARK: - Composer (matches Android fragment_shell_chat.xml composerCard structure)
+
     private var composer: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 0) {
+            // Entry mode chips row (chatEntryButtonsRow)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     entryButton(icon: "photo", title: "AI图文", mode: .image)
@@ -298,70 +394,121 @@ struct ChatView: View {
                 }
                 .padding(.horizontal, 4)
             }
+            .padding(.top, 8)
+            .padding(.bottom, 6)
 
-            HStack(alignment: .bottom, spacing: 8) {
-                ZStack(alignment: .topLeading) {
-                    MultilineTextInput(
-                        text: $viewModel.draft,
-                        focusToken: inputFocusToken,
-                        onReturn: {
-                            if canSend {
-                                viewModel.send()
-                                hideKeyboard()
+            // composerInner: #F7F8FA card, 12dp corners
+            VStack(spacing: 0) {
+                // imageThumbnailRow: shows when image is attached (80×80, 10dp corners)
+                if !viewModel.attachedImages.isEmpty {
+                    HStack(spacing: 0) {
+                        ZStack(alignment: .topTrailing) {
+                            Image(uiImage: viewModel.attachedImages[0])
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 80, height: 80)
+                                .clipped()
+                                .cornerRadius(10)
+                            Button(action: { viewModel.removeAttachedImage(at: 0) }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.white)
+                                    .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                             }
+                            .buttonStyle(PlainButtonStyle())
+                            .offset(x: 2, y: -2)
                         }
-                    )
-                    .frame(maxWidth: .infinity, minHeight: 50, maxHeight: 118)
-
-                    if viewModel.draft.isEmpty {
-                        Text(composerHint)
-                            .font(.system(size: 13))
-                            .foregroundColor(Color.black.opacity(0.34))
-                            .padding(.horizontal, 13)
-                            .padding(.top, 15)
-                            .allowsHitTesting(false)
+                        Spacer()
                     }
+                    .padding(.leading, 10)
+                    .padding(.top, 10)
                 }
-                .frame(maxWidth: .infinity)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    inputFocusToken += 1
-                }
-                .background(Color.white)
-                .cornerRadius(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(AgentClawDesign.divider, lineWidth: 1)
-                )
 
-                Button(action: {
-                    viewModel.send()
-                    hideKeyboard()
-                }) {
-                    Image(systemName: viewModel.isSending ? "stop.fill" : "paperplane.fill")
-                        .foregroundColor(.white)
-                        .frame(width: 40, height: 40)
-                        .background(canSend ? AgentClawDesign.accent : Color.gray.opacity(0.5))
-                        .cornerRadius(8)
+                // Input row: EditText full-width, buttons overlaid at bottom-right
+                ZStack(alignment: .bottomTrailing) {
+                    // Text input (full width, paddingBottom leaves room for buttons)
+                    ZStack(alignment: .topLeading) {
+                        MultilineTextInput(
+                            text: $viewModel.draft,
+                            focusToken: inputFocusToken,
+                            onReturn: {
+                                if canSend { viewModel.send() }
+                            }
+                        )
+                        .frame(maxWidth: .infinity, minHeight: 44, maxHeight: 96)
+
+                        if viewModel.draft.isEmpty {
+                            Text(composerHint)
+                                .font(.system(size: 15))
+                                .foregroundColor(Color(hex: "#A6A6A6"))
+                                .padding(.horizontal, 10)
+                                .padding(.top, 8)
+                                .allowsHitTesting(false)
+                        }
+                    }
+                    .padding(.bottom, 44)
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .onTapGesture { inputFocusToken += 1 }
+
+                    // Bottom-right buttons (height: 58dp, matches Android LinearLayout gravity=bottom|end)
+                    HStack(spacing: 0) {
+                        if viewModel.selectedEntryMode == .image {
+                            Button(action: {
+                                hideKeyboard()
+                                if let onRequestImagePicker = onRequestImagePicker {
+                                    onRequestImagePicker()
+                                } else {
+                                    withAnimation { showPickerOverlay = true }
+                                }
+                            }) {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(Color(hex: "#111111"))
+                                    .frame(width: 40, height: 40)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+
+                        Button(action: {
+                            hideKeyboard()
+                            viewModel.send()
+                        }) {
+                            Image(systemName: viewModel.isSending ? "stop.fill" : "paperplane.fill")
+                                .font(.system(size: 22))
+                                .foregroundColor(canSend ? Color(hex: "#111111") : Color(hex: "#111111").opacity(0.35))
+                                .frame(width: 46, height: 46)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .disabled(!canSend)
+                    }
+                    .frame(height: 48)
+                    .padding(.trailing, 4)
+                    .padding(.bottom, 2)
                 }
-                .disabled(canSend == false)
             }
+            .background(Color(hex: "#F7F8FA"))
+            .cornerRadius(12)
+            .padding(.horizontal, 2)
 
+            // Disclaimer
             Text("内容由AI生成，仅供参考")
-                .font(.system(size: 12))
-                .foregroundColor(AgentClawDesign.secondaryText)
+                .font(.system(size: 10))
+                .foregroundColor(Color.black.opacity(0.24))
                 .frame(maxWidth: .infinity)
-                .padding(.top, 4)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
         }
-        .padding(.leading, 16)
-        .padding(.trailing, 8)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
-        .background(AgentClawDesign.controlSurface)
+        .padding(.horizontal, 8)
+        .padding(.bottom, 6)
+        .background(Color.white)
     }
 
     private var canSend: Bool {
-        viewModel.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false && viewModel.isSending == false
+        (viewModel.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+            || viewModel.attachedImages.isEmpty == false)
+        && viewModel.isSending == false
     }
 
     private var composerHint: String {
@@ -376,8 +523,12 @@ struct ChatView: View {
     }
 
     private func entryButton(icon: String, title: String, mode: ChatEntryMode) -> some View {
-        Button(action: {
-            viewModel.createSession(entryMode: mode)
+        let isSelected = viewModel.selectedEntryMode == mode
+        let selectedColor = mode == .image ? Color(hex: "#7658F7") : Color(hex: "#1598A8")
+        return Button(action: {
+            // 反选：再次点击已选中的模式时切回默认模式，但仍然新建一个对话
+            let targetMode: ChatEntryMode = isSelected ? .default : mode
+            viewModel.createSession(entryMode: targetMode)
         }) {
             HStack(spacing: 5) {
                 Image(systemName: icon)
@@ -385,47 +536,40 @@ struct ChatView: View {
                 Text(title)
                     .font(.system(size: 12))
             }
-            .foregroundColor(AgentClawDesign.primaryText)
+            .foregroundColor(isSelected ? selectedColor : AgentClawDesign.primaryText)
             .padding(.horizontal, 10)
             .frame(height: 30)
-            .background(viewModel.selectedEntryMode == mode ? AgentClawDesign.accent.opacity(0.16) : Color.white)
+            .background(isSelected ? selectedColor.opacity(0.11) : Color.white)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(viewModel.selectedEntryMode == mode ? AgentClawDesign.accent.opacity(0.55) : Color.clear, lineWidth: 1)
+                    .stroke(isSelected ? selectedColor.opacity(0.78) : Color.clear, lineWidth: 1.2)
             )
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
     }
 
-    private func setupKeyboardObservers() {
-        NotificationCenter.default.addObserver(
-            forName: UIResponder.keyboardWillShowNotification,
-            object: nil,
-            queue: .main
-        ) { notification in
-            guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
-                return
-            }
-            withAnimation(.easeOut(duration: 0.25)) {
-                self.keyboardHeight = keyboardFrame.height
-            }
-        }
-
-        NotificationCenter.default.addObserver(
-            forName: UIResponder.keyboardWillHideNotification,
-            object: nil,
-            queue: .main
-        ) { _ in
-            withAnimation(.easeOut(duration: 0.25)) {
-                self.keyboardHeight = 0
+    private func loadHotspots() {
+        TodayHotspotService.shared.load { result in
+            if case .success(let items) = result {
+                DispatchQueue.main.async { self.hotspots = items }
             }
         }
     }
 
-    private func removeKeyboardObservers() {
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    // 动态提示：热点可用时替换静态 quickPrompts，保持相同卡片样式，图片和背景按索引循环复用
+    private var displayPrompts: [QuickPrompt] {
+        guard !hotspots.isEmpty else { return quickPrompts }
+        return hotspots.enumerated().map { index, hotspot in
+            let base = quickPrompts[index % quickPrompts.count]
+            return QuickPrompt(
+                title: hotspot.title,
+                subtitle: hotspot.subtitle,
+                prompt: hotspot.prompt,
+                imageName: base.imageName,
+                background: base.background
+            )
+        }
     }
 
     private func hideKeyboard() {
@@ -616,6 +760,209 @@ private struct GeneratedImageView: View {
     }
 }
 
+private struct GeneratedVideoView: View {
+    let url: URL
+    let coverURL: URL?
+    let maxWidth: CGFloat
+    let onPlay: () -> Void
+    @State private var coverImage: UIImage?
+    @State private var isLoading = true
+
+    var body: some View {
+        Button(action: onPlay) {
+            ZStack {
+                LinearGradient(
+                    colors: [Color(hex: "#191A24"), Color(hex: "#303449")],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                if let coverImage = coverImage {
+                    Image(uiImage: coverImage)
+                        .resizable()
+                        .scaledToFill()
+                }
+
+                if isLoading {
+                    CompatProgressView()
+                }
+
+                ZStack {
+                    Circle()
+                        .fill(Color.black.opacity(0.58))
+                        .frame(width: 58, height: 58)
+                    Circle()
+                        .stroke(Color.white.opacity(0.82), lineWidth: 1)
+                        .frame(width: 58, height: 58)
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 23, weight: .semibold))
+                        .foregroundColor(.white)
+                        .offset(x: 2)
+                }
+
+                VStack {
+                    Spacer()
+                    HStack {
+                        Image(systemName: "video.fill")
+                        Text("点击全屏播放")
+                    }
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 10)
+                    .frame(height: 28)
+                    .background(Color.black.opacity(0.5))
+                    .cornerRadius(14)
+                    .padding(10)
+                }
+            }
+            .frame(width: maxWidth, height: min(260, maxWidth * 9 / 16))
+            .clipped()
+            .cornerRadius(10)
+            .contentShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onAppear(perform: loadCover)
+    }
+
+    private func loadCover() {
+        guard coverImage == nil else { return }
+        isLoading = true
+        if let coverURL = coverURL {
+            URLSession.shared.dataTask(with: coverURL) { data, _, _ in
+                let image = data.flatMap(UIImage.init(data:))
+                DispatchQueue.main.async {
+                    if let image = image {
+                        coverImage = image
+                        isLoading = false
+                    } else {
+                        loadVideoThumbnail()
+                    }
+                }
+            }.resume()
+            return
+        }
+
+        loadVideoThumbnail()
+    }
+
+    private func loadVideoThumbnail() {
+        DispatchQueue.global(qos: .utility).async {
+            let asset = AVURLAsset(url: url)
+            let generator = AVAssetImageGenerator(asset: asset)
+            generator.appliesPreferredTrackTransform = true
+            generator.maximumSize = CGSize(width: 800, height: 500)
+            let time = CMTime(seconds: 0.2, preferredTimescale: 600)
+            let image = (try? generator.copyCGImage(at: time, actualTime: nil)).map(UIImage.init(cgImage:))
+            DispatchQueue.main.async {
+                coverImage = image
+                isLoading = false
+            }
+        }
+    }
+}
+
+private struct VideoPlaybackItem: Identifiable {
+    let url: URL
+    let coverURL: URL?
+    var id: String { url.absoluteString }
+}
+
+private struct FullScreenGeneratedVideoView: View {
+    let item: VideoPlaybackItem
+    @Binding var saveStatus: String
+    @Environment(\.presentationMode) private var presentationMode
+    @State private var player: AVPlayer?
+
+    var body: some View {
+        ZStack {
+            Color.black.edgesIgnoringSafeArea(.all)
+
+            if let player = player {
+                ChatVideoPlayerController(player: player)
+                    .edgesIgnoringSafeArea(.all)
+            } else {
+                CompatProgressView()
+            }
+
+            VStack {
+                HStack {
+                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Color.black.opacity(0.55))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 48)
+
+                Spacer()
+
+                if !saveStatus.isEmpty {
+                    Text(saveStatus)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 14)
+                        .frame(height: 34)
+                        .background(Color.black.opacity(0.62))
+                        .cornerRadius(17)
+                        .padding(.bottom, 40)
+                }
+            }
+        }
+        .onAppear {
+            let nextPlayer = AVPlayer(url: item.url)
+            player = nextPlayer
+            nextPlayer.play()
+        }
+        .onDisappear {
+            player?.pause()
+            player?.replaceCurrentItem(with: nil)
+            player = nil
+        }
+    }
+}
+
+private struct ChatVideoPlayerController: UIViewControllerRepresentable {
+    let player: AVPlayer
+
+    func makeUIViewController(context: Context) -> AVPlayerViewController {
+        let controller = AVPlayerViewController()
+        controller.player = player
+        controller.showsPlaybackControls = true
+        controller.videoGravity = .resizeAspect
+        return controller
+    }
+
+    func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {
+        controller.player = player
+    }
+
+    static func dismantleUIViewController(_ controller: AVPlayerViewController, coordinator: ()) {
+        controller.player?.pause()
+        controller.player?.replaceCurrentItem(with: nil)
+        controller.player = nil
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func chatFullScreenCover<Item: Identifiable, Content: View>(
+        item: Binding<Item?>,
+        @ViewBuilder content: @escaping (Item) -> Content
+    ) -> some View {
+        if #available(iOS 14.0, *) {
+            fullScreenCover(item: item, content: content)
+        } else {
+            sheet(item: item, content: content)
+        }
+    }
+}
+
 private struct DocumentActionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -639,14 +986,54 @@ private enum GeneratedImageError: LocalizedError {
 private enum ChatMediaParser {
     private static let markdownImagePattern = #"!\[[^\]]*]\((https?://[^)\s]+)\)"#
     private static let genericURLPattern = #"https?://\S+"#
+    private static let videoCoverPattern = #"(?im)^\s*(?:视频封面|cover_image_url|cover image)\s*[:：]\s*(https?://\S+)\s*$"#
+    private static let videoCoverJSONPattern = #"\"cover_image_url\"\s*:\s*\"(https?://[^\"]+)\""#
+    private static let markdownDataImagePattern = #"!\[[^\]]*]\(data:image/[^)\s]+\)"#
+    private static let rawDataImagePattern = #"data:image/[A-Za-z0-9.+-]+;base64,[A-Za-z0-9+/=_-]+"#
+
+    static func stripEmbeddedInputImages(from content: String) -> String {
+        let withoutMarkdownDataImages = replacingMatches(
+            pattern: markdownDataImagePattern,
+            in: content,
+            with: ""
+        )
+        let withoutRawDataImages = replacingMatches(
+            pattern: rawDataImagePattern,
+            in: withoutMarkdownDataImages,
+            with: ""
+        )
+
+        return replacingMatches(pattern: #"\n{3,}"#, in: withoutRawDataImages, with: "\n\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     static func firstImageURL(in content: String) -> URL? {
         let markdownURLs = matches(pattern: markdownImagePattern, in: content, captureGroup: 1)
         let directURLs = matches(pattern: genericURLPattern, in: content, captureGroup: 0)
+        let coverURLs = Set(videoCoverURLs(in: content))
         return (markdownURLs + directURLs)
             .map(normalizeMediaURL)
-            .first { isImageURL($0) }
+            .first { isImageURL($0) && !coverURLs.contains($0) }
             .flatMap(URL.init(string:))
+    }
+
+    static func firstVideoURL(in content: String) -> URL? {
+        matches(pattern: genericURLPattern, in: content, captureGroup: 0)
+            .map(normalizeMediaURL)
+            .first { isVideoURL($0) }
+            .flatMap(URL.init(string:))
+    }
+
+    static func firstVideoCoverURL(in content: String) -> URL? {
+        videoCoverURLs(in: content)
+            .first
+            .flatMap(URL.init(string:))
+    }
+
+    private static func videoCoverURLs(in content: String) -> [String] {
+        let lineURLs = matches(pattern: videoCoverPattern, in: content, captureGroup: 1)
+        let jsonURLs = matches(pattern: videoCoverJSONPattern, in: content, captureGroup: 1)
+        return (lineURLs + jsonURLs).map(normalizeMediaURL)
     }
 
     static func stripMedia(from content: String) -> String {
@@ -668,6 +1055,8 @@ private enum ChatMediaParser {
                 line.isEmpty == false &&
                     line.hasPrefix("图片链接") == false &&
                     line.hasPrefix("Image link") == false &&
+                    line.hasPrefix("视频封面") == false &&
+                    line.hasPrefix("Video cover") == false &&
                     line.hasPrefix("视频链接") == false &&
                     line.hasPrefix("Video link") == false
             }
@@ -724,6 +1113,7 @@ private enum ChatMediaParser {
 
     private static func isImageURL(_ url: String) -> Bool {
         let lower = url.lowercased()
+        guard isVideoURL(lower) == false else { return false }
         return lower.contains(".png") ||
             lower.contains(".jpg") ||
             lower.contains(".jpeg") ||
@@ -749,4 +1139,134 @@ private struct QuickPrompt: Identifiable {
     let prompt: String
     let imageName: String
     let background: LinearGradient
+}
+
+// MARK: - Image Picker (iOS 13 compatible via UIImagePickerController, supports camera + gallery)
+
+struct ImagePickerOptionsOverlay: View {
+    let onDismiss: () -> Void
+    let onCamera: () -> Void
+    let onGallery: () -> Void
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            Color.black.opacity(0.42)
+                .edgesIgnoringSafeArea(.all)
+                .contentShape(Rectangle())
+                .onTapGesture(perform: onDismiss)
+
+            VStack(spacing: 0) {
+                Capsule()
+                    .fill(Color.black.opacity(0.12))
+                    .frame(width: 38, height: 4)
+                    .padding(.top, 10)
+
+                Text("选择图片")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundColor(Color(hex: "#17171D"))
+                    .padding(.top, 16)
+
+                Text("请选择图片来源")
+                    .font(.system(size: 12))
+                    .foregroundColor(Color(hex: "#8A8992"))
+                    .padding(.top, 5)
+
+                HStack(spacing: 12) {
+                    optionButton(
+                        icon: "camera.fill",
+                        colors: [Color(hex: "#4DADF7"), Color(hex: "#617CF4")],
+                        label: "拍照",
+                        action: onCamera
+                    )
+                    optionButton(
+                        icon: "photo.on.rectangle",
+                        colors: [Color(hex: "#FF9A68"), Color(hex: "#F16BA5")],
+                        label: "从相册选择",
+                        action: onGallery
+                    )
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 18)
+                .padding(.bottom, 32)
+            }
+            .frame(maxWidth: .infinity, minHeight: 300, alignment: .top)
+            .background(Color(hex: "#FAF9FC"))
+            .cornerRadius(24, corners: [.topLeft, .topRight])
+            .shadow(color: Color.black.opacity(0.14), radius: 20, x: 0, y: -6)
+        }
+        .edgesIgnoringSafeArea(.all)
+        .transition(.opacity)
+    }
+
+    private func optionButton(
+        icon: String,
+        colors: [Color],
+        label: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            VStack(spacing: 11) {
+                ZStack {
+                    LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
+                        .frame(width: 54, height: 54)
+                        .cornerRadius(17)
+                        .shadow(color: (colors.first ?? .clear).opacity(0.22), radius: 8, x: 0, y: 4)
+                    Image(systemName: icon)
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                Text(label)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Color(hex: "#222229"))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, minHeight: 112)
+            .background(Color.white)
+            .cornerRadius(18)
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(Color(hex: "#ECEAF1"), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.035), radius: 8, x: 0, y: 4)
+            .contentShape(RoundedRectangle(cornerRadius: 18))
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+}
+
+struct ImagePickerView: UIViewControllerRepresentable {
+    let sourceType: UIImagePickerController.SourceType
+    var onImagePicked: (UIImage) -> Void
+    @Environment(\.presentationMode) private var presentationMode
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = UIImagePickerController.isSourceTypeAvailable(sourceType) ? sourceType : .photoLibrary
+        picker.allowsEditing = false
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePickerView
+        init(_ parent: ImagePickerView) { self.parent = parent }
+
+        func imagePickerController(
+            _ picker: UIImagePickerController,
+            didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+        ) {
+            if let image = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage {
+                parent.onImagePicked(image)
+            }
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+    }
 }

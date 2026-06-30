@@ -6,15 +6,38 @@ final class AppPreferences {
         static let allowInsecureLocalNetwork = "allow_insecure_local_network"
         static let onboardingCompleted = "onboarding_completed"
         static let chatHistorySnapshot = "chat_history_snapshot"
+        // Auth
+        static let isLoggedIn = "is_logged_in"
+        static let userPhone = "user_phone"
+        // VIP
+        static let isVipActive = "vip_active"
+        static let vipExpiresAt = "vip_expires_at"
+        // Server quota config
+        static let serverFreeVideoDaily = "server_free_video_daily"
+        static let serverFreeImageDaily = "server_free_image_daily"
+        static let serverVipVideoDaily = "server_vip_video_daily"
+        static let serverVipImageDaily = "server_vip_image_daily"
+        static let serverVipRemindDays = "server_vip_remind_days"
+        // Quota usage
+        static let quotaVideoDate = "quota_video_date"
+        static let quotaVideoCount = "quota_video_count"
+        static let quotaImageDate = "quota_image_date"
+        static let quotaImageCount = "quota_image_count"
     }
 
+    private static let keychainTokenAccount = "user_access_token"
+
     private let defaults: UserDefaults
+    private let keychain: KeychainStore
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, keychain: KeychainStore = KeychainStore()) {
         self.defaults = defaults
+        self.keychain = keychain
     }
+
+    // MARK: - Gateway (existing)
 
     var gatewayURL: URL {
         get {
@@ -46,9 +69,7 @@ final class AppPreferences {
 
     var chatHistorySnapshot: ChatHistorySnapshot? {
         get {
-            guard let data = defaults.data(forKey: Key.chatHistorySnapshot) else {
-                return nil
-            }
+            guard let data = defaults.data(forKey: Key.chatHistorySnapshot) else { return nil }
             return try? decoder.decode(ChatHistorySnapshot.self, from: data)
         }
         set {
@@ -62,5 +83,91 @@ final class AppPreferences {
                 defaults.synchronize()
             }
         }
+    }
+
+    // MARK: - Auth
+
+    var isLoggedIn: Bool {
+        get { defaults.bool(forKey: Key.isLoggedIn) }
+        set { defaults.set(newValue, forKey: Key.isLoggedIn) }
+    }
+
+    var userPhone: String? {
+        get { defaults.string(forKey: Key.userPhone) }
+        set { defaults.set(newValue, forKey: Key.userPhone) }
+    }
+
+    var userAccessToken: String? {
+        get { keychain.string(for: Self.keychainTokenAccount) }
+        set { try? keychain.setString(newValue, for: Self.keychainTokenAccount) }
+    }
+
+    func logout() {
+        isLoggedIn = false
+        userPhone = nil
+        userAccessToken = nil
+        isVipActive = false
+        vipExpiresAt = nil
+    }
+
+    // MARK: - VIP
+
+    var isVipActive: Bool {
+        get { defaults.bool(forKey: Key.isVipActive) }
+        set { defaults.set(newValue, forKey: Key.isVipActive) }
+    }
+
+    var vipExpiresAt: String? {
+        get { defaults.string(forKey: Key.vipExpiresAt) }
+        set { defaults.set(newValue, forKey: Key.vipExpiresAt) }
+    }
+
+    // MARK: - Server Quota Config (refreshed from /membership)
+
+    var serverFreeVideoDaily: Int {
+        get { defaults.object(forKey: Key.serverFreeVideoDaily) as? Int ?? -1 }
+        set { defaults.set(newValue, forKey: Key.serverFreeVideoDaily) }
+    }
+
+    var serverFreeImageDaily: Int {
+        get { defaults.object(forKey: Key.serverFreeImageDaily) as? Int ?? -1 }
+        set { defaults.set(newValue, forKey: Key.serverFreeImageDaily) }
+    }
+
+    var serverVipVideoDaily: Int {
+        get { defaults.object(forKey: Key.serverVipVideoDaily) as? Int ?? -1 }
+        set { defaults.set(newValue, forKey: Key.serverVipVideoDaily) }
+    }
+
+    var serverVipImageDaily: Int {
+        get { defaults.object(forKey: Key.serverVipImageDaily) as? Int ?? -1 }
+        set { defaults.set(newValue, forKey: Key.serverVipImageDaily) }
+    }
+
+    var serverVipRemindDays: Int {
+        get { defaults.object(forKey: Key.serverVipRemindDays) as? Int ?? 3 }
+        set { defaults.set(newValue, forKey: Key.serverVipRemindDays) }
+    }
+
+    // MARK: - Quota Usage
+
+    var quotaVideoDate: String {
+        get { defaults.string(forKey: Key.quotaVideoDate) ?? "" }
+        set { defaults.set(newValue, forKey: Key.quotaVideoDate) }
+    }
+
+    var quotaVideoCount: Int {
+        get { defaults.integer(forKey: Key.quotaVideoCount) }
+        set { defaults.set(newValue, forKey: Key.quotaVideoCount) }
+    }
+
+    var quotaImageDate: String {
+        get { defaults.string(forKey: Key.quotaImageDate) ?? "" }
+        set { defaults.set(newValue, forKey: Key.quotaImageDate) }
+    }
+
+    var quotaImageCount: Int {
+        get { defaults.integer(forKey: Key.quotaImageCount) }
+        set { defaults.set(newValue, forKey: Key.quotaImageCount) }
     }
 }

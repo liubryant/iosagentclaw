@@ -66,13 +66,6 @@ struct ContentView: View {
         didRequestSplashAd = true
         print("csjad splash_request_prepare slotID=\(PangleSplashAdManager.defaultSplashSlotID)")
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-            if isWaitingForSplashAd {
-                isWaitingForSplashAd = false
-                print("csjad splash_request_timeout_fallback")
-            }
-        }
-
         PangleAdManager.shared.initialize { success in
             DispatchQueue.main.async {
                 guard success else {
@@ -87,7 +80,12 @@ struct ContentView: View {
                     } else {
                         print("csjad splash_request_complete shown=false error=\(error?.localizedDescription ?? "none")")
                     }
-                    isWaitingForSplashAd = false
+                    // 广告关闭回调与“跳过”触摸处于同一事件周期。
+                    // 稍后再创建首页，避免该触摸穿透到画图瀑布流并打开图片详情。
+                    let delay = shown ? 0.15 : 0
+                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                        isWaitingForSplashAd = false
+                    }
                 }
             }
         }
