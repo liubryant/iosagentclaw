@@ -5,12 +5,51 @@ struct VipProduct: Identifiable, Codable {
     let name: String
     let price: String
     let description: String
+    /// App Store Connect 内购商品 ID。优先取后端下发字段；缺省时按套餐时长本地推断。
+    let appleProductId: String
 
     init(from dict: [String: Any]) {
-        id = dict["id"] as? String ?? ""
+        let pid = dict["id"] as? String ?? ""
+        id = pid
         name = dict["name"] as? String ?? ""
         price = dict["price"] as? String ?? (dict["price"] as? Double).map { String($0) } ?? ""
         description = dict["description"] as? String ?? ""
+
+        let fromServer = (dict["appleProductId"] as? String)
+            ?? (dict["iosProductId"] as? String)
+            ?? (dict["appstoreProductId"] as? String)
+            ?? (dict["sku"] as? String)
+        if let s = fromServer, !s.isEmpty {
+            appleProductId = s
+        } else {
+            appleProductId = VipProduct.inferAppleProductId(
+                id: pid, name: dict["name"] as? String ?? "", desc: dict["description"] as? String ?? ""
+            )
+        }
+    }
+
+    /// 骨架占位套餐：接口返回前先撑起列表布局，只展示名称与介绍，不展示价格。
+    init(placeholderName: String, description: String) {
+        id = ""
+        name = placeholderName
+        price = ""
+        self.description = description
+        appleProductId = ""
+    }
+
+    /// 后端未下发 appleProductId 时的兜底映射：按周/月/年关键字匹配。
+    static func inferAppleProductId(id: String, name: String, desc: String) -> String {
+        let haystack = "\(id) \(name) \(desc)".lowercased()
+        if haystack.contains("year") || haystack.contains("年") || haystack.contains("annual") {
+            return "ai.cjym.agentclaw.vip.year"
+        }
+        if haystack.contains("month") || haystack.contains("月") {
+            return "ai.cjym.agentclaw.vip.month"
+        }
+        if haystack.contains("week") || haystack.contains("周") || haystack.contains("星期") {
+            return "ai.cjym.agentclaw.vip.week"
+        }
+        return ""
     }
 }
 
@@ -108,6 +147,40 @@ final class PaymentService {
             ?? (data["alipayOrderString"] as? String).flatMap { $0.isEmpty ? nil : $0 }
         let isMock = data["mock"] as? Bool ?? false
         return OrderResult(orderId: orderId, aliPayOrderString: orderString, isMock: isMock)
+    }
+
+    /// 苹果内购校验：把 StoreKit 返回的已签名交易(JWS)交给后端，
+    /// 后端向 Apple 校验后发放会员并返回最新会员状态。
+    /// 后端接口：POST {baseURL}/im/bot/navi/vip/apple/verify
+    func verifyApplePurchase(
+        token: String,
+        productId: String,
+        appleProductId: String,
+        transactionId: String,
+        jws: String
+    ) async throws -> MembershipStatus {
+        let body: [String: Any] = [
+            "productId": productId,
+            "appleProductId": appleProductId,
+            "transactionId": transactionId,
+            "jws": jws,
+            "platform": "ios",
+            "bundleId": Bundle.main.bundleIdentifier ?? ""
+        ]
+        let json = try await makeRequest("/apple/verify", method: "POST", token: token, body: body)
+        let data = json["data"] as? [String: Any] ?? [:]
+        let active = (data["active"] as? Bool) ?? (data["isVip"] as? Bool) ?? (data["isMember"] as? Bool) ?? true
+        let expires = (data["expiresAt"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+        let quota = data["quota"] as? [String: Any]
+        return MembershipStatus(
+            active: active,
+            expiresAt: expires,
+            freeVideoDaily: quota?["freeVideoDaily"] as? Int,
+            freeImageDaily: quota?["freeImageDaily"] as? Int,
+            vipVideoDaily: quota?["vipVideoDaily"] as? Int,
+            vipImageDaily: quota?["vipImageDaily"] as? Int,
+            vipRemindDays: quota?["vipRemindDays"] as? Int
+        )
     }
 
     func queryOrder(token: String, orderId: String) async throws -> String {

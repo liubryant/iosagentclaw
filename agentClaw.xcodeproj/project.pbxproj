@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -42,11 +42,7 @@
 		AB2000182FB9000000000018 /* TodayHotspotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1000182FB9000000000018 /* TodayHotspotService.swift */; };
 		CC308AAE82CD3EC440B9B769 /* UMengAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3162F4F2289C0A3263866F2 /* UMengAnalytics.swift */; };
 		CD2E6AA7994A88C382BC4DC9 /* Pods_agentClaw_agentClawUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DDA556783F6D708372A46AB /* Pods_agentClaw_agentClawUITests.framework */; };
-		PA2000012FB9000000000018 /* PangleAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000012FB9000000000018 /* PangleAdManager.swift */; };
-		TA2000012FB9000000000099 /* TrackingAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = TA1000012FB9000000000099 /* TrackingAuthorization.swift */; };
-		PA2000022FB9000000000019 /* PangleSplashAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000022FB9000000000019 /* PangleSplashAdManager.swift */; };
-		NE200182FB9000000000018 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE100182FB9000000000018 /* AuthService.swift */; };
-		NE200192FB9000000000019 /* PaymentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE100192FB9000000000019 /* PaymentService.swift */; };
+		ECFEE662FDE9D1AAD67CA35C /* StoreKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0DB6AE9AD61CA212FB73852 /* StoreKitService.swift */; };
 		NE20001A2FB900000000001A /* QuotaManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE10001A2FB900000000001A /* QuotaManager.swift */; };
 		NE20001B2FB900000000001B /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE10001B2FB900000000001B /* LoginView.swift */; };
 		NE20001C2FB900000000001C /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE10001C2FB900000000001C /* ProfileView.swift */; };
@@ -57,6 +53,11 @@
 		NE2000212FB9000000000021 /* CreationGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE1000212FB9000000000021 /* CreationGalleryView.swift */; };
 		NE2000222FB9000000000022 /* CreationViewerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE1000222FB9000000000022 /* CreationViewerView.swift */; };
 		NE2000232FB9000000000023 /* creation in Resources */ = {isa = PBXBuildFile; fileRef = NE1000232FB9000000000023 /* creation */; };
+		NE200182FB9000000000018 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE100182FB9000000000018 /* AuthService.swift */; };
+		NE200192FB9000000000019 /* PaymentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = NE100192FB9000000000019 /* PaymentService.swift */; };
+		PA2000012FB9000000000018 /* PangleAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000012FB9000000000018 /* PangleAdManager.swift */; };
+		PA2000022FB9000000000019 /* PangleSplashAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PA1000022FB9000000000019 /* PangleSplashAdManager.swift */; };
+		TA2000012FB9000000000099 /* TrackingAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = TA1000012FB9000000000099 /* TrackingAuthorization.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -148,13 +149,9 @@
 		CEF2B5FD08883030247D489C /* Pods-agentClawTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-agentClawTests.release.xcconfig"; path = "Target Support Files/Pods-agentClawTests/Pods-agentClawTests.release.xcconfig"; sourceTree = "<group>"; };
 		D22DCA3E14169DEE7190CBA5 /* Pods-agentClaw.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-agentClaw.debug.xcconfig"; path = "Target Support Files/Pods-agentClaw/Pods-agentClaw.debug.xcconfig"; sourceTree = "<group>"; };
 		E2BAAA0614CC04E059D04687 /* Pods-agentClawTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-agentClawTests.debug.xcconfig"; path = "Target Support Files/Pods-agentClawTests/Pods-agentClawTests.debug.xcconfig"; sourceTree = "<group>"; };
+		F0DB6AE9AD61CA212FB73852 /* StoreKitService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StoreKitService.swift; path = Features/Vip/StoreKitService.swift; sourceTree = "<group>"; };
 		MB1000012FB900000000001A /* MockBUAdSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MockBUAdSDK.m; sourceTree = "<group>"; };
 		MB1000022FB900000000001B /* MockBUAdSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MockBUAdSDK.h; sourceTree = "<group>"; };
-		PA1000012FB9000000000018 /* PangleAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleAdManager.swift; sourceTree = "<group>"; };
-		PA1000022FB9000000000019 /* PangleSplashAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleSplashAdManager.swift; sourceTree = "<group>"; };
-		TA1000012FB9000000000099 /* TrackingAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingAuthorization.swift; sourceTree = "<group>"; };
-		NE100182FB9000000000018 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/AuthService.swift; sourceTree = "<group>"; };
-		NE100192FB9000000000019 /* PaymentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/PaymentService.swift; sourceTree = "<group>"; };
 		NE10001A2FB900000000001A /* QuotaManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/QuotaManager.swift; sourceTree = "<group>"; };
 		NE10001B2FB900000000001B /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Auth/LoginView.swift; sourceTree = "<group>"; };
 		NE10001C2FB900000000001C /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Profile/ProfileView.swift; sourceTree = "<group>"; };
@@ -165,6 +162,11 @@
 		NE1000212FB9000000000021 /* CreationGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Creation/CreationGalleryView.swift; sourceTree = "<group>"; };
 		NE1000222FB9000000000022 /* CreationViewerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Creation/CreationViewerView.swift; sourceTree = "<group>"; };
 		NE1000232FB9000000000023 /* creation */ = {isa = PBXFileReference; lastKnownFileType = folder; name = creation; path = Resources/creation; sourceTree = "<group>"; };
+		NE100182FB9000000000018 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/AuthService.swift; sourceTree = "<group>"; };
+		NE100192FB9000000000019 /* PaymentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/PaymentService.swift; sourceTree = "<group>"; };
+		PA1000012FB9000000000018 /* PangleAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleAdManager.swift; sourceTree = "<group>"; };
+		PA1000022FB9000000000019 /* PangleSplashAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PangleSplashAdManager.swift; sourceTree = "<group>"; };
+		TA1000012FB9000000000099 /* TrackingAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingAuthorization.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -274,6 +276,7 @@
 				042819A32FB80F620002BDC7 /* Info.plist */,
 				042819A02FB80F620002BDC7 /* Preview Content */,
 				F022979E6ECC4013FA34D4D6 /* Core */,
+				F0DB6AE9AD61CA212FB73852 /* StoreKitService.swift */,
 			);
 			path = agentClaw;
 			sourceTree = "<group>";
@@ -314,7 +317,6 @@
 				E2BAAA0614CC04E059D04687 /* Pods-agentClawTests.debug.xcconfig */,
 				CEF2B5FD08883030247D489C /* Pods-agentClawTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -503,9 +505,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-agentClaw/Pods-agentClaw-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-agentClaw/Pods-agentClaw-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -520,9 +526,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-agentClaw-agentClawUITests/Pods-agentClaw-agentClawUITests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-agentClaw-agentClawUITests/Pods-agentClaw-agentClawUITests-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -621,6 +631,7 @@
 				NE2000202FB9000000000020 /* CreationAssetLoader.swift in Sources */,
 				NE2000212FB9000000000021 /* CreationGalleryView.swift in Sources */,
 				NE2000222FB9000000000022 /* CreationViewerView.swift in Sources */,
+				ECFEE662FDE9D1AAD67CA35C /* StoreKitService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -707,7 +718,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -765,7 +776,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -790,7 +801,7 @@
 				ENABLE_BITCODE = NO;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = agentClaw/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -829,7 +840,7 @@
 				ENABLE_BITCODE = NO;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = agentClaw/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -863,7 +874,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = agentClawTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -885,7 +896,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = agentClawTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

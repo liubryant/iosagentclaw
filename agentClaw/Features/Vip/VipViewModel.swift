@@ -10,14 +10,20 @@ final class VipViewModel: ObservableObject {
     @Published var statusMessage = "正在加载会员套餐…"
     @Published var isPayEnabled = false
     @Published var isLoading = false
-    @Published var selectedChannel = "alipay"
+    @Published var selectedChannel = "apple"
     @Published var isAgreementChecked = false
     @Published var showLogin = false
     @Published var toastMessage: String? = nil
     @Published var paySuccess = false
+    @Published var storePricesReady = false
+    /// 价格是否可展示：套餐接口 + App Store 本地化价格都尝试加载完成后才置 true，
+    /// 加载期间套餐卡片只显示名称与介绍，避免价格闪动或空白。
+    @Published var pricesReady = false
 
     var onPaymentSuccess: (() -> Void)?
     private var orderPollingTask: Task<Void, Never>?
+    /// App Store 本地化价格：appleProductId -> displayPrice(如 "¥12.00")
+    private var storeDisplayPrices: [String: String] = [:]
 
     var selectedProduct: VipProduct? {
         guard let i = selectedIndex, products.indices.contains(i) else { return nil }
@@ -31,13 +37,23 @@ final class VipViewModel: ObservableObject {
         return phone.prefix(3) + "****" + phone.suffix(4)
     }
     var displayPrice: String {
-        selectedProduct.map { "¥\($0.price)" } ?? "¥--"
+        guard let product = selectedProduct else { return "¥--" }
+        return priceText(for: product)
+    }
+
+    /// 优先展示 App Store 本地化价格(合规要求)，拿不到再回退后端价格。
+    func priceText(for product: VipProduct) -> String {
+        if let store = storeDisplayPrices[product.appleProductId], !store.isEmpty {
+            return store
+        }
+        return "¥\(product.price)"
     }
 
     func loadData() {
         let token = AppPreferences().userAccessToken
         memberStatusLoaded = false
         isPayEnabled = false
+        pricesReady = false
         statusMessage = "正在加载会员套餐…"
 
         Task {
@@ -51,6 +67,21 @@ final class VipViewModel: ObservableObject {
                 }
                 self.updatePayButtonState()
             }
+            await self.loadStorePrices()
+        }
+    }
+
+    /// 拉取 App Store 本地化价格，用于价格展示与内购下单。
+    private func loadStorePrices() async {
+        let storeProducts = await StoreKitService.shared.loadProducts()
+        var built: [String: String] = [:]
+        for sp in storeProducts { built[sp.id] = sp.displayPrice }
+        let map = built
+        await MainActor.run {
+            self.storeDisplayPrices = map
+            self.storePricesReady = !map.isEmpty
+            // 无论 App Store 价格是否取到（取不到会回退后端价格），都算加载结束，可展示价格。
+            self.pricesReady = true
         }
     }
 
@@ -134,42 +165,91 @@ final class VipViewModel: ObservableObject {
             showToast("请先选择会员套餐")
             return
         }
+        guard !product.appleProductId.isEmpty else {
+            showToast("该套餐暂不可购买，请稍后重试")
+            return
+        }
         isPayEnabled = false
         isLoading = true
-        statusMessage = "正在创建安全支付订单…"
+        statusMessage = "正在打开 App Store 支付…"
         Task {
             do {
-                let order = try await PaymentService.shared.createOrder(
-                    token: token, productId: product.id, payChannel: selectedChannel
-                )
+                // 1) 唤起苹果收银台完成付款，拿到已签名交易凭证
+                let signed = try await StoreKitService.shared.purchase(productId: product.appleProductId)
+                await MainActor.run { self.statusMessage = "支付结果确认中…" }
+                // 2) 交给后端校验并发放会员
+                try await self.grantWithApple(signed: signed, backendProductId: product.id, token: token)
+                // 3) 发放成功后结束交易
+                await StoreKitService.shared.finish(transactionId: signed.transactionId)
+            } catch is CancellationError {
                 await MainActor.run {
                     self.isLoading = false
-                    if order.isMock {
-                        self.statusMessage = "模拟支付完成，正在确认…"
-                        self.pollOrder(orderId: order.orderId, token: token)
-                    } else if self.selectedChannel == "alipay" {
-                        AlipayBridge.shared.pay(orderString: order.aliPayOrderString ?? "") { [weak self] result in
-                            DispatchQueue.main.async {
-                                switch result {
-                                case .success:
-                                    self?.statusMessage = "支付结果确认中…"
-                                    self?.pollOrder(orderId: order.orderId, token: token)
-                                case .cancelled:
-                                    self?.isPayEnabled = true
-                                    self?.statusMessage = "已取消支付"
-                                case .failed(let msg):
-                                    self?.isPayEnabled = true
-                                    self?.statusMessage = msg
-                                }
-                            }
-                        }
-                    }
+                    self.isPayEnabled = true
+                    self.statusMessage = "已取消支付"
                 }
             } catch {
                 await MainActor.run {
                     self.isLoading = false
                     self.isPayEnabled = true
                     self.statusMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    /// 把苹果交易凭证发给后端校验，成功即刷新会员状态。
+    private func grantWithApple(signed: StoreKitService.SignedTransaction, backendProductId: String, token: String) async throws {
+        let status = try await PaymentService.shared.verifyApplePurchase(
+            token: token,
+            productId: backendProductId,
+            appleProductId: signed.productId,
+            transactionId: signed.transactionId,
+            jws: signed.jws
+        )
+        QuotaManager.shared.applyServerQuota(status)
+        let prefs = AppPreferences()
+        prefs.isVipActive = status.active
+        prefs.vipExpiresAt = status.expiresAt
+        await MainActor.run {
+            self.isLoading = false
+            self.memberActive = status.active
+            self.vipExpiresAt = status.expiresAt
+            self.paySuccess = status.active
+            self.statusMessage = status.active
+                ? "支付成功，会员已开通" + (status.expiresAt.map { "，有效期至 \($0)" } ?? "")
+                : "支付已完成，正在同步会员状态…"
+            self.isPayEnabled = !status.active
+            if status.active { self.onPaymentSuccess?() }
+        }
+    }
+
+    /// 恢复购买：与 App Store 同步后把历史交易补交给后端校验。
+    func restorePurchases() {
+        let prefs = AppPreferences()
+        guard prefs.isLoggedIn, let token = prefs.userAccessToken, !token.isEmpty else {
+            showLogin = true
+            return
+        }
+        isLoading = true
+        statusMessage = "正在恢复购买…"
+        Task {
+            var restoredAny = false
+            let transactions = (try? await StoreKitService.shared.restore()) ?? []
+            for signed in transactions {
+                do {
+                    try await self.grantWithApple(signed: signed, backendProductId: "", token: token)
+                    await StoreKitService.shared.finish(transactionId: signed.transactionId)
+                    restoredAny = true
+                } catch {
+                    // 单笔失败忽略，继续处理其余交易
+                }
+            }
+            let didRestore = restoredAny
+            await MainActor.run {
+                self.isLoading = false
+                if !didRestore && !self.memberActive {
+                    self.statusMessage = "未找到可恢复的购买记录"
+                    self.isPayEnabled = self.selectedProduct != nil
                 }
             }
         }

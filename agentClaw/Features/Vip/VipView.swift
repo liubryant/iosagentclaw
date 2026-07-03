@@ -22,6 +22,13 @@ struct VipView: View {
         ("#FF6B35", "#E53935")
     ]
 
+    /// 接口返回前的默认占位套餐（只显示名称与介绍，不显示价格）。
+    private let placeholderPackages: [(name: String, desc: String)] = [
+        ("周卡会员", "短期体验 · 灵活续费"),
+        ("月卡会员", "热门之选 · 畅享全月"),
+        ("年卡会员", "超值长期 · 尊享一整年")
+    ]
+
     var body: some View {
         ZStack {
             Color(hex: "#0D0703").edgesIgnoringSafeArea(.all)
@@ -210,7 +217,10 @@ struct VipView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 10) {
                 if vm.products.isEmpty {
-                    placeholderCard
+                    // 接口返回前默认显示 3 个占位套餐：只展示名称与介绍，不展示价格。
+                    ForEach(placeholderPackages.indices, id: \.self) { index in
+                        placeholderCard(index: index)
+                    }
                 } else {
                     ForEach(vm.products.indices, id: \.self) { index in
                         productCard(product: vm.products[index], index: index)
@@ -223,17 +233,18 @@ struct VipView: View {
         .padding(.top, 24)
     }
 
-    private var placeholderCard: some View {
-        VStack {
-            Text("会员套餐\n\n加载中…")
-                .font(.system(size: 13))
-                .foregroundColor(Color(hex: "#9C8A75"))
-                .multilineTextAlignment(.center)
-        }
-        .frame(width: 138, height: 148)
-        .background(Color(hex: "#1A0D08"))
-        .cornerRadius(12)
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: "#4A2D1A"), lineWidth: 1))
+    private func placeholderCard(index: Int) -> some View {
+        let pkg = placeholderPackages[index]
+        let badgeText = badgeTexts.indices.contains(index) ? badgeTexts[index] : nil
+        let badgeColor = badgeColors.indices.contains(index) ? badgeColors[index] : nil
+        return VipProductCard(
+            product: VipProduct(placeholderName: pkg.name, description: pkg.desc),
+            isSelected: false,
+            badgeText: badgeText,
+            badgeColor: badgeColor,
+            showPrice: false,
+            onTap: {}
+        )
     }
 
     private func productCard(product: VipProduct, index: Int) -> some View {
@@ -245,6 +256,8 @@ struct VipView: View {
             isSelected: isSelected,
             badgeText: badgeText,
             badgeColor: badgeColor,
+            // 价格接口加载完成后才展示价格，加载期间显示占位。
+            showPrice: vm.pricesReady,
             onTap: { vm.selectProduct(index) }
         )
     }
@@ -336,60 +349,75 @@ struct VipView: View {
         .padding(.top, 10)
     }
 
-    // MARK: - Pay Channel (only Alipay, matches Android - WeChat is visibility=gone)
+    // MARK: - Pay Channel (Apple 内购，符合 App Store 3.1.1)
 
     private var payChannelArea: some View {
-        payChannelButton(channel: "alipay", icon: "a.circle.fill", title: "支付宝支付")
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-    }
-
-    private func payChannelButton(channel: String, icon: String, title: String) -> some View {
-        let isSelected = vm.selectedChannel == channel
-        return Button(action: { vm.selectedChannel = channel }) {
-            ZStack(alignment: .topTrailing) {
-                HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.system(size: 23, weight: .medium))
-                    .foregroundColor(isSelected ? Color(hex: "#864F2D") : Color(hex: "#FEEBB9"))
-                Text(title)
+        VStack(spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "applelogo")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(Color(hex: "#864F2D"))
+                Text("通过 App Store 支付")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(isSelected ? Color(hex: "#864F2D") : Color(hex: "#FEEBB9"))
-                }
-                .frame(maxWidth: .infinity, minHeight: 56)
-
-                if isSelected {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(width: 22, height: 22)
-                        .background(Color(hex: "#C87830"))
-                        .cornerRadius(7, corners: [.bottomLeft])
-                }
+                    .foregroundColor(Color(hex: "#864F2D"))
+                Spacer()
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(Color(hex: "#C87830"))
             }
-            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
             .frame(height: 56)
-            .background(isSelected ? Color(hex: "#FEEBB9") : Color(hex: "#2A292D"))
+            .background(Color(hex: "#FEEBB9"))
             .cornerRadius(8)
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(
-                isSelected ? Color(hex: "#C87830") : Color(hex: "#4A2D1A"), lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(hex: "#C87830"), lineWidth: 1))
+
+            Button(action: { vm.restorePurchases() }) {
+                Text("恢复购买")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Color(hex: "#CDAF7A"))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 32)
+            }
+            .buttonStyle(PlainButtonStyle())
         }
-        .buttonStyle(PlainButtonStyle())
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
     }
 
     private var warmTips: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("温馨提示")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(Color(hex: "#999999"))
-            Text("1. 会员服务开通后立即生效。\n2. 支付完成后以服务端订单状态为准。\n3. 如遇支付异常，请稍后重新进入会员页查看。")
-                .font(.system(size: 12))
-                .foregroundColor(Color(hex: "#666666"))
-                .lineSpacing(3)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 5) {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: 11))
+                    .foregroundColor(Color(hex: "#B0894F"))
+                Text("温馨提示")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Color(hex: "#B0894F"))
+            }
+            Text(warmTipsContent)
+                .font(.system(size: 11.5))
+                .foregroundColor(Color(hex: "#7A7168"))
+                .lineSpacing(4)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(Color.white.opacity(0.035))
+        .cornerRadius(12)
         .padding(.horizontal, 16)
-        .padding(.top, 12)
+        .padding(.top, 14)
+    }
+
+    private var warmTipsContent: String {
+        """
+        1. 本会员为虚拟数字服务，通过苹果 App Store 内购（IAP）完成支付，费用将从您的 Apple ID 账户扣除。
+        2. 会员权益在支付成功、服务端确认订单后立即生效，具体到期时间以页面顶部显示为准。
+        3. 本套餐为一次性购买、非自动续费产品，到期后不会自动扣费，如需继续使用请手动重新开通。
+        4. 会员权益（对话、图片及视频生成额度等）按自然日计算，每日 0 点重置，当日未使用不累计至次日。
+        5. 若支付后权益未及时到账，可稍后重新进入本页面，或点击「恢复购买」同步订单状态。
+        6. 由于数字商品的特殊性，会员一经开通、权益开始使用后原则上不支持退款；如遇重复扣费或支付异常，请通过「我的-联系客服」与我们联系核实处理。
+        7. 开通即代表您已阅读并同意《会员服务协议》。
+        """
     }
 
     // MARK: - Bottom Bar
@@ -399,7 +427,12 @@ struct VipView: View {
             Button(action: requestPayment) {
                 ZStack {
                     if vm.isLoading {
-                        ActivityIndicator(isAnimating: .constant(true), style: .medium)
+                        HStack(spacing: 10) {
+                            ActivityIndicator(isAnimating: .constant(true), style: .medium)
+                            Text(payingText)
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(Color(hex: "#864F2D"))
+                        }
                     } else {
                         HStack(spacing: 8) {
                             Text(vm.displayPrice.replacingOccurrences(of: "¥", with: "￥"))
@@ -413,7 +446,7 @@ struct VipView: View {
                 .frame(maxWidth: .infinity, minHeight: 48)
                 .background(
                     LinearGradient(
-                        colors: vm.isPayEnabled
+                        colors: (vm.isPayEnabled || vm.isLoading)
                             ? [Color(hex: "#FEEBB9"), Color(hex: "#FFD889")]
                             : [Color(hex: "#4B4137"), Color(hex: "#38312B")],
                         startPoint: .top,
@@ -458,6 +491,14 @@ struct VipView: View {
         } else {
             showAgreementAlert = true
         }
+    }
+
+    /// 支付中的按钮文案：优先跟随实时状态，避免只有一个孤零零的小转圈。
+    private var payingText: String {
+        let msg = vm.statusMessage
+        if msg.contains("确认") { return "支付结果确认中…" }
+        if msg.contains("恢复") { return "正在恢复购买…" }
+        return "正在打开 App Store 支付…"
     }
 }
 
@@ -732,6 +773,7 @@ struct VipProductCard: View {
     let isSelected: Bool
     let badgeText: String?
     let badgeColor: (String, String)?
+    var showPrice: Bool = true
     let onTap: () -> Void
 
     private var priceColor: Color { isSelected ? Color(hex: "#864F2D") : Color(hex: "#EBC783") }
@@ -755,9 +797,17 @@ struct VipProductCard: View {
     private var cardBody: some View {
         VStack(spacing: 6) {
             Spacer().frame(height: badgeText != nil ? 14 : 4)
-            Text("¥\(product.price)")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(priceColor)
+            if showPrice {
+                Text("¥\(product.price)")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(priceColor)
+            } else {
+                // 价格加载中占位：灰条骨架，接口成功后替换为真实价格。
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(Color(hex: "#3A2E22"))
+                    .frame(width: 58, height: 22)
+                    .padding(.vertical, 3)
+            }
             Text(product.name)
                 .font(.system(size: 12))
                 .foregroundColor(nameColor)

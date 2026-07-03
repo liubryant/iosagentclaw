@@ -31,9 +31,41 @@ struct agentClawApp {
 struct ModernApp: App {
     private let container = DependencyContainer()
 
+    init() {
+        IAPBootstrap.startObservingTransactions()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView(container: container)
+        }
+    }
+}
+
+/// 全局内购交易监听：处理支付成功但 App 中断(被杀/家长同意后到账)等未完成交易，
+/// 下次启动时若已登录则补交后端校验并发放会员。
+enum IAPBootstrap {
+    static func startObservingTransactions() {
+        StoreKitService.shared.startObservingUpdates { signed in
+            let prefs = AppPreferences()
+            guard let token = prefs.userAccessToken, !token.isEmpty else {
+                return // 未登录：保留未完成交易，待登录后的启动再处理
+            }
+            do {
+                let status = try await PaymentService.shared.verifyApplePurchase(
+                    token: token,
+                    productId: "",
+                    appleProductId: signed.productId,
+                    transactionId: signed.transactionId,
+                    jws: signed.jws
+                )
+                prefs.isVipActive = status.active
+                prefs.vipExpiresAt = status.expiresAt
+                QuotaManager.shared.applyServerQuota(status)
+                await StoreKitService.shared.finish(transactionId: signed.transactionId)
+            } catch {
+                // 校验失败则不 finish，下次启动重试
+            }
         }
     }
 }
