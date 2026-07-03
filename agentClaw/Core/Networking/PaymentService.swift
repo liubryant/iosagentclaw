@@ -63,12 +63,6 @@ struct MembershipStatus {
     let vipRemindDays: Int?
 }
 
-struct OrderResult {
-    let orderId: String
-    let aliPayOrderString: String?
-    let isMock: Bool
-}
-
 final class PaymentService {
     static let shared = PaymentService()
 
@@ -77,8 +71,6 @@ final class PaymentService {
         let stripped = url.hasSuffix("/v1") ? String(url.dropLast(3)) : url
         return "\(stripped)/im/bot/navi/vip"
     }
-
-    static let alipayAppID = "2021006169619056"
 
     private func makeRequest(_ path: String, method: String = "GET", token: String? = nil, body: [String: Any]? = nil) async throws -> [String: Any] {
         let url = URL(string: "\(baseURL)\(path)")!
@@ -130,23 +122,6 @@ final class PaymentService {
             vipImageDaily: quota?["vipImageDaily"] as? Int,
             vipRemindDays: quota?["vipRemindDays"] as? Int
         )
-    }
-
-    func createOrder(token: String, productId: String, payChannel: String) async throws -> OrderResult {
-        let body: [String: Any] = [
-            "productId": productId,
-            "payChannel": payChannel,
-            "appid": Self.alipayAppID
-        ]
-        let json = try await makeRequest("/orders", method: "POST", token: token, body: body)
-        let data = json["data"] as? [String: Any] ?? [:]
-        let orderId = (data["orderId"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-            ?? (data["id"] as? String) ?? ""
-        let orderString = (data["aliPayOrderString"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-            ?? (data["orderString"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-            ?? (data["alipayOrderString"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-        let isMock = data["mock"] as? Bool ?? false
-        return OrderResult(orderId: orderId, aliPayOrderString: orderString, isMock: isMock)
     }
 
     /// 苹果内购校验：把 StoreKit 返回的已签名交易(JWS)交给后端，

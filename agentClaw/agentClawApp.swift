@@ -98,8 +98,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey: Any] = [:]
     ) -> Bool {
-        // 支付宝回调处理
-        if AlipayBridge.shared.handleOpenURL(url) { return true }
+        // 会员权益按 App Store 审核条款 3.1.1 全部走苹果内购(IAP)，不再有任何第三方支付回调。
         return false
     }
 }

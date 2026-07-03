@@ -9,7 +9,10 @@ enum AppConfig {
     }
 
     static let defaultChatModel = "glm-4.7"
-    static let requestTimeout: TimeInterval = 30
+    // 文本对话超时。与安卓 ChatService.CHAT_READ_TIMEOUT_SECONDS(300s)对齐。
+    // 原来 30s 太短：普通简短问答能在 30s 内返回，但「灵感泉涌」里的复杂 Agent 任务
+    //（定时任务、抓取汇总、生成报告等）后端处理更久，30s 会直接超时报「the request timed out」。
+    static let requestTimeout: TimeInterval = 300
     static let documentGenerationRequestTimeout: TimeInterval = 10 * 60
     static let mediaGenerationRequestTimeout: TimeInterval = 30 * 60
 }

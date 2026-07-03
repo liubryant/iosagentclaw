@@ -128,7 +128,7 @@ struct ChatView: View {
                     }
 
                     if viewModel.isSending {
-                        thinkingIndicator
+                        AgentThinkingIndicator()
                     }
                 }
                 .padding(.horizontal, 18)
@@ -251,7 +251,7 @@ struct ChatView: View {
 
                 if displayContent.isEmpty == false || (!hasImage && !hasVideo) {
                     Text(displayContent.isEmpty ? "..." : displayContent)
-                        .font(.system(size: 13))
+                        .font(.system(size: 16))
                         .foregroundColor(AgentClawDesign.primaryText)
                         .padding(.horizontal, 11)
                         .padding(.vertical, 8)
@@ -355,17 +355,6 @@ struct ChatView: View {
             return "doc.text"
         }
         return "doc"
-    }
-
-    private var thinkingIndicator: some View {
-        HStack(spacing: 8) {
-            CompatProgressView()
-                .scaleEffect(0.72)
-            Text("思考中")
-                .font(.system(size: 12))
-                .foregroundColor(AgentClawDesign.secondaryText)
-        }
-        .padding(.vertical, 8)
     }
 
     private func errorBanner(_ text: String) -> some View {
@@ -587,6 +576,92 @@ private enum DocumentSheet: Identifiable {
             return "preview-\(document.id)"
         case .export(let document):
             return "export-\(document.id)"
+        }
+    }
+}
+
+// MARK: - Agent Thinking Indicator
+// 复刻安卓 AgentStatusRotator：等待首个助手文本期间，循环展示“Agent 思考过程”状态提示。
+// 文案与安卓 chat_agent_thinking_statuses（中文 values-zh）保持一致，切换节奏 4 秒/条，
+// 标签切换用淡出上移 + 淡入下移的过渡动画，容器首次出现淡入上移。
+private struct AgentThinkingIndicator: View {
+    // 顺序与安卓 string-array 完全一致
+    private static let statuses = [
+        "思考中…",
+        "正在理解你的需求…",
+        "正在规划任务步骤…",
+        "正在调用Search Skill…",
+        "搜索相关信息…",
+        "正在查询可用结果…",
+        "正在分析关键信息…",
+        "正在生成回答…"
+    ]
+
+    private static let interval: TimeInterval = 4.0
+    private static let exitDuration: TimeInterval = 0.14
+    private static let enterDuration: TimeInterval = 0.20
+    private static let containerDuration: TimeInterval = 0.22
+
+    @State private var index = 0
+    @State private var labelOpacity: Double = 1
+    @State private var labelOffset: CGFloat = 0
+    @State private var containerOpacity: Double = 0
+    @State private var containerOffset: CGFloat = 6
+    @State private var timer: Timer?
+
+    var body: some View {
+        HStack(spacing: 8) {
+            CompatProgressView()
+                .scaleEffect(0.72)
+            Text(Self.statuses[index])
+                .font(.system(size: 13))
+                .foregroundColor(AgentClawDesign.secondaryText)
+                .opacity(labelOpacity)
+                .offset(y: labelOffset)
+        }
+        .padding(.vertical, 8)
+        .opacity(containerOpacity)
+        .offset(y: containerOffset)
+        .onAppear(perform: start)
+        .onDisappear(perform: stop)
+    }
+
+    private func start() {
+        index = 0
+        labelOpacity = 1
+        labelOffset = 0
+        // 容器淡入上移
+        containerOpacity = 0
+        containerOffset = 6
+        withAnimation(.easeOut(duration: Self.containerDuration)) {
+            containerOpacity = 1
+            containerOffset = 0
+        }
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: Self.interval, repeats: true) { _ in
+            advance()
+        }
+    }
+
+    private func stop() {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    private func advance() {
+        // 当前文案淡出并上移
+        withAnimation(.easeIn(duration: Self.exitDuration)) {
+            labelOpacity = 0
+            labelOffset = -4
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.exitDuration) {
+            index = (index + 1) % Self.statuses.count
+            // 新文案从下方淡入
+            labelOffset = 4
+            withAnimation(.easeOut(duration: Self.enterDuration)) {
+                labelOpacity = 1
+                labelOffset = 0
+            }
         }
     }
 }

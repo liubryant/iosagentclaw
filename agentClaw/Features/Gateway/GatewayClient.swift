@@ -390,7 +390,14 @@ final class GatewayClient {
     }
 
     private func addAuthHeader(to request: inout URLRequest) {
-        guard let token = config.token, token.isEmpty == false else {
+        // 鉴权优先级：
+        // 1) 用户在「网关设置」里手动填写的自定义 token（高级用法，普通用户不会有）；
+        // 2) 登录后拿到的用户 access token —— 与后端 VIP / 鉴权同源（同一 host），
+        //    普通用户登录即可用它调用生成接口，无需再手动配置网关 token。
+        // 之前只认自定义网关 token，导致普通用户/审核设备生成时缺少 Authorization 头而报错。
+        let token = config.token?.nilIfEmptyToken
+            ?? preferences.userAccessToken?.nilIfEmptyToken
+        guard let token = token else {
             return
         }
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -421,6 +428,13 @@ final class GatewayClient {
             .replacingOccurrences(of: documentModeMarker, with: "")
             .replacingOccurrences(of: "\\s{2,}", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
+private extension String {
+    var nilIfEmptyToken: String? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 

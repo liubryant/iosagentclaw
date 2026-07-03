@@ -15,6 +15,8 @@ final class ChatViewModel: ObservableObject {
     let generatedDocumentStore: GeneratedDocumentStore
     private var messagesBySession: [String: [ChatMessage]] = [:]
     private var entryModesBySession: [String: ChatEntryMode] = [:]
+    /// 每次发送自增；用于在生成期间切换/新建对话后作废“在途”的回复，避免落到别的对话里。
+    private var sendGeneration = 0
 
     init(
         gatewayClient: GatewayClient,
@@ -125,6 +127,14 @@ final class ChatViewModel: ObservableObject {
         objectWillChange.send()
     }
 
+    /// 中断当前生成：作废在途回复并结束加载态。
+    /// 用于生成期间切换/新建对话时，先停止当前生成再切走（与安卓 abortCurrent 一致）。
+    func cancelGeneration() {
+        guard isSending else { return }
+        sendGeneration &+= 1
+        isSending = false
+    }
+
     func deleteSession(_ session: LocalChatSession) {
         guard sessions.count > 1 else {
             messagesBySession[session.id] = []
@@ -174,26 +184,36 @@ final class ChatViewModel: ObservableObject {
         saveHistory()
         isSending = true
 
+        // 记录本次生成所属的对话与代次；若期间被取消或切换到别的对话，回复将被丢弃。
+        sendGeneration &+= 1
+        let generation = sendGeneration
+        let targetSessionID = selectedSessionID
+
         let handleResult: (Result<String, Error>) -> Void = { [weak self] result in
             DispatchQueue.main.async {
+                guard let self = self else {
+                    return
+                }
+                // 已被取消/切换：作废在途结果，避免落入其它对话
+                guard generation == self.sendGeneration else {
+                    return
+                }
                 switch result {
                 case .success(let reply):
-                    guard let self = self else {
-                        return
-                    }
+                    let fallbackTitle = self.sessions.first(where: { $0.id == targetSessionID })?.title ?? "document"
                     let saveResult = self.generatedDocumentStore.saveGeneratedDocuments(
                         from: reply,
-                        fallbackTitle: self.selectedSession?.title ?? "document"
+                        fallbackTitle: fallbackTitle
                     )
                     self.append(ChatMessage(
                         role: .assistant,
                         content: saveResult.displayContent,
                         generatedDocuments: saveResult.documents
-                    ))
+                    ), to: targetSessionID)
                 case .failure(let error):
-                    self?.errorMessage = error.localizedDescription
+                    self.errorMessage = self.friendlyErrorMessage(error)
                 }
-                self?.isSending = false
+                self.isSending = false
             }
         }
 
@@ -234,6 +254,29 @@ final class ChatViewModel: ObservableObject {
             return outboundMessage
         }
         gatewayClient.sendChat(messages: requestMessages, completion: handleResult)
+    }
+
+    /// 把底层网络错误（尤其是「the request timed out」超时）转成更友好的中文提示。
+    /// 后端返回的业务错误（HTTP 状态码 + 报文）仍保留原文，便于用户理解具体原因。
+    private func friendlyErrorMessage(_ error: Error) -> String {
+        let nsError = error as NSError
+        guard nsError.domain == NSURLErrorDomain else {
+            return error.localizedDescription
+        }
+        switch nsError.code {
+        case NSURLErrorTimedOut:
+            return "网络有点慢，这次生成超时了，请稍后重试～"
+        case NSURLErrorNotConnectedToInternet:
+            return "似乎没有网络，请检查网络连接后重试"
+        case NSURLErrorNetworkConnectionLost:
+            return "网络连接中断了，请稍后重试"
+        case NSURLErrorCannotConnectToHost, NSURLErrorCannotFindHost, NSURLErrorDNSLookupFailed:
+            return "暂时连不上服务器，请稍后再试"
+        case NSURLErrorCancelled:
+            return "本次生成已取消"
+        default:
+            return "网络似乎不太稳定，请稍后重试"
+        }
     }
 
     private func outboundContent(for text: String, images: [UIImage] = [], entryMode: ChatEntryMode) -> String {
@@ -305,10 +348,14 @@ final class ChatViewModel: ObservableObject {
     }
 
     private func append(_ message: ChatMessage) {
-        var next = messagesBySession[selectedSessionID] ?? []
+        append(message, to: selectedSessionID)
+    }
+
+    private func append(_ message: ChatMessage, to sessionID: String) {
+        var next = messagesBySession[sessionID] ?? []
         next.append(message)
-        messagesBySession[selectedSessionID] = next
-        touchSelectedSession()
+        messagesBySession[sessionID] = next
+        touchSession(sessionID)
         saveHistory()
         objectWillChange.send()
     }
@@ -326,7 +373,11 @@ final class ChatViewModel: ObservableObject {
     }
 
     private func touchSelectedSession() {
-        guard let index = sessions.firstIndex(where: { $0.id == selectedSessionID }) else {
+        touchSession(selectedSessionID)
+    }
+
+    private func touchSession(_ sessionID: String) {
+        guard let index = sessions.firstIndex(where: { $0.id == sessionID }) else {
             return
         }
         var nextSessions = sessions

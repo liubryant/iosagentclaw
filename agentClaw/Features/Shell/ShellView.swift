@@ -23,6 +23,8 @@ struct ShellView: View {
     @State private var destination: Destination = .creation
     @State private var sessionToDelete: LocalChatSession?
     @State private var showDeleteAlert = false
+    // 生成期间切换/新建对话的二次确认（参考安卓 chat_switch 确认弹窗）
+    @State private var pendingSessionAction: PendingSessionAction?
     @State private var showImagePickerOverlay = false
     @State private var activeImagePickerSource: ShellImagePickerSource?
     @State private var isAccountLoggedIn = {
@@ -121,6 +123,58 @@ struct ShellView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .authStateDidChange)) { _ in
             refreshAuthState()
+        }
+        .alert(item: $pendingSessionAction) { action in
+            Alert(
+                title: Text("确认切换对话?"),
+                message: Text("当前回答仍在生成，是否先停止并切换？"),
+                primaryButton: .default(Text("确定")) { performPendingSessionAction(action) },
+                secondaryButton: .cancel(Text("取消"))
+            )
+        }
+    }
+
+    // MARK: - Session switch / create (confirm while generating)
+
+    private enum PendingSessionAction: Identifiable {
+        case switchTo(LocalChatSession)
+        case newSession
+        var id: String {
+            switch self {
+            case .switchTo(let session): return "switch-\(session.id)"
+            case .newSession: return "new"
+            }
+        }
+    }
+
+    /// 切换到某个对话：若当前正在生成且切换的是别的对话，先弹确认；否则直接切换。
+    private func requestSelectSession(_ session: LocalChatSession) {
+        destination = .chat
+        guard session.id != chatViewModel.selectedSessionID else { return }
+        if chatViewModel.isSending {
+            pendingSessionAction = .switchTo(session)
+        } else {
+            chatViewModel.selectSession(session)
+        }
+    }
+
+    /// 新建对话：生成期间先弹确认，否则直接新建。
+    private func requestNewSession() {
+        destination = .chat
+        if chatViewModel.isSending {
+            pendingSessionAction = .newSession
+        } else {
+            chatViewModel.createSession()
+        }
+    }
+
+    private func performPendingSessionAction(_ action: PendingSessionAction) {
+        chatViewModel.cancelGeneration()
+        switch action {
+        case .switchTo(let session):
+            chatViewModel.selectSession(session)
+        case .newSession:
+            chatViewModel.createSession()
         }
     }
 
@@ -265,10 +319,7 @@ struct ShellView: View {
             }
             .buttonStyle(PlainButtonStyle())
 
-            Button(action: {
-                destination = .chat
-                chatViewModel.createSession()
-            }) {
+            Button(action: { requestNewSession() }) {
                 ZStack {
                     Color.white.opacity(0.5)
                         .frame(width: 34, height: 34)
@@ -305,10 +356,7 @@ struct ShellView: View {
         VStack(spacing: 12) {
             searchField
 
-            Button(action: {
-                destination = .chat
-                chatViewModel.createSession()
-            }) {
+            Button(action: { requestNewSession() }) {
                 HStack {
                     Image(systemName: "square.and.pencil")
                     Text("新对话")
@@ -437,8 +485,7 @@ struct ShellView: View {
     private func sessionRow(_ session: LocalChatSession) -> some View {
         let selected = session.id == chatViewModel.selectedSessionID
         return Button(action: {
-            destination = .chat
-            chatViewModel.selectSession(session)
+            requestSelectSession(session)
         }) {
             HStack(spacing: 10) {
                 Image(systemName: "message")
