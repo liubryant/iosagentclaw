@@ -362,7 +362,7 @@ struct ProfileView: View {
     }
 
     private var logoutSection: some View {
-        Button(action: { showLogoutAlert = true }) {
+        Button(action: doLogout) {
             HStack {
                 Spacer()
                 Text("退出登录")

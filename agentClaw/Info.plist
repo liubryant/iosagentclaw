@@ -26,6 +26,8 @@
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>用于连接局域网中的 AI 服务。</string>
+	<key>NSCameraUsageDescription</key>
+	<string>用于拍照上传图片，作为 AI 图像创作和对话参考。</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>用于将生成的图片保存到系统相册。</string>
 	<key>NSPhotoLibraryUsageDescription</key>

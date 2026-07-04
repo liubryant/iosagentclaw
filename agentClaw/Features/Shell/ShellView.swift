@@ -132,6 +132,21 @@ struct ShellView: View {
                 secondaryButton: .cancel(Text("取消"))
             )
         }
+        .alert(isPresented: $showDeleteAlert) {
+            Alert(
+                title: Text("删除对话"),
+                message: Text("确定要删除这个对话吗？此操作无法撤销。"),
+                primaryButton: .destructive(Text("删除")) {
+                    if let session = sessionToDelete {
+                        chatViewModel.deleteSession(session)
+                        sessionToDelete = nil
+                    }
+                },
+                secondaryButton: .cancel(Text("取消")) {
+                    sessionToDelete = nil
+                }
+            )
+        }
     }
 
     // MARK: - Session switch / create (confirm while generating)
@@ -432,21 +447,6 @@ struct ShellView: View {
         .padding(.trailing, 10)
         .padding(.vertical, 16)
         .background(AgentClawDesign.sidebarBackground)
-        .alert(isPresented: $showDeleteAlert) {
-            Alert(
-                title: Text("删除对话"),
-                message: Text("确定要删除这个对话吗？此操作无法撤销。"),
-                primaryButton: .destructive(Text("删除")) {
-                    if let session = sessionToDelete {
-                        chatViewModel.deleteSession(session)
-                        sessionToDelete = nil
-                    }
-                },
-                secondaryButton: .cancel(Text("取消")) {
-                    sessionToDelete = nil
-                }
-            )
-        }
     }
 
     private var searchField: some View {
@@ -484,9 +484,7 @@ struct ShellView: View {
 
     private func sessionRow(_ session: LocalChatSession) -> some View {
         let selected = session.id == chatViewModel.selectedSessionID
-        return Button(action: {
-            requestSelectSession(session)
-        }) {
+        return HStack(spacing: 4) {
             HStack(spacing: 10) {
                 Image(systemName: "message")
                     .font(.system(size: 11))
@@ -502,25 +500,34 @@ struct ShellView: View {
                         .font(.system(size: 11))
                         .foregroundColor(AgentClawDesign.secondaryText)
                 }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                requestSelectSession(session)
+            }
 
-                Spacer()
+            Spacer(minLength: 0)
 
-                Button(action: {
-                    sessionToDelete = session
-                    showDeleteAlert = true
-                }) {
+            Button(action: {
+                sessionToDelete = session
+                showDeleteAlert = true
+            }) {
+                HStack {
+                    Spacer(minLength: 0)
                     Image(systemName: "trash")
                         .font(.system(size: 11))
                         .foregroundColor(AgentClawDesign.secondaryText)
                 }
-                .buttonStyle(PlainButtonStyle())
+                .frame(width: 28, height: 38)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 8)
-            .frame(height: 38)
-            .background(selected ? Color.white : Color.white.opacity(0.42))
-            .cornerRadius(8)
+            .buttonStyle(PlainButtonStyle())
         }
-        .buttonStyle(PlainButtonStyle())
+        .padding(.leading, 8)
+        .padding(.trailing, 4)
+        .frame(height: 38)
+        .background(selected ? Color.white : Color.white.opacity(0.42))
+        .cornerRadius(8)
     }
 
     private func sidebarNavItem(
@@ -675,7 +682,7 @@ struct DocumentsListView: View {
                                     .font(.system(size: 20, weight: .bold))
                                     .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
                             }
-                            Text("所有对话生成并保存的文件")
+                            Text("所有对话生成并保存的图片、视频和文件")
                                 .font(.system(size: 12))
                                 .foregroundColor(AgentClawDesign.secondaryText)
                         }
@@ -693,10 +700,10 @@ struct DocumentsListView: View {
 
                     if allDocuments.isEmpty {
                         VStack(spacing: 16) {
-                            Image(systemName: "doc.text")
+                            Image(systemName: "photo.on.rectangle")
                                 .font(.system(size: 48))
                                 .foregroundColor(Color.gray.opacity(0.5))
-                            Text("暂无生成的文档")
+                            Text("暂无保存的内容")
                                 .font(.system(size: 14))
                                 .foregroundColor(Color.gray)
                         }
@@ -782,6 +789,9 @@ struct DocumentsListView: View {
 
     private func documentIcon(for fileName: String) -> String {
         let lower = fileName.lowercased()
+        if lower.hasSuffix(".jpg") || lower.hasSuffix(".jpeg") || lower.hasSuffix(".png") || lower.hasSuffix(".webp") || lower.hasSuffix(".heic") {
+            return "photo.fill"
+        }
         if lower.hasSuffix(".mp4") || lower.hasSuffix(".mov") || lower.hasSuffix(".m4v") {
             return "play.rectangle.fill"
         }

@@ -227,7 +227,7 @@ final class ChatViewModel: ObservableObject {
         // 与 Android 保持一致：图片模式携带源图时使用独立图生图接口，
         // 不再落入 glm-image 的文生图聊天请求。
         if entryMode == .image, let sourceImage = images.first {
-            guard let imageData = sourceImage.jpegData(compressionQuality: 0.75) else {
+            guard let imageBase64 = encodedUploadImageBase64(for: sourceImage) else {
                 handleResult(.failure(NSError(
                     domain: "ChatViewModel.ImageEdit",
                     code: 1,
@@ -238,7 +238,7 @@ final class ChatViewModel: ObservableObject {
             let editPrompt = text.isEmpty ? "基于这张图片生成一张新图片" : text
             gatewayClient.editImage(
                 prompt: editPrompt,
-                imageBase64: imageData.base64EncodedString(),
+                imageBase64: imageBase64,
                 completion: handleResult
             )
             return
@@ -281,7 +281,7 @@ final class ChatViewModel: ObservableObject {
 
     private func outboundContent(for text: String, images: [UIImage] = [], entryMode: ChatEntryMode) -> String {
         let imageParts: [String] = images.compactMap { img in
-            guard let data = img.jpegData(compressionQuality: 0.75) else { return nil }
+            guard let data = encodedUploadImageData(for: img) else { return nil }
             return "![图片](data:image/jpeg;base64,\(data.base64EncodedString()))"
         }
         switch entryMode {
@@ -316,6 +316,59 @@ final class ChatViewModel: ObservableObject {
             preview = image
         }
         return preview.jpegData(compressionQuality: 0.68)
+    }
+
+    private func encodedUploadImageData(for image: UIImage) -> Data? {
+        let maxBytes = 420 * 1024
+        let originalSize = image.size
+        let longestSide = max(originalSize.width, originalSize.height)
+        let maxDimensions: [CGFloat] = [1024, 896, 768, 640]
+        let qualities: [CGFloat] = [0.68, 0.58, 0.48, 0.38, 0.30, 0.24]
+
+        for maxDimension in maxDimensions {
+            let scale = longestSide > 0 ? min(maxDimension / longestSide, 1) : 1
+            let targetSize = CGSize(
+                width: max(1, originalSize.width * scale),
+                height: max(1, originalSize.height * scale)
+            )
+            let resized: UIImage
+            if targetSize == originalSize {
+                resized = image
+            } else {
+                let renderer = UIGraphicsImageRenderer(size: targetSize)
+                resized = renderer.image { _ in
+                    image.draw(in: CGRect(origin: .zero, size: targetSize))
+                }
+            }
+
+            for quality in qualities {
+                guard let data = resized.jpegData(compressionQuality: quality) else { continue }
+                if data.count <= maxBytes {
+                    return data
+                }
+            }
+        }
+
+        let fallbackSize: CGSize
+        if longestSide > 0 {
+            let scale = min(512 / longestSide, 1)
+            fallbackSize = CGSize(width: max(1, originalSize.width * scale), height: max(1, originalSize.height * scale))
+        } else {
+            fallbackSize = CGSize(width: 512, height: 512)
+        }
+        let fallback = UIGraphicsImageRenderer(size: fallbackSize).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: fallbackSize))
+        }
+        return fallback.jpegData(compressionQuality: 0.20)
+    }
+
+    private func encodedUploadImageBase64(for image: UIImage) -> String? {
+        guard let data = encodedUploadImageData(for: image) else { return nil }
+        #if DEBUG
+        let base64Length = data.base64EncodedString().count
+        print("image_edit_payload_image_bytes=\(data.count) base64_chars=\(base64Length)")
+        #endif
+        return data.base64EncodedString()
     }
 
     private var documentGenerationInstruction: String {

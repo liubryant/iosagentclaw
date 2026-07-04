@@ -18,7 +18,9 @@ struct DocumentPreviewView: View {
             .frame(height: 44)
             .background(AgentClawDesign.controlSurface)
 
-            if isVideo {
+            if isImage {
+                LocalImagePreview(url: url)
+            } else if isVideo {
                 LocalVideoPreview(url: url)
             } else {
                 DocumentWebPreview(url: url)
@@ -26,8 +28,32 @@ struct DocumentPreviewView: View {
         }
     }
 
+    private var isImage: Bool {
+        ["jpg", "jpeg", "png", "webp", "heic"].contains(url.pathExtension.lowercased())
+    }
+
     private var isVideo: Bool {
         ["mp4", "mov", "m4v"].contains(url.pathExtension.lowercased())
+    }
+}
+
+private struct LocalImagePreview: View {
+    let url: URL
+
+    var body: some View {
+        ZStack {
+            Color.black
+            if let image = UIImage(contentsOfFile: url.path) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .padding(12)
+            } else {
+                Text("图片加载失败")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white.opacity(0.86))
+            }
+        }
     }
 }
 

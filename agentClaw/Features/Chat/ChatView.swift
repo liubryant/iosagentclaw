@@ -348,6 +348,9 @@ struct ChatView: View {
 
     private func documentIcon(for fileName: String) -> String {
         let lower = fileName.lowercased()
+        if lower.hasSuffix(".jpg") || lower.hasSuffix(".jpeg") || lower.hasSuffix(".png") || lower.hasSuffix(".webp") || lower.hasSuffix(".heic") {
+            return "photo.fill"
+        }
         if lower.hasSuffix(".html") || lower.hasSuffix(".htm") {
             return "safari"
         }
@@ -781,6 +784,8 @@ private struct GeneratedImageView: View {
     }
 
     private func saveImageToPhotos(_ image: UIImage) {
+        try? GeneratedDocumentStore().saveGeneratedImage(image, remoteURL: url)
+
         requestPhotoAuthorization { status in
             guard isPhotoAuthorizationGranted(status) else {
                 finishSave(message: "没有相册写入权限")

@@ -21,6 +21,7 @@ final class CreationAssetLoader: ObservableObject {
 
     private let imageCache = NSCache<NSString, UIImage>()
     private let thumbCache = NSCache<NSString, UIImage>()
+    private let launchOrderSalt = UUID().uuidString
 
     private static let imageExts = ["png", "jpg", "jpeg"]
     private static let videoExts = ["mp4"]
@@ -41,7 +42,7 @@ final class CreationAssetLoader: ObservableObject {
         let vids = await Task.detached(priority: .utility) {
             Self.enumerate(dir: Self.videoDir, exts: Self.videoExts, type: .video)
         }.value
-        images = imgs
+        images = launchOrdered(imgs)
         videos = vids
     }
 
@@ -140,5 +141,15 @@ final class CreationAssetLoader: ObservableObject {
         guard items.count > 1 else { return items }
         let shuffled = items.shuffled()
         return shuffled.first?.id == items.first?.id ? Array(items.dropFirst()) + [items[0]] : shuffled
+    }
+
+    private func launchOrdered(_ items: [CreationAsset]) -> [CreationAsset] {
+        guard items.count > 1 else { return items }
+        return items.sorted { lhs, rhs in
+            let left = "\(launchOrderSalt)-\(lhs.id)".hashValue
+            let right = "\(launchOrderSalt)-\(rhs.id)".hashValue
+            if left == right { return lhs.id < rhs.id }
+            return left < right
+        }
     }
 }

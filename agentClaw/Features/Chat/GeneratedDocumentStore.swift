@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 struct GeneratedDocumentSaveResult {
     let displayContent: String
@@ -20,6 +21,25 @@ final class GeneratedDocumentStore {
 
     func fileURL(for document: GeneratedDocument) -> URL {
         exportsDirectory.appendingPathComponent(document.relativePath)
+    }
+
+    func saveGeneratedImage(_ image: UIImage, remoteURL: URL?) throws -> GeneratedDocument {
+        createExportsDirectoryIfNeeded()
+        let fileName = imageFileName(from: remoteURL)
+        let destination = uniqueURL(for: fileName)
+        guard let data = image.jpegData(compressionQuality: 0.92) else {
+            throw NSError(
+                domain: "GeneratedDocumentStore.Image",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "图片编码失败"]
+            )
+        }
+        try data.write(to: destination, options: .atomic)
+        return GeneratedDocument(
+            displayName: destination.lastPathComponent,
+            relativePath: destination.lastPathComponent,
+            mimeType: "image/jpeg"
+        )
     }
 
     func allExportedFiles() -> [GeneratedDocument] {
@@ -245,6 +265,14 @@ final class GeneratedDocumentStore {
         return "\(defaultPrefix)-\(stableID).\(fallbackExtension)"
     }
 
+    private func imageFileName(from remoteURL: URL?) -> String {
+        guard let remoteURL = remoteURL else {
+            return "generated-image-\(timestamp()).jpg"
+        }
+        let stableID = stableIdentifier(for: remoteURL.absoluteString)
+        return "generated-image-\(stableID).jpg"
+    }
+
     private func stableIdentifier(for value: String) -> String {
         var hash: UInt64 = 14_695_981_039_346_656_037
         for byte in value.utf8 {
@@ -287,6 +315,10 @@ final class GeneratedDocumentStore {
             return "image/png"
         case "jpg", "jpeg":
             return "image/jpeg"
+        case "webp":
+            return "image/webp"
+        case "heic":
+            return "image/heic"
         default:
             return "application/octet-stream"
         }
