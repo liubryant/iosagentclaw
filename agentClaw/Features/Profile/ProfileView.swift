@@ -21,6 +21,9 @@ struct ProfileView: View {
     @State private var showSetPassword = false
     @State private var showDeleteAccount = false
 
+    private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+    private func fs(_ size: CGFloat) -> CGFloat { isPad ? ceil(size * 1.16) : size }
+
     private var maskedPhone: String {
         guard let phone = userPhone, phone.count >= 7 else { return userPhone ?? "" }
         return phone.prefix(3) + "****" + phone.suffix(4)
@@ -81,7 +84,7 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: 0) {
                 // 27sp page title (matches Android profile_title)
                 Text("我的")
-                    .font(.system(size: 27, weight: .bold))
+                    .font(.system(size: fs(27), weight: .bold))
                     .foregroundColor(Color(hex: "#15151A"))
                     .padding(.bottom, 18)
 
@@ -104,8 +107,8 @@ struct ProfileView: View {
                 versionFooter
                     .padding(.top, 20)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 16)
+            .padding(.horizontal, isPad ? 28 : 20)
+            .padding(.top, isPad ? 22 : 16)
             .padding(.bottom, 28)
         }
         .background(Color(hex: "#FFFDFD").edgesIgnoringSafeArea(.all))
@@ -143,17 +146,17 @@ struct ProfileView: View {
                 .frame(width: 64, height: 64)
                 .clipShape(Circle())
                 Image(systemName: "person.fill")
-                    .font(.system(size: 26))
+                    .font(.system(size: fs(26)))
                     .foregroundColor(.white)
             }
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(isLoggedIn && !(userPhone?.isEmpty ?? true) ? maskedPhone : "登录Agent智能体")
-                    .font(.system(size: 19, weight: .semibold))
+                    .font(.system(size: fs(19), weight: .semibold))
                     .foregroundColor(Color(hex: "#19191F"))
                     .lineLimit(1)
                 Text(isLoggedIn ? "账号已登录" : "登录后享受完整AI功能")
-                    .font(.system(size: 12))
+                    .font(.system(size: fs(12)))
                     .foregroundColor(Color(hex: "#73727E"))
             }
 
@@ -162,7 +165,7 @@ struct ProfileView: View {
             if !isLoggedIn {
                 Button(action: { openAccount() }) {
                     Text("登录")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: fs(13), weight: .medium))
                         .foregroundColor(.white)
                         .padding(.horizontal, 16)
                         .frame(height: 38)
@@ -178,7 +181,7 @@ struct ProfileView: View {
                 .buttonStyle(PlainButtonStyle())
             } else {
                 Text("账号")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: fs(13), weight: .medium))
                     .foregroundColor(Color(hex: "#6750F5"))
                     .padding(.horizontal, 16)
                     .frame(height: 38)
@@ -187,7 +190,7 @@ struct ProfileView: View {
             }
         }
         .padding(.horizontal, 18)
-        .frame(height: 116)
+        .frame(height: isPad ? 136 : 116)
         .background(Color(hex: "#F6F2FF"))
         .cornerRadius(24)
         .overlay(
@@ -213,13 +216,13 @@ struct ProfileView: View {
                     .frame(width: 44, height: 44)
                     .clipShape(Circle())
                     Text("✦")
-                        .font(.system(size: 21))
+                        .font(.system(size: fs(21)))
                         .foregroundColor(Color(hex: "#4B2A12"))
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Agent智能体会员")
-                        .font(.system(size: 17, weight: .bold))
+                        .font(.system(size: fs(17), weight: .bold))
                         .foregroundColor(Color(hex: "#FFF2D2"))
                     Group {
                         if isVipActive, let exp = vipExpiresAt {
@@ -228,7 +231,7 @@ struct ProfileView: View {
                             Text(isLoggedIn ? "开通会员，解锁AI助手全部功能" : "登录后开通会员享受完整权益")
                         }
                     }
-                    .font(.system(size: 11))
+                    .font(.system(size: fs(11)))
                     .foregroundColor(Color(hex: "#C8A97E"))
                 }
 
@@ -236,7 +239,7 @@ struct ProfileView: View {
 
                 // Action button
                 Text("查看权益")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: fs(12), weight: .semibold))
                     .foregroundColor(Color(hex: "#4F2D16"))
                     .padding(.horizontal, 15)
                     .frame(height: 34)
@@ -264,27 +267,27 @@ struct ProfileView: View {
             // Benefits row with vertical dividers
             HStack(spacing: 0) {
                 Text("✦ AI 图像生成")
-                    .font(.system(size: 11))
+                    .font(.system(size: fs(11)))
                     .foregroundColor(Color(hex: "#EECC9A"))
                     .frame(maxWidth: .infinity)
                 Rectangle()
                     .fill(Color.white.opacity(0.2))
                     .frame(width: 1, height: 12)
                 Text("✦ AI 视频生成")
-                    .font(.system(size: 11))
+                    .font(.system(size: fs(11)))
                     .foregroundColor(Color(hex: "#EECC9A"))
                     .frame(maxWidth: .infinity)
                 Rectangle()
                     .fill(Color.white.opacity(0.2))
                     .frame(width: 1, height: 12)
                 Text("✦ 无限对话")
-                    .font(.system(size: 11))
+                    .font(.system(size: fs(11)))
                     .foregroundColor(Color(hex: "#EECC9A"))
                     .frame(maxWidth: .infinity)
             }
             .padding(.bottom, 14)
         }
-        .frame(height: 134)
+        .frame(height: isPad ? 158 : 134)
         .background(
             LinearGradient(
                 colors: [Color(hex: "#241B18"), Color(hex: "#3B2920"), Color(hex: "#5A402B")],
@@ -366,11 +369,11 @@ struct ProfileView: View {
             HStack {
                 Spacer()
                 Text("退出登录")
-                    .font(.system(size: 15))
+                    .font(.system(size: fs(15)))
                     .foregroundColor(Color(hex: "#E8463A"))
                 Spacer()
             }
-            .frame(height: 56)
+            .frame(height: isPad ? 64 : 56)
             .background(Color(hex: "#F8F8FA"))
             .cornerRadius(20)
             .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.black.opacity(0.05), lineWidth: 1))
@@ -381,7 +384,7 @@ struct ProfileView: View {
     private var versionFooter: some View {
         let version = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0"
         return Text("Agent智能体 v\(version)")
-            .font(.system(size: 11))
+            .font(.system(size: fs(11)))
             .foregroundColor(Color(hex: "#A0A0AA"))
             .frame(maxWidth: .infinity)
     }
@@ -391,7 +394,7 @@ struct ProfileView: View {
     private func sectionHeader(_ title: String) -> some View {
         HStack {
             Text(title)
-                .font(.system(size: 17, weight: .bold))
+                .font(.system(size: fs(17), weight: .bold))
                 .foregroundColor(Color(hex: "#202027"))
             Spacer()
         }
@@ -411,19 +414,19 @@ struct ProfileView: View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Image(systemName: icon)
-                    .font(.system(size: 16))
+                    .font(.system(size: fs(16)))
                     .foregroundColor(iconColor)
                     .frame(width: 26, height: 26)
                 Text(title)
-                    .font(.system(size: 15))
+                    .font(.system(size: fs(15)))
                     .foregroundColor(Color(hex: "#26262D"))
                 Spacer()
                 Text("›")
-                    .font(.system(size: 25))
+                    .font(.system(size: fs(25)))
                     .foregroundColor(Color(hex: "#A3A3AB"))
             }
             .padding(.horizontal, 16)
-            .frame(height: 58)
+            .frame(height: isPad ? 66 : 58)
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
         }
@@ -632,11 +635,15 @@ struct DeleteAccountView: View {
                                 set: { code = String($0.filter { $0.isNumber }.prefix(6)) }
                             ))
                             .keyboardType(.numberPad)
+                            .font(.system(size: 15))
+                            .foregroundColor(Color(hex: "#202027"))
+                            .accentColor(Color(hex: "#6750F5"))
+                            .environment(\.colorScheme, .light)
 
                             Button(action: sendCode) {
                                 Text(countdown > 0 ? "\(countdown)s" : (isSendingCode ? "发送中…" : "获取验证码"))
                                     .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(canSendCode ? Color(hex: "#6750F5") : .secondary)
+                                    .foregroundColor(canSendCode ? Color(hex: "#6750F5") : Color(hex: "#5F6470"))
                                     .frame(width: 82)
                             }
                             .disabled(!canSendCode)

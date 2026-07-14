@@ -50,6 +50,12 @@ struct SettingsPanelView: View {
                     .background(settingLeftBackground)
                     .cornerRadius(14)
                     .padding(isCompact ? 8 : 24)
+
+                if showClearDataAlert {
+                    clearDataConfirmation
+                        .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                        .zIndex(2)
+                }
             }
         }
         .onAppear {
@@ -354,7 +360,9 @@ struct SettingsPanelView: View {
 
     private func clearDataButton() -> some View {
         Button(action: {
-            showClearDataAlert = true
+            withAnimation(.easeOut(duration: 0.16)) {
+                showClearDataAlert = true
+            }
         }) {
             HStack {
                 Text("清除所有数据")
@@ -372,15 +380,65 @@ struct SettingsPanelView: View {
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
-        .alert(isPresented: $showClearDataAlert) {
-            Alert(
-                title: Text("清除所有数据"),
-                message: Text("此操作将清除所有聊天记录、网关配置等数据，且无法恢复。确定要继续吗？"),
-                primaryButton: .destructive(Text("清除")) {
-                    clearAllData()
-                },
-                secondaryButton: .cancel(Text("取消"))
-            )
+    }
+
+    private var clearDataConfirmation: some View {
+        ZStack {
+            Color.black.opacity(0.22)
+                .edgesIgnoringSafeArea(.all)
+                .onTapGesture {
+                    withAnimation(.easeOut(duration: 0.16)) {
+                        showClearDataAlert = false
+                    }
+                }
+
+            VStack(alignment: .leading, spacing: 14) {
+                Text("清除所有数据")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundColor(Color(red: 0.13, green: 0.13, blue: 0.13))
+
+                Text("此操作将清除所有聊天记录、网关配置等数据，且无法恢复。确定要继续吗？")
+                    .font(.system(size: 13))
+                    .foregroundColor(Color(red: 0.36, green: 0.36, blue: 0.36))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: 10) {
+                    Button(action: {
+                        withAnimation(.easeOut(duration: 0.16)) {
+                            showClearDataAlert = false
+                        }
+                    }) {
+                        Text("取消")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(Color(red: 0.20, green: 0.20, blue: 0.20))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 40)
+                            .background(Color(red: 0.93, green: 0.94, blue: 0.96))
+                            .cornerRadius(8)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    Button(action: {
+                        clearAllData()
+                    }) {
+                        Text("清除")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 40)
+                            .background(Color(red: 0.86, green: 0.20, blue: 0.18))
+                            .cornerRadius(8)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                .padding(.top, 4)
+            }
+            .padding(18)
+            .frame(maxWidth: 330)
+            .background(Color.white)
+            .cornerRadius(12)
+            .shadow(color: Color.black.opacity(0.18), radius: 18, x: 0, y: 8)
+            .padding(.horizontal, 24)
         }
     }
 
@@ -463,6 +521,8 @@ struct SettingsPanelView: View {
 
         // 刷新网关视图状态
         gatewayViewModel.refreshFromEnvironment()
+
+        isPresented = false
     }
 
     private func icpFilingRow() -> some View {

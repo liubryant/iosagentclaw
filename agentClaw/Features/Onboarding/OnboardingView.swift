@@ -6,14 +6,20 @@ struct OnboardingView: View {
     @State private var showDisagreeAlert = false
     @State private var showGoodbyeScreen = false
 
+    private let dialogBackground = Color(hex: "#FFFFFF")
+    private let titleText = Color(hex: "#16171D")
+    private let bodyText = Color(hex: "#4C4F59")
+    private let secondaryBodyText = Color(hex: "#626672")
+    private let mutedSurface = Color(hex: "#F4F5F8")
+
     var body: some View {
         ZStack {
             // 主隐私政策界面
             GeometryReader { geometry in
                 let isCompact = horizontalSizeClass == .compact || geometry.size.width < 560
 
-                ZStack {
-                    Color.black.opacity(0.3).edgesIgnoringSafeArea(.all)
+	                ZStack {
+	                    Color.black.opacity(0.3).edgesIgnoringSafeArea(.all)
 
                 VStack(spacing: 0) {
                     Spacer(minLength: isCompact ? 24 : 48)
@@ -27,23 +33,23 @@ struct OnboardingView: View {
                                 .frame(width: 72, height: 72)
                                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
-                            Text("个人信息保护提示")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.black)
+	                            Text("个人信息保护提示")
+	                                .font(.system(size: 20, weight: .bold))
+	                                .foregroundColor(titleText)
                         }
 
                         // 介绍内容
                         ScrollView(showsIndicators: true) {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("欢迎来到Agent智能体生活助手！")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(.black)
+	                                Text("欢迎来到Agent智能体生活助手！")
+	                                    .font(.system(size: 14, weight: .semibold))
+	                                    .foregroundColor(titleText)
 
                                 VStack(alignment: .leading, spacing: 6) {
                                     HStack(spacing: 0) {
-                                        Text("我们将通过")
-                                            .font(.system(size: 13))
-                                            .foregroundColor(.secondary)
+	                                        Text("我们将通过")
+	                                            .font(.system(size: 13))
+	                                            .foregroundColor(bodyText)
 
                                         Button(action: {
                                             if let url = URL(string: "https://www.cjym123.cn/agreement_agentclaw.html") {
@@ -56,9 +62,9 @@ struct OnboardingView: View {
                                         }
                                         .buttonStyle(PlainButtonStyle())
 
-                                        Text("和")
-                                            .font(.system(size: 13))
-                                            .foregroundColor(.secondary)
+	                                        Text("和")
+	                                            .font(.system(size: 13))
+	                                            .foregroundColor(bodyText)
 
                                         Button(action: {
                                             if let url = URL(string: "https://www.cjym123.cn/privacy_agentclaw.html") {
@@ -72,16 +78,16 @@ struct OnboardingView: View {
                                         .buttonStyle(PlainButtonStyle())
                                     }
 
-                                    Text("帮助您了解我们为您提供的服务、我们如何处理个人信息以及您享有的权利。我们会严格按照相关法律法规要求，采取各种安全措施来保护您的个人信息。")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.secondary)
+	                                    Text("帮助您了解我们为您提供的服务、我们如何处理个人信息以及您享有的权利。我们会严格按照相关法律法规要求，采取各种安全措施来保护您的个人信息。")
+	                                        .font(.system(size: 13))
+	                                        .foregroundColor(bodyText)
                                         .lineSpacing(4)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
 
-                                Text("点击\"同意\"按钮，表示您已知情并同意以上协议和以下约定。")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.secondary)
+	                                Text("点击\"同意\"按钮，表示您已知情并同意以上协议和以下约定。")
+	                                    .font(.system(size: 13))
+	                                    .foregroundColor(bodyText)
                                     .lineSpacing(4)
                                     .fixedSize(horizontal: false, vertical: true)
 
@@ -90,18 +96,18 @@ struct OnboardingView: View {
                                     Text("2.   保存图片、视频，需要使用您的存储、相机、麦克风权限。")
                                     Text("3.   我们可能会申请位置权限，用于为您推荐您可能感兴趣的内容。")
                                     Text("4.   我们尊重您的选择权，您可以删除您的个人数据并管理，我们也为您提供反馈投诉渠道。")
-                                }
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
+	                                }
+	                                .font(.system(size: 13))
+	                                .foregroundColor(bodyText)
                                 .lineSpacing(4)
                                 .fixedSize(horizontal: false, vertical: true)
                             }
                             .padding(16)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .frame(maxHeight: isCompact ? 220 : 250)
-                        .background(Color.black.opacity(0.035))
-                        .cornerRadius(12)
+	                        .frame(maxWidth: .infinity, alignment: .leading)
+	                        .frame(maxHeight: isCompact ? 220 : 300)
+	                        .background(mutedSurface)
+	                        .cornerRadius(12)
 
                         // 按钮区域
                         HStack(spacing: 12) {
@@ -109,12 +115,12 @@ struct OnboardingView: View {
                                 // 显示提示对话框，告知用户必须同意才能使用
                                 showDisagreeAlert = true
                             }) {
-                                Text("不同意")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(.secondary)
+	                                Text("不同意")
+	                                    .font(.system(size: 15, weight: .medium))
+	                                    .foregroundColor(secondaryBodyText)
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 48)
-                                    .background(Color.black.opacity(0.06))
+	                                    .background(Color(hex: "#ECEEF3"))
                                     .cornerRadius(10)
                             }
                             .buttonStyle(PlainButtonStyle())
@@ -138,12 +144,13 @@ struct OnboardingView: View {
                             .buttonStyle(PlainButtonStyle())
                         }
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 24)
-                    .frame(maxWidth: isCompact ? geometry.size.width - 40 : 480)
-                    .background(Color.white)
-                    .cornerRadius(16)
-                    .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 10)
+	                    .padding(.horizontal, 24)
+	                    .padding(.vertical, 24)
+	                    .frame(maxWidth: isCompact ? geometry.size.width - 40 : min(geometry.size.width - 96, 560))
+	                    .background(dialogBackground)
+	                    .cornerRadius(16)
+	                    .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 10)
+	                    .environment(\.colorScheme, .light)
 
                     Spacer(minLength: isCompact ? 24 : 48)
                 }

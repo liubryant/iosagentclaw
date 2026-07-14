@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct CreationGalleryView: View {
     var onLaunchImageChat: (() -> Void)?
@@ -10,6 +11,9 @@ struct CreationGalleryView: View {
     @State private var showUpgrade: UpgradeType? = nil
     @State private var showVip = false
     @State private var showLogin = false
+
+    private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+    private func fs(_ size: CGFloat) -> CGFloat { isPad ? ceil(size * 1.16) : size }
 
     enum Tab { case image, video }
     enum UpgradeType: Identifiable {
@@ -84,11 +88,11 @@ struct CreationGalleryView: View {
     // MARK: - Header (gradient title, matches Android GradientTextView 27sp)
 
     private var creationHeader: some View {
-        gradientText("今天用AI创作什么？", size: 27)
+        gradientText("今天用AI创作什么？", size: fs(27))
             .frame(maxWidth: .infinity)
-            .padding(.horizontal, 20)
-            .padding(.top, 44)
-            .padding(.bottom, 18)
+            .padding(.horizontal, isPad ? 28 : 20)
+            .padding(.top, isPad ? 52 : 44)
+            .padding(.bottom, isPad ? 22 : 18)
     }
 
     private func gradientText(_ text: String, size: CGFloat) -> some View {
@@ -117,7 +121,7 @@ struct CreationGalleryView: View {
         .padding(4)
         .background(Color(hex: "#F0F0F5"))
         .cornerRadius(18)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, isPad ? 28 : 20)
         .padding(.top, 18)
         .padding(.bottom, 4)
     }
@@ -128,10 +132,10 @@ struct CreationGalleryView: View {
             selectTab(tab)
         }) {
             Text(title)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: fs(15), weight: .semibold))
                 .foregroundColor(isSelected ? .white : Color(hex: "#696B76"))
                 .frame(maxWidth: .infinity)
-                .frame(height: 44)
+                .frame(height: isPad ? 50 : 44)
                 .background(
                     Group {
                         if isSelected {
@@ -186,7 +190,7 @@ struct CreationGalleryView: View {
                 )
             }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, isPad ? 28 : 16)
         .animation(.default, value: selectedTab)
     }
 
@@ -215,20 +219,20 @@ struct CreationGalleryView: View {
                 // Bottom-aligned content (matches Android gravity="bottom")
                 VStack(alignment: .leading, spacing: 7) {
                     Image(systemName: icon)
-                        .font(.system(size: 27))
+                        .font(.system(size: fs(27)))
                         .foregroundColor(.white)
                     Text(title)
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: fs(16), weight: .bold))
                         .foregroundColor(.white)
                     Text(hint)
-                        .font(.system(size: 10))
-                        .foregroundColor(Color.white.opacity(0.87))
+                        .font(.system(size: fs(12)))
+                        .foregroundColor(.white)
                         .lineLimit(1)
                 }
-                .padding(14)
+                .padding(isPad ? 18 : 14)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 104)
+            .frame(height: isPad ? 128 : 104)
             .contentShape(RoundedRectangle(cornerRadius: 22))
         }
         .buttonStyle(ScaleButtonStyle())
@@ -239,11 +243,11 @@ struct CreationGalleryView: View {
     private var inspirationHeader: some View {
         HStack {
             Text("灵感")
-                .font(.system(size: 18, weight: .bold))
+                .font(.system(size: fs(18), weight: .bold))
                 .foregroundColor(Color(hex: "#1C1C22"))
             Spacer()
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, isPad ? 28 : 20)
         .padding(.top, 18)
         .padding(.bottom, 10)
     }
@@ -466,9 +470,9 @@ struct VipUpgradeSheet: View {
             }
             .frame(height: 6)
             HStack {
-                Text("免费: \(freeLimit)次/天").font(.system(size: 11)).foregroundColor(.gray)
+                Text("免费: \(freeLimit)次/天").font(.system(size: 12)).foregroundColor(AgentClawDesign.secondaryText)
                 Spacer()
-                Text("会员: \(vipLimit)次/天").font(.system(size: 11, weight: .medium)).foregroundColor(Color(hex: "#6750F5"))
+                Text("会员: \(vipLimit)次/天").font(.system(size: 12, weight: .medium)).foregroundColor(Color(hex: "#6750F5"))
             }
         }
         .padding(14)

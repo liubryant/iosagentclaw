@@ -112,7 +112,7 @@ final class LoginViewModel: ObservableObject {
 struct LoginView: View {
     var onLoggedIn: (() -> Void)?
     var onDismiss: (() -> Void)?
-    @ObservedObject private var vm: LoginViewModel
+    @StateObject private var vm: LoginViewModel
     @Environment(\.presentationMode) private var presentationMode
     @State private var isLoggedIn: Bool
     @State private var showSetPassword = false
@@ -120,7 +120,7 @@ struct LoginView: View {
     init(onLoggedIn: (() -> Void)? = nil, onDismiss: (() -> Void)? = nil) {
         self.onLoggedIn = onLoggedIn
         self.onDismiss = onDismiss
-        _vm = ObservedObject(wrappedValue: LoginViewModel())
+        _vm = StateObject(wrappedValue: LoginViewModel())
         let prefs = AppPreferences()
         _isLoggedIn = State(initialValue: prefs.isLoggedIn && !(prefs.userPhone?.isEmpty ?? true))
     }
@@ -175,6 +175,9 @@ struct LoginView: View {
                             ))
                                 .keyboardType(.numberPad)
                                 .font(.system(size: 15))
+                                .foregroundColor(Color(hex: "#1A1A2E"))
+                                .accentColor(Color(hex: "#6750F5"))
+                                .environment(\.colorScheme, .light)
                         }
                         .padding(.horizontal, 14)
                         .frame(height: 48)
@@ -199,17 +202,20 @@ struct LoginView: View {
                                 ))
                                     .keyboardType(.numberPad)
                                     .font(.system(size: 15))
+                                    .foregroundColor(Color(hex: "#1A1A2E"))
+                                    .accentColor(Color(hex: "#6750F5"))
+                                    .environment(\.colorScheme, .light)
                                 Divider().frame(height: 20)
                                 Button(action: { vm.sendCode() }) {
                                     if vm.countdown > 0 {
                                         Text("\(vm.countdown)s")
                                             .font(.system(size: 13))
-                                            .foregroundColor(.gray)
+                                            .foregroundColor(Color(hex: "#5F6470"))
                                             .frame(width: 72)
                                     } else {
                                         Text("获取验证码")
                                             .font(.system(size: 13, weight: .medium))
-                                            .foregroundColor(vm.canSendCode ? Color(hex: "#6750F5") : .gray)
+                                            .foregroundColor(vm.canSendCode ? Color(hex: "#6750F5") : Color(hex: "#5F6470"))
                                             .frame(width: 72)
                                     }
                                 }
@@ -232,6 +238,9 @@ struct LoginView: View {
                                 .foregroundColor(.gray)
                             SecureField("请输入密码（6位以上）", text: $vm.password)
                                 .font(.system(size: 15))
+                                .foregroundColor(Color(hex: "#1A1A2E"))
+                                .accentColor(Color(hex: "#6750F5"))
+                                .environment(\.colorScheme, .light)
                                 .padding(.horizontal, 14)
                                 .frame(height: 48)
                                 .background(Color(hex: "#F6F2FF"))
@@ -306,6 +315,7 @@ struct LoginView: View {
                         dismissView()
                     })
                 }
+                .navigationViewStyle(StackNavigationViewStyle())
             }
         }
         .sheet(isPresented: $showSetPassword) {
@@ -493,11 +503,15 @@ struct SetPasswordView: View {
                                 set: { code = String($0.filter { $0.isNumber }.prefix(6)) }
                             ))
                             .keyboardType(.numberPad)
+                            .font(.system(size: 15))
+                            .foregroundColor(Color(hex: "#1A1A2E"))
+                            .accentColor(Color(hex: "#6750F5"))
+                            .environment(\.colorScheme, .light)
 
                             Button(action: sendCode) {
                                 Text(countdown > 0 ? "\(countdown)s" : (isSendingCode ? "发送中…" : "获取验证码"))
                                     .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(canSendCode ? Color(hex: "#6750F5") : .secondary)
+                                    .foregroundColor(canSendCode ? Color(hex: "#6750F5") : Color(hex: "#5F6470"))
                                     .frame(width: 82)
                             }
                             .disabled(!canSendCode)
@@ -513,6 +527,10 @@ struct SetPasswordView: View {
                             .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.secondary)
                         SecureField("请输入至少6位新密码", text: $password)
+                            .font(.system(size: 15))
+                            .foregroundColor(Color(hex: "#1A1A2E"))
+                            .accentColor(Color(hex: "#6750F5"))
+                            .environment(\.colorScheme, .light)
                             .padding(.horizontal, 14)
                             .frame(height: 50)
                             .background(Color(hex: "#F6F2FF"))

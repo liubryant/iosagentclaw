@@ -2,6 +2,7 @@ import SwiftUI
 import Photos
 import UIKit
 import AVKit
+import AVFoundation
 
 struct ChatView: View {
     @ObservedObject var viewModel: ChatViewModel
@@ -10,6 +11,10 @@ struct ChatView: View {
     @State private var inputFocusToken = 0
     @State private var showPickerOverlay = false
     @State private var activePickerSource: ImagePickerSource? = nil
+    @State private var activeCameraPickerSource: ImagePickerSource? = nil
+    @State private var pickerAlert: PickerAlertMessage?
+    @State private var copyMenuMessageID: String?
+    @State private var copiedMessageID: String?
     @State private var activeVideoPlayback: VideoPlaybackItem?
     @State private var videoSaveStatus = ""
     @State private var hotspots: [TodayHotspotItem] = []
@@ -79,6 +84,7 @@ struct ChatView: View {
 
             if showPickerOverlay {
                 ImagePickerOptionsOverlay(
+                    cameraAvailability: ImageCaptureAvailability.camera,
                     onDismiss: { withAnimation { showPickerOverlay = false } },
                     onCamera: { presentImagePicker(.camera) },
                     onGallery: { presentImagePicker(.gallery) }
@@ -102,6 +108,15 @@ struct ChatView: View {
                 onImagePicked: { image in viewModel.attachImage(image) }
             )
         }
+        .fullScreenCover(item: $activeCameraPickerSource) { source in
+            ImagePickerView(
+                sourceType: source == .camera ? .camera : .photoLibrary,
+                onImagePicked: { image in viewModel.attachImage(image) }
+            )
+        }
+        .alert(item: $pickerAlert) { alert in
+            Alert(title: Text(alert.title), message: Text(alert.message), dismissButton: .default(Text("知道了")))
+        }
         .chatFullScreenCover(item: $activeVideoPlayback) { item in
             FullScreenGeneratedVideoView(item: item, saveStatus: $videoSaveStatus)
         }
@@ -110,7 +125,17 @@ struct ChatView: View {
     private func presentImagePicker(_ source: ImagePickerSource) {
         withAnimation { showPickerOverlay = false }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            activePickerSource = source
+            if source == .camera {
+                ImageCaptureAvailability.requestCameraAccessIfNeeded { availability in
+                    guard availability.isAvailable else {
+                        pickerAlert = PickerAlertMessage(title: "无法拍照", message: availability.message)
+                        return
+                    }
+                    activeCameraPickerSource = source
+                }
+            } else {
+                activePickerSource = source
+            }
         }
     }
 
@@ -221,6 +246,7 @@ struct ChatView: View {
         let displayContent = (imageURL == nil && videoURL == nil)
             ? mediaContent
             : ChatMediaParser.stripMedia(from: mediaContent)
+        let copyText = displayContent.isEmpty ? "..." : displayContent
         let hasImage = imageURL != nil
         let hasVideo = videoURL != nil
         let hasDocuments = message.generatedDocuments.isEmpty == false
@@ -250,14 +276,61 @@ struct ChatView: View {
                 }
 
                 if displayContent.isEmpty == false || (!hasImage && !hasVideo) {
-                    Text(displayContent.isEmpty ? "..." : displayContent)
-                        .font(.system(size: 16))
-                        .foregroundColor(AgentClawDesign.primaryText)
-                        .padding(.horizontal, 11)
-                        .padding(.vertical, 8)
-                        .background(message.role == .user ? Color(red: 0.88, green: 0.93, blue: 1.0) : AgentClawDesign.controlSurface)
-                        .cornerRadius(8)
-                        .fixedSize(horizontal: false, vertical: true)
+                    VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 0) {
+                        Text(copyText)
+                            .font(.system(size: 16))
+                            .foregroundColor(AgentClawDesign.primaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 11)
+                            .padding(.top, 8)
+                            .padding(.bottom, copyMenuMessageID == message.id || copiedMessageID == message.id ? 6 : 8)
+
+                        if copyMenuMessageID == message.id || copiedMessageID == message.id {
+                            Button(action: {
+                                UIPasteboard.general.string = copyText
+                                withAnimation(.easeOut(duration: 0.12)) {
+                                    copiedMessageID = message.id
+                                    copyMenuMessageID = nil
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+                                    if copiedMessageID == message.id {
+                                        withAnimation(.easeOut(duration: 0.12)) {
+                                            copiedMessageID = nil
+                                        }
+                                    }
+                                }
+                            }) {
+                                HStack(spacing: 5) {
+                                    Image(systemName: copiedMessageID == message.id ? "checkmark" : "doc.on.doc")
+                                        .font(.system(size: 13, weight: .semibold))
+                                    Text(copiedMessageID == message.id ? "已复制" : "复制")
+                                        .font(.system(size: 14, weight: .semibold))
+                                }
+                                .foregroundColor(message.role == .user ? AgentClawDesign.accent : Color(hex: "#2E3138"))
+                                .padding(.horizontal, 12)
+                                .frame(height: 34)
+                                .background(Color.white.opacity(message.role == .user ? 0.72 : 0.95))
+                                .cornerRadius(17)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 17)
+                                        .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.horizontal, 8)
+                            .padding(.bottom, 8)
+                            .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                        }
+                    }
+                    .background(message.role == .user ? Color(red: 0.88, green: 0.93, blue: 1.0) : AgentClawDesign.controlSurface)
+                    .cornerRadius(8)
+                    .contentShape(RoundedRectangle(cornerRadius: 8))
+                    .onLongPressGesture {
+                        withAnimation(.easeOut(duration: 0.16)) {
+                            copiedMessageID = nil
+                            copyMenuMessageID = message.id
+                        }
+                    }
                 }
 
                 if let imageURL = imageURL {
@@ -486,8 +559,8 @@ struct ChatView: View {
 
             // Disclaimer
             Text("内容由AI生成，仅供参考")
-                .font(.system(size: 10))
-                .foregroundColor(Color.black.opacity(0.24))
+                .font(.system(size: 12))
+                .foregroundColor(AgentClawDesign.secondaryText)
                 .frame(maxWidth: .infinity)
                 .padding(.top, 8)
                 .padding(.bottom, 4)
@@ -614,11 +687,12 @@ private struct AgentThinkingIndicator: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            CompatProgressView()
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: AgentClawDesign.accent))
                 .scaleEffect(0.72)
             Text(Self.statuses[index])
                 .font(.system(size: 13))
-                .foregroundColor(AgentClawDesign.secondaryText)
+                .foregroundColor(AgentClawDesign.primaryText)
                 .opacity(labelOpacity)
                 .offset(y: labelOffset)
         }
@@ -1224,6 +1298,7 @@ private struct QuickPrompt: Identifiable {
 // MARK: - Image Picker (iOS 13 compatible via UIImagePickerController, supports camera + gallery)
 
 struct ImagePickerOptionsOverlay: View {
+    let cameraAvailability: ImageCaptureAvailability
     let onDismiss: () -> Void
     let onCamera: () -> Void
     let onGallery: () -> Void
@@ -1242,13 +1317,13 @@ struct ImagePickerOptionsOverlay: View {
                     .padding(.top, 10)
 
                 Text("选择图片")
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.system(size: 19, weight: .bold))
                     .foregroundColor(Color(hex: "#17171D"))
                     .padding(.top, 16)
 
                 Text("请选择图片来源")
-                    .font(.system(size: 12))
-                    .foregroundColor(Color(hex: "#8A8992"))
+                    .font(.system(size: 14))
+                    .foregroundColor(AgentClawDesign.secondaryText)
                     .padding(.top, 5)
 
                 HStack(spacing: 12) {
@@ -1256,20 +1331,37 @@ struct ImagePickerOptionsOverlay: View {
                         icon: "camera.fill",
                         colors: [Color(hex: "#4DADF7"), Color(hex: "#617CF4")],
                         label: "拍照",
+                        isEnabled: cameraAvailability.isAvailable,
                         action: onCamera
                     )
                     optionButton(
                         icon: "photo.on.rectangle",
                         colors: [Color(hex: "#FF9A68"), Color(hex: "#F16BA5")],
                         label: "从相册选择",
+                        isEnabled: true,
                         action: onGallery
                     )
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 18)
-                .padding(.bottom, 32)
+
+                if !cameraAvailability.isAvailable {
+                    Text(cameraAvailability.message)
+                        .font(.system(size: 13))
+                        .foregroundColor(AgentClawDesign.secondaryText)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(3)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 12)
+                }
             }
-            .frame(maxWidth: .infinity, minHeight: 300, alignment: .top)
+            .padding(.bottom, 32)
+            .frame(
+                maxWidth: .infinity,
+                minHeight: cameraAvailability.isAvailable ? 300 : 350,
+                maxHeight: cameraAvailability.isAvailable ? 300 : 350,
+                alignment: .top
+            )
             .background(Color(hex: "#FAF9FC"))
             .cornerRadius(24, corners: [.topLeft, .topRight])
             .shadow(color: Color.black.opacity(0.14), radius: 20, x: 0, y: -6)
@@ -1282,6 +1374,7 @@ struct ImagePickerOptionsOverlay: View {
         icon: String,
         colors: [Color],
         label: String,
+        isEnabled: Bool,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -1296,7 +1389,7 @@ struct ImagePickerOptionsOverlay: View {
                         .foregroundColor(.white)
                 }
                 Text(label)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(Color(hex: "#222229"))
                     .lineLimit(1)
             }
@@ -1311,7 +1404,57 @@ struct ImagePickerOptionsOverlay: View {
             .contentShape(RoundedRectangle(cornerRadius: 18))
         }
         .buttonStyle(ScaleButtonStyle())
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1 : 0.45)
     }
+}
+
+struct ImageCaptureAvailability {
+    let isAvailable: Bool
+    let message: String
+
+    static var camera: ImageCaptureAvailability {
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            return ImageCaptureAvailability(isAvailable: false, message: "当前设备不支持拍照，请从相册选择图片。")
+        }
+
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized, .notDetermined:
+            return ImageCaptureAvailability(isAvailable: true, message: "")
+        case .denied, .restricted:
+            return ImageCaptureAvailability(isAvailable: false, message: "相机权限未开启，请在系统设置中允许访问相机，或从相册选择图片。")
+        @unknown default:
+            return ImageCaptureAvailability(isAvailable: false, message: "当前无法访问相机，请从相册选择图片。")
+        }
+    }
+
+    static func requestCameraAccessIfNeeded(completion: @escaping (ImageCaptureAvailability) -> Void) {
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            completion(ImageCaptureAvailability(isAvailable: false, message: "当前设备不支持拍照，请从相册选择图片。"))
+            return
+        }
+
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    completion(granted
+                        ? ImageCaptureAvailability(isAvailable: true, message: "")
+                        : ImageCaptureAvailability(isAvailable: false, message: "相机权限未开启，请在系统设置中允许访问相机，或从相册选择图片。"))
+                }
+            }
+        default:
+            DispatchQueue.main.async {
+                completion(camera)
+            }
+        }
+    }
+}
+
+struct PickerAlertMessage: Identifiable {
+    let id = UUID()
+    let title: String
+    let message: String
 }
 
 struct ImagePickerView: UIViewControllerRepresentable {

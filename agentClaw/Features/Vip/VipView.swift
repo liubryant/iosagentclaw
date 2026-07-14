@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct VipView: View {
     @Binding var isPresented: Bool
@@ -29,6 +30,9 @@ struct VipView: View {
         ("年卡会员", "超值长期 · 尊享一整年")
     ]
 
+    private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+    private func fs(_ size: CGFloat) -> CGFloat { isPad ? ceil(size * 1.16) : size }
+
     var body: some View {
         ZStack {
             Color(hex: "#0D0703").edgesIgnoringSafeArea(.all)
@@ -57,7 +61,7 @@ struct VipView: View {
                 VStack {
                     Spacer()
                     Text(toast)
-                        .font(.system(size: 14))
+                        .font(.system(size: fs(14)))
                         .foregroundColor(.white)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
@@ -147,13 +151,13 @@ struct VipView: View {
         HStack {
             Button(action: { isPresented = false }) {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: fs(18), weight: .medium))
                     .foregroundColor(Color(hex: "#FFEDBD"))
                     .frame(width: 44, height: 44)
             }
             Spacer()
             Text("VIP 会员")
-                .font(.system(size: 16, weight: .bold))
+                .font(.system(size: fs(16), weight: .bold))
                 .foregroundColor(Color(hex: "#FFEDBD"))
             Spacer()
             Color.clear.frame(width: 44, height: 44)
@@ -175,19 +179,19 @@ struct VipView: View {
                 )
                 .clipShape(Circle())
                 Image(systemName: "person.fill")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: fs(16), weight: .medium))
                     .foregroundColor(Color(hex: "#FFF2D2"))
             }
             .frame(width: 36, height: 36)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(vm.isLoggedIn ? vm.maskedPhone : "登录后开通会员")
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: fs(15), weight: .bold))
                     .foregroundColor(.white)
                 Text(vm.memberActive && vm.vipExpiresAt != nil
                      ? "尊贵会员 · 有效期至 \(vm.vipExpiresAt!)"
                      : "开通会员，解锁AI助手全部功能")
-                    .font(.system(size: 13))
+                    .font(.system(size: fs(13)))
                     .foregroundColor(vm.memberActive ? Color(hex: "#FFEDBD") : Color(hex: "#CDAF7A"))
                     .lineLimit(1)
             }
@@ -197,7 +201,7 @@ struct VipView: View {
             if !vm.isLoggedIn {
                 Button(action: { vm.showLogin = true }) {
                     Text("去登录")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.system(size: fs(12), weight: .bold))
                         .foregroundColor(Color(hex: "#864F2D"))
                         .padding(.horizontal, 18)
                         .frame(height: 28)
@@ -208,7 +212,7 @@ struct VipView: View {
             }
         }
         .padding(.horizontal, 28)
-        .padding(.vertical, 16)
+        .padding(.vertical, isPad ? 20 : 16)
     }
 
     // MARK: - Products
@@ -227,10 +231,10 @@ struct VipView: View {
                     }
                 }
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, isPad ? 22 : 12)
         }
-        .frame(height: 164)
-        .padding(.top, 24)
+        .frame(height: isPad ? 190 : 164)
+        .padding(.top, isPad ? 28 : 24)
     }
 
     private func placeholderCard(index: Int) -> some View {
@@ -273,14 +277,14 @@ struct VipView: View {
             VStack(spacing: 16) {
                 HStack {
                     Text("会员权益")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: fs(14), weight: .bold))
                         .foregroundColor(Color(hex: "#FFEDBD"))
                     Spacer()
                     HStack(spacing: 3) {
                         Text("查看套餐详情")
                         Image(systemName: "chevron.right")
                     }
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.system(size: fs(11), weight: .medium))
                     .foregroundColor(Color(hex: "#CDAF7A"))
                 }
                 .padding(.horizontal, 18)
@@ -310,7 +314,7 @@ struct VipView: View {
 
     private var statusText: some View {
         Text(vm.statusMessage)
-            .font(.system(size: 12))
+            .font(.system(size: fs(12)))
             .foregroundColor(Color(hex: "#999999"))
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
@@ -321,11 +325,11 @@ struct VipView: View {
     private func benefitItem(icon: String, title: String) -> some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
-                .font(.system(size: 28))
+                .font(.system(size: fs(28)))
                 .foregroundColor(Color(hex: "#FFEDBD"))
                 .frame(width: 36, height: 36)
             Text(title)
-                .font(.system(size: 12))
+                .font(.system(size: fs(12)))
                 .foregroundColor(.white)
         }
         .frame(maxWidth: .infinity)
@@ -339,7 +343,7 @@ struct VipView: View {
                 .fill(Color(hex: "#DCDCDC"))
                 .frame(width: 20, height: 1)
             Text("支付方式")
-                .font(.system(size: 12))
+                .font(.system(size: fs(12)))
                 .foregroundColor(Color(hex: "#999999"))
             Rectangle()
                 .fill(Color(hex: "#DCDCDC"))
@@ -355,25 +359,25 @@ struct VipView: View {
         VStack(spacing: 10) {
             HStack(spacing: 8) {
                 Image(systemName: "applelogo")
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.system(size: fs(20), weight: .medium))
                     .foregroundColor(Color(hex: "#864F2D"))
                 Text("通过 App Store 支付")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: fs(14), weight: .medium))
                     .foregroundColor(Color(hex: "#864F2D"))
                 Spacer()
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 18))
+                    .font(.system(size: fs(18)))
                     .foregroundColor(Color(hex: "#C87830"))
             }
             .padding(.horizontal, 16)
-            .frame(height: 56)
+            .frame(height: isPad ? 64 : 56)
             .background(Color(hex: "#FEEBB9"))
             .cornerRadius(8)
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(hex: "#C87830"), lineWidth: 1))
 
             Button(action: { vm.restorePurchases() }) {
                 Text("恢复购买")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: fs(13), weight: .medium))
                     .foregroundColor(Color(hex: "#CDAF7A"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 32)
@@ -388,14 +392,14 @@ struct VipView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 5) {
                 Image(systemName: "info.circle.fill")
-                    .font(.system(size: 11))
+                    .font(.system(size: fs(11)))
                     .foregroundColor(Color(hex: "#B0894F"))
                 Text("温馨提示")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: fs(12), weight: .bold))
                     .foregroundColor(Color(hex: "#B0894F"))
             }
             Text(warmTipsContent)
-                .font(.system(size: 11.5))
+                .font(.system(size: fs(11.5)))
                 .foregroundColor(Color(hex: "#7A7168"))
                 .lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true)
@@ -430,20 +434,20 @@ struct VipView: View {
                         HStack(spacing: 10) {
                             ActivityIndicator(isAnimating: .constant(true), style: .medium)
                             Text(payingText)
-                                .font(.system(size: 15, weight: .bold))
+                                .font(.system(size: fs(15), weight: .bold))
                                 .foregroundColor(Color(hex: "#864F2D"))
                         }
                     } else {
                         HStack(spacing: 8) {
                             Text(vm.displayPrice.replacingOccurrences(of: "¥", with: "￥"))
-                                .font(.system(size: 24, weight: .bold))
+                                .font(.system(size: fs(24), weight: .bold))
                             Text(vm.memberActive ? "立即续费" : "立即开通")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: fs(14), weight: .bold))
                         }
                         .foregroundColor(Color(hex: "#864F2D"))
                     }
                 }
-                .frame(maxWidth: .infinity, minHeight: 48)
+                .frame(maxWidth: .infinity, minHeight: isPad ? 56 : 48)
                 .background(
                     LinearGradient(
                         colors: (vm.isPayEnabled || vm.isLoading)
@@ -463,18 +467,18 @@ struct VipView: View {
             HStack(spacing: 2) {
                 Button(action: { vm.isAgreementChecked.toggle() }) {
                     Image(systemName: vm.isAgreementChecked ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 16))
+                        .font(.system(size: fs(16)))
                         .foregroundColor(vm.isAgreementChecked ? Color(hex: "#C87830") : Color(hex: "#77706A"))
                         .frame(width: 32, height: 32)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(PlainButtonStyle())
                 Text("请阅读并同意")
-                    .font(.system(size: 12))
+                    .font(.system(size: fs(12)))
                     .foregroundColor(Color(hex: "#999999"))
                 Button(action: { withAnimation { showAgreement = true } }) {
                     Text("《会员服务协议》")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.system(size: fs(12), weight: .bold))
                         .foregroundColor(Color(hex: "#C87830"))
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -513,6 +517,8 @@ private struct VipBenefitsDetailSheet: View {
     let onDismiss: () -> Void
 
     private let quota = QuotaManager.shared
+    private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+    private func fs(_ size: CGFloat) -> CGFloat { isPad ? ceil(size * 1.16) : size }
 
     var body: some View {
         GeometryReader { proxy in
@@ -534,11 +540,11 @@ private struct VipBenefitsDetailSheet: View {
                                 Image(systemName: "crown.fill")
                                     .foregroundColor(Color(hex: "#F6D28F"))
                                 Text("会员套餐详情")
-                                    .font(.system(size: 20, weight: .bold))
+                                    .font(.system(size: fs(20), weight: .bold))
                                     .foregroundColor(Color(hex: "#FFEDBD"))
                             }
                             Text("开通会员，解锁更多 AI 创作能力")
-                                .font(.system(size: 12))
+                                .font(.system(size: fs(12)))
                                 .foregroundColor(Color(hex: "#A89178"))
                         }
                         Spacer()
@@ -569,7 +575,7 @@ private struct VipBenefitsDetailSheet: View {
                     purchaseBar
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: min(proxy.size.height * 0.82, 680))
+                .frame(height: min(proxy.size.height * 0.84, isPad ? 760 : 680))
                 .background(
                     LinearGradient(
                         colors: [Color(hex: "#24150C"), Color(hex: "#110A06")],
@@ -608,7 +614,7 @@ private struct VipBenefitsDetailSheet: View {
                 Image(systemName: icon)
                 Text(title)
             }
-            .font(.system(size: 13, weight: .bold))
+            .font(.system(size: fs(13), weight: .bold))
             .foregroundColor(Color(hex: "#F2D39B"))
 
             HStack {
@@ -616,7 +622,7 @@ private struct VipBenefitsDetailSheet: View {
                 Spacer()
                 Text(free)
             }
-            .font(.system(size: 11))
+            .font(.system(size: fs(11)))
             .foregroundColor(Color(hex: "#837568"))
 
             HStack {
@@ -624,11 +630,11 @@ private struct VipBenefitsDetailSheet: View {
                 Spacer()
                 Text(vip)
             }
-            .font(.system(size: 11, weight: .bold))
+            .font(.system(size: fs(11), weight: .bold))
             .foregroundColor(Color(hex: "#F6D28F"))
         }
         .padding(14)
-        .frame(maxWidth: .infinity, minHeight: 108, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: isPad ? 124 : 108, alignment: .topLeading)
         .background(Color(hex: "#2A1B12"))
         .cornerRadius(14)
         .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(hex: "#503722"), lineWidth: 1))
@@ -637,7 +643,7 @@ private struct VipBenefitsDetailSheet: View {
     private var detailedBenefits: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("全部会员权益")
-                .font(.system(size: 14, weight: .bold))
+                .font(.system(size: fs(14), weight: .bold))
                 .foregroundColor(Color(hex: "#FFEDBD"))
 
             HStack(spacing: 8) {
@@ -651,21 +657,21 @@ private struct VipBenefitsDetailSheet: View {
     private func detailBenefit(icon: String, title: String, detail: String) -> some View {
         VStack(spacing: 7) {
             Image(systemName: icon)
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: fs(20), weight: .semibold))
                 .foregroundColor(Color(hex: "#F6D28F"))
                 .frame(height: 26)
             Text(title)
-                .font(.system(size: 12, weight: .bold))
+                .font(.system(size: fs(12), weight: .bold))
                 .foregroundColor(.white)
             Text(detail)
-                .font(.system(size: 10))
+                .font(.system(size: fs(10)))
                 .foregroundColor(Color(hex: "#988571"))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 12)
-        .frame(maxWidth: .infinity, minHeight: 112)
+        .frame(maxWidth: .infinity, minHeight: isPad ? 132 : 112)
         .background(Color.white.opacity(0.045))
         .cornerRadius(12)
     }
@@ -673,14 +679,14 @@ private struct VipBenefitsDetailSheet: View {
     private var packageSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("选择会员套餐")
-                .font(.system(size: 14, weight: .bold))
+                .font(.system(size: fs(14), weight: .bold))
                 .foregroundColor(Color(hex: "#FFEDBD"))
 
             if products.isEmpty {
                 HStack(spacing: 8) {
                     CompatProgressView()
                     Text("正在加载套餐…")
-                        .font(.system(size: 12))
+                        .font(.system(size: fs(12)))
                         .foregroundColor(Color(hex: "#988571"))
                 }
                 .frame(maxWidth: .infinity, minHeight: 64)
@@ -697,27 +703,27 @@ private struct VipBenefitsDetailSheet: View {
         return Button(action: { onSelectProduct(index) }) {
             HStack(spacing: 12) {
                 Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 20))
+                    .font(.system(size: fs(20)))
                     .foregroundColor(selected ? Color(hex: "#E6B765") : Color(hex: "#6E5C4B"))
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(product.name)
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: fs(14), weight: .bold))
                         .foregroundColor(selected ? Color(hex: "#FFEDBD") : .white)
                     if !product.description.isEmpty {
                         Text(product.description)
-                            .font(.system(size: 11))
+                            .font(.system(size: fs(11)))
                             .foregroundColor(Color(hex: "#988571"))
                             .lineLimit(2)
                     }
                 }
                 Spacer()
                 Text("￥\(product.price)")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: fs(18), weight: .bold))
                     .foregroundColor(Color(hex: "#F6D28F"))
             }
             .padding(.horizontal, 14)
-            .frame(maxWidth: .infinity, minHeight: 66)
+            .frame(maxWidth: .infinity, minHeight: isPad ? 78 : 66)
             .background(selected ? Color(hex: "#3A291B") : Color(hex: "#21160F"))
             .cornerRadius(12)
             .overlay(
@@ -735,13 +741,13 @@ private struct VipBenefitsDetailSheet: View {
                 HStack(spacing: 8) {
                     if let selectedIndex = selectedIndex, products.indices.contains(selectedIndex) {
                         Text("￥\(products[selectedIndex].price)")
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.system(size: fs(20), weight: .bold))
                     }
                     Text(memberActive ? "立即续费" : "立即开通会员")
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.system(size: fs(15), weight: .bold))
                 }
                 .foregroundColor(Color(hex: "#75451F"))
-                .frame(maxWidth: .infinity, minHeight: 48)
+                .frame(maxWidth: .infinity, minHeight: isPad ? 56 : 48)
                 .background(
                     LinearGradient(
                         colors: [Color(hex: "#FEEBB9"), Color(hex: "#FFD889")],
@@ -756,7 +762,7 @@ private struct VipBenefitsDetailSheet: View {
             .opacity(selectedIndex == nil || products.isEmpty ? 0.5 : 1)
 
             Text("开通前请阅读并同意页面下方《会员服务协议》")
-                .font(.system(size: 10))
+                .font(.system(size: fs(10)))
                 .foregroundColor(Color(hex: "#756757"))
         }
         .padding(.horizontal, 22)
@@ -781,6 +787,8 @@ struct VipProductCard: View {
     private var descColor: Color  { isSelected ? Color(hex: "#9B5C38") : Color(hex: "#7A6B58") }
     private var borderColor: Color { isSelected ? Color(hex: "#EBC783") : Color(hex: "#514437") }
     private var borderWidth: CGFloat { isSelected ? 2 : 1 }
+    private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+    private func fs(_ size: CGFloat) -> CGFloat { isPad ? ceil(size * 1.16) : size }
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -789,7 +797,7 @@ struct VipProductCard: View {
                 badgeView(text: badge, colors: colors)
             }
         }
-        .frame(height: 164)
+        .frame(height: isPad ? 190 : 164)
         .contentShape(Rectangle())
         .onTapGesture { onTap() }
     }
@@ -799,7 +807,7 @@ struct VipProductCard: View {
             Spacer().frame(height: badgeText != nil ? 14 : 4)
             if showPrice {
                 Text("¥\(product.price)")
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: fs(24), weight: .bold))
                     .foregroundColor(priceColor)
             } else {
                 // 价格加载中占位：灰条骨架，接口成功后替换为真实价格。
@@ -809,11 +817,11 @@ struct VipProductCard: View {
                     .padding(.vertical, 3)
             }
             Text(product.name)
-                .font(.system(size: 12))
+                .font(.system(size: fs(12)))
                 .foregroundColor(nameColor)
             if !product.description.isEmpty {
                 Text(product.description)
-                    .font(.system(size: 10))
+                    .font(.system(size: fs(10)))
                     .foregroundColor(descColor)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
@@ -821,7 +829,7 @@ struct VipProductCard: View {
             }
             Spacer()
         }
-        .frame(width: 138, height: 148)
+        .frame(width: isPad ? 158 : 138, height: isPad ? 172 : 148)
         .background(
             LinearGradient(
                 colors: isSelected
@@ -838,7 +846,7 @@ struct VipProductCard: View {
 
     private func badgeView(text: String, colors: (String, String)) -> some View {
         Text(text)
-            .font(.system(size: 9.5, weight: .medium))
+            .font(.system(size: fs(9.5), weight: .medium))
             .foregroundColor(.white)
             .padding(.horizontal, 10)
             .padding(.vertical, 3)

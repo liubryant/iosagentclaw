@@ -22,11 +22,12 @@ struct ShellView: View {
     // 应用启动（包括关闭开屏广告后）默认进入画图首页。
     @State private var destination: Destination = .creation
     @State private var sessionToDelete: LocalChatSession?
-    @State private var showDeleteAlert = false
+    @State private var activeShellAlert: ShellAlert?
     // 生成期间切换/新建对话的二次确认（参考安卓 chat_switch 确认弹窗）
     @State private var pendingSessionAction: PendingSessionAction?
     @State private var showImagePickerOverlay = false
     @State private var activeImagePickerSource: ShellImagePickerSource?
+    @State private var activeCameraImagePickerSource: ShellImagePickerSource?
     @State private var isAccountLoggedIn = {
         let preferences = AppPreferences()
         return preferences.isLoggedIn && !(preferences.userPhone?.isEmpty ?? true)
@@ -42,7 +43,7 @@ struct ShellView: View {
         )
     }
 
-    // Matches Android: sidebar hidden on CREATE/PROFILE, forced on IDEAS, toggle on CHAT
+    // Sidebar belongs to the conversation workspace and stays above the bottom tab bar.
     private var effectiveSidebarVisible: Bool {
         switch destination {
         case .creation, .profile: return false
@@ -53,99 +54,113 @@ struct ShellView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            ZStack {
-                HStack(spacing: 0) {
-                    if effectiveSidebarVisible {
-                        sidebar
-                            .frame(width: sidebarWidth(for: proxy.size.width))
-                            .transition(.move(edge: .leading))
+            VStack(spacing: 0) {
+                ZStack {
+                    HStack(spacing: 0) {
+                        if effectiveSidebarVisible {
+                            sidebar
+                                .frame(width: sidebarWidth(for: proxy.size.width))
+                                .transition(.move(edge: .leading))
+                        }
+
+                        mainPanel
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(4)
                     }
+                    .background(AgentClawDesign.appBackground.edgesIgnoringSafeArea(.all))
 
-                    mainPanel
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(4)
-                }
-                .background(AgentClawDesign.appBackground.edgesIgnoringSafeArea(.all))
-
-                if isSettingsPresented {
-                    SettingsPanelView(
-                        gatewayViewModel: gatewayViewModel,
-                        chatViewModel: chatViewModel,
-                        isPresented: $isSettingsPresented
-                    )
-                    .transition(.opacity)
-                    .zIndex(1)
-                }
-
-                if isDocumentsPresented {
-                    DocumentsListView(
-                        chatViewModel: chatViewModel,
-                        isPresented: $isDocumentsPresented
-                    )
-                    .transition(.opacity)
-                    .zIndex(1)
-                }
-
-                if showLogin {
-                    LoginView(
-                        onLoggedIn: {
-                            refreshAuthState()
-                            withAnimation { showLogin = false }
-                        },
-                        onDismiss: { withAnimation { showLogin = false } }
-                    )
-                    .transition(.opacity)
-                    .zIndex(8)
-                }
-
-                if showImagePickerOverlay {
-                    ImagePickerOptionsOverlay(
-                        onDismiss: { withAnimation { showImagePickerOverlay = false } },
-                        onCamera: { presentRootImagePicker(.camera) },
-                        onGallery: { presentRootImagePicker(.gallery) }
-                    )
-                    .zIndex(10)
-                }
-
-                Color.clear
-                    .frame(width: 0, height: 0)
-                    .allowsHitTesting(false)
-                    .sheet(item: $activeImagePickerSource) { source in
-                        ImagePickerView(
-                            sourceType: source == .camera ? .camera : .photoLibrary,
-                            onImagePicked: { image in chatViewModel.attachImage(image) }
+                    if isSettingsPresented {
+                        SettingsPanelView(
+                            gatewayViewModel: gatewayViewModel,
+                            chatViewModel: chatViewModel,
+                            isPresented: $isSettingsPresented
                         )
+                        .transition(.opacity)
+                        .zIndex(1)
                     }
+
+                    if isDocumentsPresented {
+                        DocumentsListView(
+                            chatViewModel: chatViewModel,
+                            isPresented: $isDocumentsPresented
+                        )
+                        .transition(.opacity)
+                        .zIndex(1)
+                    }
+
+                    if showLogin {
+                        LoginView(
+                            onLoggedIn: {
+                                refreshAuthState()
+                                withAnimation { showLogin = false }
+                            },
+                            onDismiss: { withAnimation { showLogin = false } }
+                        )
+                        .transition(.opacity)
+                        .zIndex(8)
+                    }
+
+                    if showImagePickerOverlay {
+                        ImagePickerOptionsOverlay(
+                            cameraAvailability: ImageCaptureAvailability.camera,
+                            onDismiss: { withAnimation { showImagePickerOverlay = false } },
+                            onCamera: { presentRootImagePicker(.camera) },
+                            onGallery: { presentRootImagePicker(.gallery) }
+                        )
+                        .zIndex(10)
+                    }
+
+                    Color.clear
+                        .frame(width: 0, height: 0)
+                        .allowsHitTesting(false)
+                        .sheet(item: $activeImagePickerSource) { source in
+                            ImagePickerView(
+                                sourceType: source == .camera ? .camera : .photoLibrary,
+                                onImagePicked: { image in chatViewModel.attachImage(image) }
+                            )
+                        }
+                        .fullScreenCover(item: $activeCameraImagePickerSource) { source in
+                            ImagePickerView(
+                                sourceType: source == .camera ? .camera : .photoLibrary,
+                                onImagePicked: { image in chatViewModel.attachImage(image) }
+                            )
+                        }
+                }
+
+                bottomTabBar
             }
         }
+        .modifier(IPadReadableTypeModifier())
         .vipFullScreenCover(isPresented: $showVip) {
             VipView(isPresented: $showVip)
         }
         .onReceive(NotificationCenter.default.publisher(for: .authStateDidChange)) { _ in
             refreshAuthState()
         }
-        .alert(item: $pendingSessionAction) { action in
-            Alert(
-                title: Text("确认切换对话?"),
-                message: Text("当前回答仍在生成，是否先停止并切换？"),
-                primaryButton: .default(Text("确定")) { performPendingSessionAction(action) },
-                secondaryButton: .cancel(Text("取消"))
-            )
-        }
-        .alert(isPresented: $showDeleteAlert) {
-            Alert(
-                title: Text("删除对话"),
-                message: Text("确定要删除这个对话吗？此操作无法撤销。"),
-                primaryButton: .destructive(Text("删除")) {
-                    if let session = sessionToDelete {
+        .alert(item: $activeShellAlert) { alert in
+            switch alert {
+            case .pendingAction(let action):
+                return Alert(
+                    title: Text("确认切换对话?"),
+                    message: Text("当前回答仍在生成，是否先停止并切换？"),
+                    primaryButton: .default(Text("确定")) { performPendingSessionAction(action) },
+                    secondaryButton: .cancel(Text("取消")) { pendingSessionAction = nil }
+                )
+            case .deleteSession(let session):
+                return Alert(
+                    title: Text("删除对话"),
+                    message: Text("确定要删除这个对话吗？此操作无法撤销。"),
+                    primaryButton: .destructive(Text("删除")) {
                         chatViewModel.deleteSession(session)
                         sessionToDelete = nil
+                    },
+                    secondaryButton: .cancel(Text("取消")) {
+                        sessionToDelete = nil
                     }
-                },
-                secondaryButton: .cancel(Text("取消")) {
-                    sessionToDelete = nil
-                }
-            )
+                )
+            case .message(let title, let message):
+                return Alert(title: Text(title), message: Text(message), dismissButton: .default(Text("知道了")))
+            }
         }
     }
 
@@ -162,12 +177,27 @@ struct ShellView: View {
         }
     }
 
+    private enum ShellAlert: Identifiable {
+        case pendingAction(PendingSessionAction)
+        case deleteSession(LocalChatSession)
+        case message(title: String, message: String)
+
+        var id: String {
+            switch self {
+            case .pendingAction(let action): return "pending-\(action.id)"
+            case .deleteSession(let session): return "delete-\(session.id)"
+            case .message(let title, let message): return "message-\(title)-\(message)"
+            }
+        }
+    }
+
     /// 切换到某个对话：若当前正在生成且切换的是别的对话，先弹确认；否则直接切换。
     private func requestSelectSession(_ session: LocalChatSession) {
         destination = .chat
         guard session.id != chatViewModel.selectedSessionID else { return }
         if chatViewModel.isSending {
             pendingSessionAction = .switchTo(session)
+            activeShellAlert = .pendingAction(.switchTo(session))
         } else {
             chatViewModel.selectSession(session)
         }
@@ -178,12 +208,14 @@ struct ShellView: View {
         destination = .chat
         if chatViewModel.isSending {
             pendingSessionAction = .newSession
+            activeShellAlert = .pendingAction(.newSession)
         } else {
             chatViewModel.createSession()
         }
     }
 
     private func performPendingSessionAction(_ action: PendingSessionAction) {
+        pendingSessionAction = nil
         chatViewModel.cancelGeneration()
         switch action {
         case .switchTo(let session):
@@ -201,8 +233,6 @@ struct ShellView: View {
             Divider().background(AgentClawDesign.divider)
             contentArea
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            Divider().background(AgentClawDesign.divider)
-            bottomTabBar
         }
         .background(AgentClawDesign.chatSurface)
         .cornerRadius(10)
@@ -261,15 +291,12 @@ struct ShellView: View {
                 destination = .creation
             }
 
-            // 对话 tab is hidden when already on chat (matches Android)
-            if destination != .chat {
-                bottomTabItem(
-                    icon: "bubble.left.and.bubble.right",
-                    label: "对话",
-                    isSelected: destination == .chat || destination == .ideas
-                ) {
-                    destination = .chat
-                }
+            bottomTabItem(
+                icon: "bubble.left.and.bubble.right",
+                label: "对话",
+                isSelected: destination == .chat || destination == .ideas
+            ) {
+                destination = .chat
             }
 
             bottomTabItem(
@@ -299,7 +326,7 @@ struct ShellView: View {
                     .font(.system(size: 20))
                     .foregroundColor(isSelected ? AgentClawDesign.accent : .gray)
                 Text(label)
-                    .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
+                    .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
                     .foregroundColor(isSelected ? AgentClawDesign.accent : .gray)
             }
             .frame(maxWidth: .infinity)
@@ -314,7 +341,17 @@ struct ShellView: View {
     private func presentRootImagePicker(_ source: ShellImagePickerSource) {
         withAnimation { showImagePickerOverlay = false }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            activeImagePickerSource = source
+            if source == .camera {
+                ImageCaptureAvailability.requestCameraAccessIfNeeded { availability in
+                    guard availability.isAvailable else {
+                        activeShellAlert = .message(title: "无法拍照", message: availability.message)
+                        return
+                    }
+                    activeCameraImagePickerSource = source
+                }
+            } else {
+                activeImagePickerSource = source
+            }
         }
     }
 
@@ -322,17 +359,19 @@ struct ShellView: View {
 
     private var chatHeader: some View {
         HStack(spacing: 8) {
-            Button(action: { withAnimation { isSidebarVisible.toggle() } }) {
-                ZStack {
-                    Color.white.opacity(0.5)
-                        .frame(width: 34, height: 34)
-                        .cornerRadius(8)
-                    Image(systemName: "sidebar.left")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(Color.black)
+            if destination == .chat || destination == .ideas {
+                Button(action: { withAnimation { isSidebarVisible.toggle() } }) {
+                    ZStack {
+                        Color.white.opacity(0.5)
+                            .frame(width: 34, height: 34)
+                            .cornerRadius(8)
+                        Image(systemName: "sidebar.left")
+                            .font(.system(size: 16, weight: .regular))
+                            .foregroundColor(Color.black)
+                    }
                 }
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
 
             Button(action: { requestNewSession() }) {
                 ZStack {
@@ -377,7 +416,7 @@ struct ShellView: View {
                     Text("新对话")
                     Spacer()
                 }
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(AgentClawDesign.primaryText)
                 .padding(.horizontal, 14)
                 .frame(height: 38)
@@ -422,10 +461,10 @@ struct ShellView: View {
                             .foregroundColor(Color(hex: "#F5D69D"))
                         VStack(alignment: .leading, spacing: 3) {
                             Text("VIP 会员")
-                                .font(.system(size: 12, weight: .bold))
+                                .font(.system(size: 13, weight: .bold))
                                 .foregroundColor(Color(hex: "#F5D69D"))
                             Text("解锁满血 AI")
-                                .font(.system(size: 10))
+                                .font(.system(size: 12))
                                 .foregroundColor(Color(hex: "#C9AA79"))
                         }
                         Spacer()
@@ -452,17 +491,17 @@ struct ShellView: View {
     private var searchField: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 11))
+                .font(.system(size: 13))
                 .foregroundColor(AgentClawDesign.secondaryText)
             ZStack(alignment: .leading) {
                 if sidebarQuery.isEmpty {
                     Text("搜索历史")
-                        .font(.system(size: 12))
+                        .font(.system(size: 13))
                         .foregroundColor(AgentClawDesign.secondaryText)
                         .allowsHitTesting(false)
                 }
                 TextField("", text: $sidebarQuery)
-                    .font(.system(size: 12))
+                    .font(.system(size: 13))
                     .foregroundColor(AgentClawDesign.primaryText)
                     .accentColor(AgentClawDesign.accent)
                     .disableAutocorrection(true)
@@ -485,46 +524,44 @@ struct ShellView: View {
     private func sessionRow(_ session: LocalChatSession) -> some View {
         let selected = session.id == chatViewModel.selectedSessionID
         return HStack(spacing: 4) {
-            HStack(spacing: 10) {
-                Image(systemName: "message")
-                    .font(.system(size: 11))
-                    .foregroundColor(selected ? AgentClawDesign.accent : AgentClawDesign.secondaryText)
+            Button(action: { requestSelectSession(session) }) {
+                HStack(spacing: 10) {
+                    Image(systemName: "message")
+                        .font(.system(size: 13))
+                        .foregroundColor(selected ? AgentClawDesign.accent : AgentClawDesign.secondaryText)
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(session.title)
-                        .font(.system(size: 12, weight: selected ? .semibold : .regular))
-                        .foregroundColor(AgentClawDesign.primaryText)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.82)
-                    Text(relativeDate(session.updatedAt))
-                        .font(.system(size: 11))
-                        .foregroundColor(AgentClawDesign.secondaryText)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(session.title)
+                            .font(.system(size: 13, weight: selected ? .semibold : .regular))
+                            .foregroundColor(AgentClawDesign.primaryText)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.82)
+                        Text(relativeDate(session.updatedAt))
+                            .font(.system(size: 12))
+                            .foregroundColor(AgentClawDesign.secondaryText)
+                    }
+
+                    Spacer(minLength: 0)
                 }
+                .frame(maxWidth: .infinity, minHeight: 38, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .contentShape(Rectangle())
-            .onTapGesture {
-                requestSelectSession(session)
-            }
-
-            Spacer(minLength: 0)
+            .buttonStyle(PlainButtonStyle())
 
             Button(action: {
                 sessionToDelete = session
-                showDeleteAlert = true
+                activeShellAlert = .deleteSession(session)
             }) {
-                HStack {
-                    Spacer(minLength: 0)
-                    Image(systemName: "trash")
-                        .font(.system(size: 11))
-                        .foregroundColor(AgentClawDesign.secondaryText)
-                }
-                .frame(width: 28, height: 38)
+                Image(systemName: "trash")
+                    .font(.system(size: 13))
+                    .foregroundColor(AgentClawDesign.secondaryText)
+                    .frame(width: 44, height: 38)
                 .contentShape(Rectangle())
             }
             .buttonStyle(PlainButtonStyle())
         }
         .padding(.leading, 8)
-        .padding(.trailing, 4)
+        .padding(.trailing, 0)
         .frame(height: 38)
         .background(selected ? Color.white : Color.white.opacity(0.42))
         .cornerRadius(8)
@@ -547,7 +584,7 @@ struct ShellView: View {
                             .frame(width: 18, height: 18)
                     } else {
                         Image(systemName: icon)
-                            .font(.system(size: 14, weight: .regular))
+                            .font(.system(size: 15, weight: .regular))
                             .foregroundColor(Color.black)
                     }
                 }
@@ -555,10 +592,10 @@ struct ShellView: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundColor(AgentClawDesign.primaryText)
                     Text(subtitle)
-                        .font(.system(size: 11))
+                        .font(.system(size: 12))
                         .foregroundColor(AgentClawDesign.secondaryText)
                 }
                 Spacer()
@@ -590,6 +627,16 @@ struct ShellView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
+    }
+}
+
+private struct IPadReadableTypeModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            content.dynamicTypeSize(.xLarge)
+        } else {
+            content
+        }
     }
 }
 
