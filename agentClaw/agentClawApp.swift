@@ -95,6 +95,43 @@ final class QuickActionAppDelegate: NSObject, UIApplicationDelegate {
         QuickActionRouter.shared.route(shortcutItem)
         completionHandler(AgentClawQuickAction(rawValue: shortcutItem.type) != nil)
     }
+
+    func application(
+        _ application: UIApplication,
+        configurationForConnecting connectingSceneSession: UISceneSession,
+        options: UIScene.ConnectionOptions
+    ) -> UISceneConfiguration {
+        if let item = options.shortcutItem {
+            QuickActionRouter.shared.route(item)
+        }
+        let configuration = UISceneConfiguration(
+            name: "Default Configuration",
+            sessionRole: connectingSceneSession.role
+        )
+        configuration.delegateClass = QuickActionSceneDelegate.self
+        return configuration
+    }
+}
+
+final class QuickActionSceneDelegate: NSObject, UIWindowSceneDelegate {
+    func scene(
+        _ scene: UIScene,
+        willConnectTo session: UISceneSession,
+        options connectionOptions: UIScene.ConnectionOptions
+    ) {
+        if let item = connectionOptions.shortcutItem {
+            QuickActionRouter.shared.route(item)
+        }
+    }
+
+    func windowScene(
+        _ windowScene: UIWindowScene,
+        performActionFor shortcutItem: UIApplicationShortcutItem,
+        completionHandler: @escaping (Bool) -> Void
+    ) {
+        QuickActionRouter.shared.route(shortcutItem)
+        completionHandler(AgentClawQuickAction(rawValue: shortcutItem.type) != nil)
+    }
 }
 
 /// 全局内购交易监听：处理支付成功但 App 中断(被杀/家长同意后到账)等未完成交易，

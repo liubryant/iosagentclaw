@@ -272,10 +272,28 @@ struct AvatarView: View {
                     }
                 }
             }
-            .onChange(of: viewModel.highlightedSpeechRange?.location) { _ in
-                if let turnID = viewModel.highlightedTurnID {
+            .onChange(of: viewModel.highlightedTurnID) { turnID in
+                guard let turnID = turnID else { return }
+                // A newly appended answer is initially positioned at its bottom.
+                // Before the first speech range arrives, reveal its first line.
+                DispatchQueue.main.async {
                     withAnimation(.easeOut(duration: 0.2)) {
-                        reader.scrollTo(turnID, anchor: .center)
+                        reader.scrollTo(turnID, anchor: .top)
+                    }
+                }
+            }
+            .onChange(of: viewModel.highlightedSpeechRange?.location) { _ in
+                if let turnID = viewModel.highlightedTurnID,
+                   let location = viewModel.highlightedSpeechRange?.location {
+                    // Wait for the bubble to rebuild its highlighted sentence,
+                    // then center that sentence rather than the whole message.
+                    DispatchQueue.main.async {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            reader.scrollTo(
+                                avatarSpeechScrollID(turnID: turnID, location: location),
+                                anchor: .center
+                            )
+                        }
                     }
                 }
             }
@@ -555,6 +573,14 @@ private struct AvatarTurnBubble: View {
                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                                     .fill(segment.isHighlighted ? Color(red: 0.86, green: 0.92, blue: 1.0) : Color.clear)
                             )
+                            .id(
+                                segment.isHighlighted
+                                    ? avatarSpeechScrollID(
+                                        turnID: turn.id,
+                                        location: highlightedRange?.location ?? 0
+                                    )
+                                    : "avatar-text-\(turn.id)-\(segment.id)"
+                            )
                     }
                 }
                 .textSelection(.enabled)
@@ -609,6 +635,10 @@ private struct AvatarTurnBubble: View {
         }
         return result
     }
+}
+
+private func avatarSpeechScrollID(turnID: String, location: Int) -> String {
+    "avatar-speech-\(turnID)-\(location)"
 }
 
 private struct AvatarThinkingIndicator: View {

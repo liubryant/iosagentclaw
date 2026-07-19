@@ -142,10 +142,8 @@ struct ShellView: View {
             refreshAuthState()
         }
         .onReceive(NotificationCenter.default.publisher(for: .agentClawQuickAction)) { notification in
-            if
-                let action = notification.object as? AgentClawQuickAction,
-                QuickActionRouter.shared.consumePendingAction() == action
-            {
+            if let action = notification.object as? AgentClawQuickAction {
+                _ = QuickActionRouter.shared.consumePendingAction()
                 handleQuickAction(action)
             }
         }
@@ -309,20 +307,7 @@ struct ShellView: View {
                     chatViewModel.createSession(withDraft: idea.prompt)
                 }
             case .creation:
-                CreationGalleryView(
-                    onLaunchImageChat: { prompt in
-                        destination = .chat
-                        if prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            chatViewModel.createSession(entryMode: .image)
-                        } else {
-                            chatViewModel.createSession(withDraft: prompt, entryMode: .image)
-                        }
-                    },
-                    onLaunchVideoChat: {
-                        destination = .chat
-                        chatViewModel.createSession(entryMode: .video)
-                    }
-                )
+                Color.clear
             case .avatar:
                 Color.clear
             case .profile:
@@ -335,6 +320,26 @@ struct ShellView: View {
                 )
                 }
             }
+
+            // Keep the creation gallery mounted for the app session so returning to
+            // the tab preserves its selected section, loaded cells and scroll offset.
+            CreationGalleryView(
+                onLaunchImageChat: { prompt in
+                    destination = .chat
+                    if prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        chatViewModel.createSession(entryMode: .image)
+                    } else {
+                        chatViewModel.createSession(withDraft: prompt, entryMode: .image)
+                    }
+                },
+                onLaunchVideoChat: {
+                    destination = .chat
+                    chatViewModel.createSession(entryMode: .video)
+                }
+            )
+            .opacity(destination == .creation ? 1 : 0)
+            .allowsHitTesting(destination == .creation)
+            .accessibilityHidden(destination != .creation)
 
             // Keep Lily mounted for the entire app session. Switching tabs only changes
             // visibility, matching Android Fragment hide/show behavior without reloading Duix.
