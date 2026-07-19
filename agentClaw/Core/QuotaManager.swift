@@ -4,7 +4,7 @@ final class QuotaManager {
     static let shared = QuotaManager()
 
     private static let freeVideoDefault = 1
-    private static let freeImageDefault = 10
+    private static let freeImageDefault = 3
     private static let vipVideoDefault = 5
     private static let vipImageDefault = 50
 
@@ -39,11 +39,13 @@ final class QuotaManager {
     }
 
     func videoLimit() -> Int {
-        AppPreferences().isVipActive ? vipVideoLimit() : freeVideoLimit()
+        let preferences = AppPreferences()
+        return preferences.isLoggedIn && preferences.isVipActive ? vipVideoLimit() : freeVideoLimit()
     }
 
     func imageLimit() -> Int {
-        AppPreferences().isVipActive ? vipImageLimit() : freeImageLimit()
+        let preferences = AppPreferences()
+        return preferences.isLoggedIn && preferences.isVipActive ? vipImageLimit() : freeImageLimit()
     }
 
     // MARK: - Today Usage
@@ -95,5 +97,25 @@ final class QuotaManager {
         if let v = status.vipVideoDaily  { p.serverVipVideoDaily = v }
         if let v = status.vipImageDaily  { p.serverVipImageDaily = v }
         if let v = status.vipRemindDays  { p.serverVipRemindDays = v }
+    }
+
+    func refreshServerQuota() async {
+        do {
+            let preferences = AppPreferences()
+            let status: MembershipStatus
+            if preferences.isLoggedIn, let token = preferences.userAccessToken, !token.isEmpty {
+                status = try await PaymentService.shared.loadMembership(token: token)
+            } else {
+                status = try await PaymentService.shared.loadPublicMembership()
+            }
+            applyServerQuota(status)
+            #if DEBUG
+            print("duix quota config_refreshed freeImage=\(freeImageLimit()) freeVideo=\(freeVideoLimit()) vipImage=\(vipImageLimit()) vipVideo=\(vipVideoLimit())")
+            #endif
+        } catch {
+            #if DEBUG
+            print("duix quota config_refresh_failed error=\(error.localizedDescription) fallbackImage=\(freeImageLimit()) fallbackVideo=\(freeVideoLimit())")
+            #endif
+        }
     }
 }

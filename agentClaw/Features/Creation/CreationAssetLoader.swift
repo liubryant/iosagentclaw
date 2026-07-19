@@ -10,7 +10,18 @@ struct CreationAsset: Identifiable {
     let id: String
     let filename: String
     let type: CreationAssetType
+    let promptZh: String
     var aspectRatio: CGFloat = 1.0
+}
+
+private struct CreationPromptItem: Decodable {
+    let image: String
+    let promptZh: String
+
+    enum CodingKeys: String, CodingKey {
+        case image
+        case promptZh = "prompt_zh"
+    }
 }
 
 final class CreationAssetLoader: ObservableObject {
@@ -27,6 +38,7 @@ final class CreationAssetLoader: ObservableObject {
     private static let videoExts = ["mp4"]
     private static let imageDir = "creation/images"
     private static let videoDir = "creation/videos"
+    private static let imagePromptsFile = "image_prompts_zh"
 
     init() {
         imageCache.totalCostLimit = 30 * 1024 * 1024
@@ -36,20 +48,38 @@ final class CreationAssetLoader: ObservableObject {
 
     @MainActor
     func loadAll() async {
+        let prompts = Self.loadImagePrompts()
         let imgs = await Task.detached(priority: .utility) {
-            Self.enumerate(dir: Self.imageDir, exts: Self.imageExts, type: .image)
+            Self.enumerate(dir: Self.imageDir, exts: Self.imageExts, type: .image, prompts: prompts)
         }.value
         let vids = await Task.detached(priority: .utility) {
-            Self.enumerate(dir: Self.videoDir, exts: Self.videoExts, type: .video)
+            Self.enumerate(dir: Self.videoDir, exts: Self.videoExts, type: .video, prompts: [:])
         }.value
         images = launchOrdered(imgs)
         videos = vids
     }
 
-    private static func enumerate(dir: String, exts: [String], type: CreationAssetType) -> [CreationAsset] {
+    private static func loadImagePrompts() -> [String: String] {
+        guard let url = Bundle.main.url(
+            forResource: imagePromptsFile,
+            withExtension: "json",
+            subdirectory: "creation"
+        ), let data = try? Data(contentsOf: url),
+           let items = try? JSONDecoder().decode([CreationPromptItem].self, from: data) else {
+            return [:]
+        }
+        return Dictionary(uniqueKeysWithValues: items.map { ($0.image, $0.promptZh) })
+    }
+
+    private static func enumerate(
+        dir: String,
+        exts: [String],
+        type: CreationAssetType,
+        prompts: [String: String]
+    ) -> [CreationAsset] {
         guard let resourceURL = Bundle.main.url(forResource: nil, withExtension: nil, subdirectory: dir) else {
             // Try listing all bundle resources matching the dir prefix
-            return enumerateFallback(dir: dir, exts: exts, type: type)
+            return enumerateFallback(dir: dir, exts: exts, type: type, prompts: prompts)
         }
         return (try? FileManager.default.contentsOfDirectory(at: resourceURL, includingPropertiesForKeys: nil))
             .map { urls in
@@ -57,7 +87,12 @@ final class CreationAssetLoader: ObservableObject {
                     .sorted { $0.lastPathComponent < $1.lastPathComponent }
                     .map { url in
                         let name = url.deletingPathExtension().lastPathComponent
-                        var asset = CreationAsset(id: name, filename: url.lastPathComponent, type: type)
+                        var asset = CreationAsset(
+                            id: name,
+                            filename: url.lastPathComponent,
+                            type: type,
+                            promptZh: prompts[url.lastPathComponent] ?? ""
+                        )
                         if type == .image, let img = UIImage(contentsOfFile: url.path) {
                             asset.aspectRatio = img.size.width > 0 ? img.size.height / img.size.width : 1
                         }
@@ -66,7 +101,12 @@ final class CreationAssetLoader: ObservableObject {
             } ?? []
     }
 
-    private static func enumerateFallback(dir: String, exts: [String], type: CreationAssetType) -> [CreationAsset] {
+    private static func enumerateFallback(
+        dir: String,
+        exts: [String],
+        type: CreationAssetType,
+        prompts: [String: String]
+    ) -> [CreationAsset] {
         guard let allURLs = Bundle.main.urls(forResourcesWithExtension: nil, subdirectory: dir) else {
             return []
         }
@@ -75,7 +115,12 @@ final class CreationAssetLoader: ObservableObject {
             .sorted { $0.lastPathComponent < $1.lastPathComponent }
             .map { url in
                 let name = url.deletingPathExtension().lastPathComponent
-                var asset = CreationAsset(id: name, filename: url.lastPathComponent, type: type)
+                var asset = CreationAsset(
+                    id: name,
+                    filename: url.lastPathComponent,
+                    type: type,
+                    promptZh: prompts[url.lastPathComponent] ?? ""
+                )
                 if type == .image, let img = UIImage(contentsOfFile: url.path) {
                     asset.aspectRatio = img.size.width > 0 ? img.size.height / img.size.width : 1
                 }

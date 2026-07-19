@@ -44,8 +44,14 @@ struct ContentView: View {
     }
 
     private var splashWaitingView: some View {
-        Color.white
-            .edgesIgnoringSafeArea(.all)
+        ZStack {
+            Color.white.edgesIgnoringSafeArea(.all)
+            Image("launch_icon")
+                .resizable()
+                .scaledToFill()
+                .frame(width: 112, height: 112)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
     }
 
     private func initializeTrackingAndProceed() {

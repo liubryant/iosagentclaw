@@ -29,6 +29,7 @@ struct agentClawApp {
 
 @available(iOS 14.0, *)
 struct ModernApp: App {
+    @UIApplicationDelegateAdaptor(QuickActionAppDelegate.self) private var quickActionDelegate
     private let container = DependencyContainer()
 
     init() {
@@ -39,6 +40,60 @@ struct ModernApp: App {
         WindowGroup {
             ContentView(container: container)
         }
+    }
+}
+
+enum AgentClawQuickAction: String {
+    case avatar = "com.agentclaw.quick.avatar"
+    case image = "com.agentclaw.quick.image"
+}
+
+final class QuickActionRouter {
+    static let shared = QuickActionRouter()
+    private var pendingAction: AgentClawQuickAction?
+    private let lock = NSLock()
+
+    func route(_ shortcutItem: UIApplicationShortcutItem) {
+        guard let action = AgentClawQuickAction(rawValue: shortcutItem.type) else { return }
+        lock.lock()
+        pendingAction = action
+        lock.unlock()
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .agentClawQuickAction, object: action)
+        }
+    }
+
+    func consumePendingAction() -> AgentClawQuickAction? {
+        lock.lock()
+        defer { lock.unlock() }
+        let action = pendingAction
+        pendingAction = nil
+        return action
+    }
+}
+
+extension Notification.Name {
+    static let agentClawQuickAction = Notification.Name("agentClaw.quickAction")
+}
+
+final class QuickActionAppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        if let item = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem {
+            QuickActionRouter.shared.route(item)
+        }
+        return true
+    }
+
+    func application(
+        _ application: UIApplication,
+        performActionFor shortcutItem: UIApplicationShortcutItem,
+        completionHandler: @escaping (Bool) -> Void
+    ) {
+        QuickActionRouter.shared.route(shortcutItem)
+        completionHandler(AgentClawQuickAction(rawValue: shortcutItem.type) != nil)
     }
 }
 
@@ -90,7 +145,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         )
         self.window = window
         window.makeKeyAndVisible()
+        if let item = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem {
+            QuickActionRouter.shared.route(item)
+        }
         return true
+    }
+
+    func application(
+        _ application: UIApplication,
+        performActionFor shortcutItem: UIApplicationShortcutItem,
+        completionHandler: @escaping (Bool) -> Void
+    ) {
+        QuickActionRouter.shared.route(shortcutItem)
+        completionHandler(AgentClawQuickAction(rawValue: shortcutItem.type) != nil)
     }
 
     func application(

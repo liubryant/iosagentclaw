@@ -8,6 +8,7 @@ final class ChatViewModel: ObservableObject {
     @Published var draft: String = ""
     @Published private(set) var isSending = false
     @Published var errorMessage: String?
+    @Published private(set) var quotaExceededMode: ChatEntryMode?
     @Published var attachedImages: [UIImage] = []
 
     private let gatewayClient: GatewayClient
@@ -170,6 +171,43 @@ final class ChatViewModel: ObservableObject {
             return
         }
 
+        let quota = QuotaManager.shared
+        let preferences = AppPreferences()
+        switch entryMode {
+        case .image:
+            #if DEBUG
+            print("duix quota image_check count=\(quota.todayImageCount()) limit=\(quota.imageLimit()) loggedIn=\(preferences.isLoggedIn) vip=\(preferences.isVipActive)")
+            #endif
+            guard quota.canGenerateImage() else {
+                #if DEBUG
+                print("duix quota image_blocked count=\(quota.todayImageCount()) limit=\(quota.imageLimit())")
+                #endif
+                quotaExceededMode = .image
+                return
+            }
+            quota.consumeImage()
+            #if DEBUG
+            print("duix quota image_consumed count=\(quota.todayImageCount()) limit=\(quota.imageLimit())")
+            #endif
+        case .video:
+            #if DEBUG
+            print("duix quota video_check count=\(quota.todayVideoCount()) limit=\(quota.videoLimit()) loggedIn=\(preferences.isLoggedIn) vip=\(preferences.isVipActive)")
+            #endif
+            guard quota.canGenerateVideo() else {
+                #if DEBUG
+                print("duix quota video_blocked count=\(quota.todayVideoCount()) limit=\(quota.videoLimit())")
+                #endif
+                quotaExceededMode = .video
+                return
+            }
+            quota.consumeVideo()
+            #if DEBUG
+            print("duix quota video_consumed count=\(quota.todayVideoCount()) limit=\(quota.videoLimit())")
+            #endif
+        case .default:
+            break
+        }
+
         draft = ""
         attachedImages = []
         errorMessage = nil
@@ -254,6 +292,10 @@ final class ChatViewModel: ObservableObject {
             return outboundMessage
         }
         gatewayClient.sendChat(messages: requestMessages, completion: handleResult)
+    }
+
+    func clearQuotaExceeded() {
+        quotaExceededMode = nil
     }
 
     /// 把底层网络错误（尤其是「the request timed out」超时）转成更友好的中文提示。

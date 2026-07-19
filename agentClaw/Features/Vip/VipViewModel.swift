@@ -50,7 +50,9 @@ final class VipViewModel: ObservableObject {
     }
 
     func loadData() {
-        let token = AppPreferences().userAccessToken
+        let preferences = AppPreferences()
+        let hasValidLogin = preferences.isLoggedIn && !(preferences.userPhone?.isEmpty ?? true)
+        let token = hasValidLogin ? preferences.userAccessToken : nil
         memberStatusLoaded = false
         isPayEnabled = false
         pricesReady = false
@@ -124,6 +126,7 @@ final class VipViewModel: ObservableObject {
     private func noMembership() async {
         await MainActor.run {
             self.memberActive = false
+            self.vipExpiresAt = nil
             self.memberStatusLoaded = true
             self.updatePayButtonState()
         }

@@ -109,6 +109,15 @@ final class PaymentService {
 
     func loadMembership(token: String) async throws -> MembershipStatus {
         let json = try await makeRequest("/membership", token: token)
+        return membershipStatus(from: json)
+    }
+
+    func loadPublicMembership() async throws -> MembershipStatus {
+        let json = try await makeRequest("/membership")
+        return membershipStatus(from: json)
+    }
+
+    private func membershipStatus(from json: [String: Any]) -> MembershipStatus {
         let data = json["data"] as? [String: Any] ?? [:]
         let active = (data["active"] as? Bool) ?? (data["isVip"] as? Bool) ?? (data["isMember"] as? Bool) ?? false
         let expires = (data["expiresAt"] as? String).flatMap { $0.isEmpty ? nil : $0 }

@@ -6,6 +6,7 @@ final class AppPreferences {
         static let allowInsecureLocalNetwork = "allow_insecure_local_network"
         static let onboardingCompleted = "onboarding_completed"
         static let chatHistorySnapshot = "chat_history_snapshot"
+        static let avatarConversationHistory = "avatar_conversation_history"
         // Auth
         static let isLoggedIn = "is_logged_in"
         static let userPhone = "user_phone"
@@ -23,6 +24,7 @@ final class AppPreferences {
         static let quotaVideoCount = "quota_video_count"
         static let quotaImageDate = "quota_image_date"
         static let quotaImageCount = "quota_image_count"
+        static let avatarFreeConversationCount = "avatar_free_conversation_count"
     }
 
     private static let keychainTokenAccount = "user_access_token"
@@ -83,6 +85,24 @@ final class AppPreferences {
                 defaults.synchronize()
             }
         }
+    }
+
+    var avatarConversationHistory: [AvatarConversationTurn] {
+        get {
+            guard let data = defaults.data(forKey: Key.avatarConversationHistory) else { return [] }
+            return (try? decoder.decode([AvatarConversationTurn].self, from: data)) ?? []
+        }
+        set {
+            let retained = Array(newValue.suffix(100))
+            if let data = try? encoder.encode(retained) {
+                defaults.set(data, forKey: Key.avatarConversationHistory)
+            }
+        }
+    }
+
+    var avatarFreeConversationCount: Int {
+        get { defaults.integer(forKey: Key.avatarFreeConversationCount) }
+        set { defaults.set(max(0, newValue), forKey: Key.avatarFreeConversationCount) }
     }
 
     // MARK: - Auth

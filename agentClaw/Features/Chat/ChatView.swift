@@ -18,6 +18,9 @@ struct ChatView: View {
     @State private var activeVideoPlayback: VideoPlaybackItem?
     @State private var videoSaveStatus = ""
     @State private var hotspots: [TodayHotspotItem] = []
+    @State private var showUpgrade: VipUpgradeType?
+    @State private var showVip = false
+    @State private var showLogin = false
 
     private enum ImagePickerSource: Identifiable {
         case camera, gallery
@@ -94,6 +97,15 @@ struct ChatView: View {
         .onAppear {
             loadHotspots()
         }
+        .onChange(of: viewModel.quotaExceededMode) { mode in
+            guard let mode else { return }
+            switch mode {
+            case .image: showUpgrade = .image
+            case .video: showUpgrade = .video
+            case .default: break
+            }
+            viewModel.clearQuotaExceeded()
+        }
         .sheet(item: $activeDocumentSheet) { sheet in
             switch sheet {
             case .preview(let document):
@@ -101,6 +113,15 @@ struct ChatView: View {
             case .export(let document):
                 DocumentExportView(url: viewModel.generatedDocumentStore.fileURL(for: document))
             }
+        }
+        .sheet(item: $showUpgrade) { type in
+            VipUpgradeSheet(type: type, onGoVip: { showVip = true })
+        }
+        .vipFullScreenCover(isPresented: $showVip) {
+            VipView(isPresented: $showVip, onLoginRequired: { showLogin = true })
+        }
+        .sheet(isPresented: $showLogin) {
+            LoginView()
         }
         .sheet(item: $activePickerSource) { source in
             ImagePickerView(
@@ -497,7 +518,7 @@ struct ChatView: View {
                             text: $viewModel.draft,
                             focusToken: inputFocusToken,
                             onReturn: {
-                                if canSend { viewModel.send() }
+                                if canSend { sendWithQuotaCheck() }
                             }
                         )
                         .frame(maxWidth: .infinity, minHeight: 44, maxHeight: 96)
@@ -538,7 +559,7 @@ struct ChatView: View {
 
                         Button(action: {
                             hideKeyboard()
-                            viewModel.send()
+                            sendWithQuotaCheck()
                         }) {
                             Image(systemName: viewModel.isSending ? "stop.fill" : "paperplane.fill")
                                 .font(.system(size: 22))
@@ -574,6 +595,11 @@ struct ChatView: View {
         (viewModel.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
             || viewModel.attachedImages.isEmpty == false)
         && viewModel.isSending == false
+    }
+
+    private func sendWithQuotaCheck() {
+        guard canSend else { return }
+        viewModel.send()
     }
 
     private var composerHint: String {

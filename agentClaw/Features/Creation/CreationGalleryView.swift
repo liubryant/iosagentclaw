@@ -1,14 +1,26 @@
 import SwiftUI
 import UIKit
 
+enum VipUpgradeType: Identifiable {
+    case image, video, avatar
+
+    var id: Int {
+        switch self {
+        case .image: return 0
+        case .video: return 1
+        case .avatar: return 2
+        }
+    }
+}
+
 struct CreationGalleryView: View {
-    var onLaunchImageChat: (() -> Void)?
+    var onLaunchImageChat: ((String) -> Void)?
     var onLaunchVideoChat: (() -> Void)?
 
     @ObservedObject private var loader = CreationAssetLoader.shared
     @State private var selectedTab: Tab = .image
     @State private var viewerAsset: CreationAsset? = nil
-    @State private var showUpgrade: UpgradeType? = nil
+    @State private var showUpgrade: VipUpgradeType? = nil
     @State private var showVip = false
     @State private var showLogin = false
 
@@ -16,11 +28,6 @@ struct CreationGalleryView: View {
     private func fs(_ size: CGFloat) -> CGFloat { isPad ? ceil(size * 1.16) : size }
 
     enum Tab { case image, video }
-    enum UpgradeType: Identifiable {
-        case image, video
-        var id: Int { self == .image ? 0 : 1 }
-    }
-
     var body: some View {
         ZStack {
             Color(hex: "#FFFDFD").edgesIgnoringSafeArea(.all)
@@ -41,9 +48,9 @@ struct CreationGalleryView: View {
             }
         }
         .creationFullScreenCover(item: $viewerAsset) { asset in
-            CreationViewerView(asset: asset, onCreateSame: { type in
-                switch type {
-                case .image: tryLaunchImageChat()
+            CreationViewerView(asset: asset, onCreateSame: { selectedAsset in
+                switch selectedAsset.type {
+                case .image: tryLaunchImageChat(prompt: selectedAsset.promptZh)
                 case .video: tryLaunchVideoChat()
                 }
             })
@@ -88,11 +95,11 @@ struct CreationGalleryView: View {
     // MARK: - Header (gradient title, matches Android GradientTextView 27sp)
 
     private var creationHeader: some View {
-        gradientText("今天用AI创作什么？", size: fs(27))
+        gradientText("今天用AI创作什么？", size: fs(30))
             .frame(maxWidth: .infinity)
             .padding(.horizontal, isPad ? 28 : 20)
             .padding(.top, isPad ? 52 : 44)
-            .padding(.bottom, isPad ? 22 : 18)
+            .padding(.bottom, isPad ? 32 : 26)
     }
 
     private func gradientText(_ text: String, size: CGFloat) -> some View {
@@ -164,14 +171,14 @@ struct CreationGalleryView: View {
                     hint: "一句灵感，生成视觉作品",
                     icon: "sparkles",
                     isPrimary: true,
-                    action: tryLaunchImageChat
+                    action: { tryLaunchImageChat() }
                 )
                 gradientFeatureCard(
                     title: "图生图",
                     hint: "上传参考图，重新设计",
                     icon: "square.stack",
                     isPrimary: false,
-                    action: tryLaunchImageChat
+                    action: { tryLaunchImageChat() }
                 )
             } else {
                 gradientFeatureCard(
@@ -310,9 +317,9 @@ struct CreationGalleryView: View {
 
     // MARK: - Actions
 
-    private func tryLaunchImageChat() {
+    private func tryLaunchImageChat(prompt: String = "") {
         if QuotaManager.shared.canGenerateImage() {
-            onLaunchImageChat?()
+            onLaunchImageChat?(prompt)
         } else {
             showUpgrade = .image
         }
@@ -405,79 +412,137 @@ struct VideoGalleryCell: View {
 // MARK: - Upgrade Sheet
 
 struct VipUpgradeSheet: View {
-    let type: CreationGalleryView.UpgradeType
+    let type: VipUpgradeType
     var onGoVip: (() -> Void)?
     @Environment(\.presentationMode) private var presentationMode
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 10) {
             Capsule()
                 .fill(Color.gray.opacity(0.3))
-                .frame(width: 40, height: 4)
-                .padding(.top, 12)
+                .frame(width: 36, height: 4)
+                .padding(.top, 8)
 
-            Text(type == .image ? "今日图片次数已用完" : "今日视频次数已用完")
-                .font(.system(size: 18, weight: .bold))
+            Text(upgradeTitle)
+                .font(.system(size: 17, weight: .bold))
                 .foregroundColor(Color(hex: "#1A1A2E"))
 
             quotaCompare(
+                icon: "photo.fill",
                 title: "AI图片生成",
                 freeUsed: QuotaManager.shared.todayImageCount(),
                 freeLimit: QuotaManager.shared.freeImageLimit(),
                 vipLimit: QuotaManager.shared.vipImageLimit()
             )
             quotaCompare(
+                icon: "video.fill",
                 title: "AI视频生成",
                 freeUsed: QuotaManager.shared.todayVideoCount(),
                 freeLimit: QuotaManager.shared.freeVideoLimit(),
                 vipLimit: QuotaManager.shared.vipVideoLimit()
             )
 
+            avatarConversationBenefit
+
             Button(action: {
                 presentationMode.wrappedValue.dismiss()
                 onGoVip?()
             }) {
                 Text("立即开通会员")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .frame(maxWidth: .infinity, minHeight: 44)
                     .background(LinearGradient(colors: [Color(hex: "#6750F5"), Color(hex: "#9B7BFE")], startPoint: .leading, endPoint: .trailing))
                     .cornerRadius(14)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 4)
 
             Button("稍后再说") { presentationMode.wrappedValue.dismiss() }
                 .font(.system(size: 14))
                 .foregroundColor(.gray)
-                .padding(.bottom, 24)
+                .padding(.bottom, 8)
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 16)
+        .modifier(CompactUpgradeSheetModifier())
     }
 
-    private func quotaCompare(title: String, freeUsed: Int, freeLimit: Int, vipLimit: Int) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(title).font(.system(size: 13, weight: .medium))
-                Spacer()
-                Text("\(freeUsed)/\(freeLimit)").font(.system(size: 12)).foregroundColor(.gray)
-            }
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color.gray.opacity(0.15)).frame(height: 6)
-                    let ratio = freeLimit > 0 ? min(CGFloat(freeUsed) / CGFloat(freeLimit), 1.0) : 1.0
-                    Capsule().fill(Color(hex: "#6750F5")).frame(width: geo.size.width * ratio, height: 6)
-                }
-            }
-            .frame(height: 6)
-            HStack {
-                Text("免费: \(freeLimit)次/天").font(.system(size: 12)).foregroundColor(AgentClawDesign.secondaryText)
-                Spacer()
-                Text("会员: \(vipLimit)次/天").font(.system(size: 12, weight: .medium)).foregroundColor(Color(hex: "#6750F5"))
-            }
+    private var upgradeTitle: String {
+        switch type {
+        case .image: return "今日图片次数已用完"
+        case .video: return "今日视频次数已用完"
+        case .avatar: return "智能体免费对话次数已用完"
         }
-        .padding(14)
+    }
+
+    private var avatarConversationBenefit: some View {
+        HStack(spacing: 12) {
+            Image("avatar_agent_tab_icon")
+                .resizable()
+                .scaledToFill()
+                .frame(width: 34, height: 34)
+                .clipShape(Circle())
+                .overlay(
+                    Circle().stroke(Color(hex: "#8A72F8").opacity(0.55), lineWidth: 1)
+                )
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text("智能体对话")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Color(hex: "#1A1A2E"))
+                Text("普通用户：最多 3 次")
+                    .font(.system(size: 12))
+                    .foregroundColor(AgentClawDesign.secondaryText)
+            }
+            Spacer()
+            Label("无限畅聊", systemImage: "checkmark.circle.fill")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(Color(hex: "#6750F5"))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
         .background(Color(hex: "#F6F2FF"))
         .cornerRadius(10)
+    }
+
+    private func quotaCompare(icon: String, title: String, freeUsed: Int, freeLimit: Int, vipLimit: Int) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(Color(hex: "#6750F5"))
+                .frame(width: 34, height: 34)
+                .background(Color.white.opacity(0.85))
+                .clipShape(Circle())
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(title).font(.system(size: 13, weight: .semibold))
+                    Spacer()
+                    Text("\(freeUsed)/\(freeLimit)").font(.system(size: 11)).foregroundColor(.gray)
+                }
+                HStack {
+                    Text("免费 \(freeLimit)次/天")
+                    Spacer()
+                    Text("会员 \(vipLimit)次/天")
+                        .foregroundColor(Color(hex: "#6750F5"))
+                }
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(AgentClawDesign.secondaryText)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .background(Color(hex: "#F6F2FF"))
+        .cornerRadius(10)
+    }
+}
+
+private struct CompactUpgradeSheetModifier: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 16.0, *) {
+            content.presentationDetents([.height(390)])
+        } else {
+            content
+        }
     }
 }
 

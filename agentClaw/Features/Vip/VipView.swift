@@ -32,6 +32,7 @@ struct VipView: View {
 
     private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
     private func fs(_ size: CGFloat) -> CGFloat { isPad ? ceil(size * 1.16) : size }
+    private var memberActiveForDisplay: Bool { vm.isLoggedIn && vm.memberActive }
 
     var body: some View {
         ZStack {
@@ -85,7 +86,7 @@ struct VipView: View {
                 VipBenefitsDetailSheet(
                     products: vm.products,
                     selectedIndex: vm.selectedIndex,
-                    memberActive: vm.memberActive,
+                    memberActive: memberActiveForDisplay,
                     onSelectProduct: { vm.selectProduct($0) },
                     onPurchase: {
                         withAnimation(.easeOut(duration: 0.2)) {
@@ -188,11 +189,11 @@ struct VipView: View {
                 Text(vm.isLoggedIn ? vm.maskedPhone : "登录后开通会员")
                     .font(.system(size: fs(15), weight: .bold))
                     .foregroundColor(.white)
-                Text(vm.memberActive && vm.vipExpiresAt != nil
+                Text(memberActiveForDisplay && vm.vipExpiresAt != nil
                      ? "尊贵会员 · 有效期至 \(vm.vipExpiresAt!)"
                      : "开通会员，解锁AI助手全部功能")
                     .font(.system(size: fs(13)))
-                    .foregroundColor(vm.memberActive ? Color(hex: "#FFEDBD") : Color(hex: "#CDAF7A"))
+                    .foregroundColor(memberActiveForDisplay ? Color(hex: "#FFEDBD") : Color(hex: "#CDAF7A"))
                     .lineLimit(1)
             }
 
@@ -291,7 +292,7 @@ struct VipView: View {
                 .padding(.top, 20)
 
                 HStack(spacing: 0) {
-                    benefitItem(icon: "bubble.left.and.bubble.right.fill", title: "无限对话")
+                    benefitItem(icon: "avatar_agent_tab_icon", title: "智能体无限畅聊", usesAssetImage: true)
                     benefitItem(icon: "star.fill", title: "专属功能")
                     benefitItem(icon: "bolt.fill", title: "优先体验")
                 }
@@ -322,12 +323,21 @@ struct VipView: View {
             .padding(.top, 8)
     }
 
-    private func benefitItem(icon: String, title: String) -> some View {
+    private func benefitItem(icon: String, title: String, usesAssetImage: Bool = false) -> some View {
         VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: fs(28)))
-                .foregroundColor(Color(hex: "#FFEDBD"))
-                .frame(width: 36, height: 36)
+            if usesAssetImage {
+                Image(icon)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 36, height: 36)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color(hex: "#FFEDBD").opacity(0.72), lineWidth: 1))
+            } else {
+                Image(systemName: icon)
+                    .font(.system(size: fs(28)))
+                    .foregroundColor(Color(hex: "#FFEDBD"))
+                    .frame(width: 36, height: 36)
+            }
             Text(title)
                 .font(.system(size: fs(12)))
                 .foregroundColor(.white)
@@ -441,7 +451,7 @@ struct VipView: View {
                         HStack(spacing: 8) {
                             Text(vm.displayPrice.replacingOccurrences(of: "¥", with: "￥"))
                                 .font(.system(size: fs(24), weight: .bold))
-                            Text(vm.memberActive ? "立即续费" : "立即开通")
+                            Text(memberActiveForDisplay ? "立即续费" : "立即开通")
                                 .font(.system(size: fs(14), weight: .bold))
                         }
                         .foregroundColor(Color(hex: "#864F2D"))
@@ -647,7 +657,7 @@ private struct VipBenefitsDetailSheet: View {
                 .foregroundColor(Color(hex: "#FFEDBD"))
 
             HStack(spacing: 8) {
-                detailBenefit(icon: "bubble.left.and.bubble.right.fill", title: "畅享对话", detail: "更充足的 AI 对话服务")
+                detailBenefit(icon: "person.crop.circle.fill", title: "智能体畅聊", detail: "会员享智能体无限畅聊")
                 detailBenefit(icon: "wand.and.stars", title: "AI 创作", detail: "提升图片与视频生成额度")
                 detailBenefit(icon: "bolt.fill", title: "优先体验", detail: "新能力与专属功能优先使用")
             }

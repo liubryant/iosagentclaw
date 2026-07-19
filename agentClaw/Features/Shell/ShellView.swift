@@ -3,7 +3,7 @@ import UIKit
 
 struct ShellView: View {
     private enum Destination {
-        case chat, ideas, creation, profile
+        case chat, ideas, creation, avatar, profile
     }
 
     private enum ShellImagePickerSource: Int, Identifiable {
@@ -13,6 +13,7 @@ struct ShellView: View {
 
     @ObservedObject private var gatewayViewModel: GatewayConnectionViewModel
     @ObservedObject private var chatViewModel: ChatViewModel
+    @StateObject private var avatarViewModel: AvatarViewModel
     @State private var isSidebarVisible = true
     @State private var isSettingsPresented = false
     @State private var isDocumentsPresented = false
@@ -41,12 +42,13 @@ struct ShellView: View {
             preferences: container.preferences,
             generatedDocumentStore: container.generatedDocumentStore
         )
+        _avatarViewModel = StateObject(wrappedValue: AvatarViewModel(gatewayClient: container.gatewayClient))
     }
 
     // Sidebar belongs to the conversation workspace and stays above the bottom tab bar.
     private var effectiveSidebarVisible: Bool {
         switch destination {
-        case .creation, .profile: return false
+        case .creation, .avatar, .profile: return false
         case .ideas: return true
         case .chat: return isSidebarVisible
         }
@@ -65,7 +67,7 @@ struct ShellView: View {
 
                         mainPanel
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .padding(4)
+                            .padding(destination == .avatar ? 0 : 4)
                     }
                     .background(AgentClawDesign.appBackground.edgesIgnoringSafeArea(.all))
 
@@ -126,16 +128,36 @@ struct ShellView: View {
                             )
                         }
                 }
+                .modifier(AvatarTopImmersiveModifier(isEnabled: destination == .avatar))
 
                 bottomTabBar
             }
         }
+        .modifier(AvatarTopImmersiveModifier(isEnabled: destination == .avatar))
         .modifier(IPadReadableTypeModifier())
         .vipFullScreenCover(isPresented: $showVip) {
             VipView(isPresented: $showVip)
         }
         .onReceive(NotificationCenter.default.publisher(for: .authStateDidChange)) { _ in
             refreshAuthState()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .agentClawQuickAction)) { notification in
+            if
+                let action = notification.object as? AgentClawQuickAction,
+                QuickActionRouter.shared.consumePendingAction() == action
+            {
+                handleQuickAction(action)
+            }
+        }
+        .onAppear {
+            Task { await QuotaManager.shared.refreshServerQuota() }
+            if let action = QuickActionRouter.shared.consumePendingAction() {
+                handleQuickAction(action)
+            }
+            avatarViewModel.digitalHuman.setPageVisible(destination == .avatar)
+        }
+        .onChange(of: destination) { newDestination in
+            avatarViewModel.digitalHuman.setPageVisible(newDestination == .avatar)
         }
         .alert(item: $activeShellAlert) { alert in
             switch alert {
@@ -225,23 +247,53 @@ struct ShellView: View {
         }
     }
 
+    private func handleQuickAction(_ action: AgentClawQuickAction) {
+        switch action {
+        case .avatar:
+            destination = .avatar
+        case .image:
+            destination = .chat
+            chatViewModel.createSession(entryMode: .image)
+        }
+    }
+
+    private func selectDestination(_ newDestination: Destination) {
+        #if DEBUG
+        print("duix tab_select from=\(String(describing: destination)) to=\(String(describing: newDestination)) uptime=\(String(format: "%.3f", ProcessInfo.processInfo.systemUptime))")
+        #endif
+        destination = newDestination
+    }
+
     // MARK: - Main Panel
 
     private var mainPanel: some View {
         VStack(spacing: 0) {
+            // Keep a stable SwiftUI hierarchy. Inserting/removing the header used to
+            // recreate the nested UIViewRepresentable and therefore the Duix host view.
             chatHeader
-            Divider().background(AgentClawDesign.divider)
+                .frame(height: hidesChatHeader ? 0 : nil)
+                .opacity(hidesChatHeader ? 0 : 1)
+                .clipped()
+            Divider()
+                .background(AgentClawDesign.divider)
+                .frame(height: hidesChatHeader ? 0 : 1)
+                .opacity(hidesChatHeader ? 0 : 1)
             contentArea
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(AgentClawDesign.chatSurface)
-        .cornerRadius(10)
+        .background(destination == .avatar ? Color.clear : AgentClawDesign.chatSurface)
+        .cornerRadius(destination == .avatar ? 0 : 10)
+    }
+
+    private var hidesChatHeader: Bool {
+        destination == .avatar || destination == .profile
     }
 
     // Content area — each destination is a separate panel (matches Android fragment container)
     private var contentArea: some View {
-        Group {
-            switch destination {
+        ZStack {
+            Group {
+                switch destination {
             case .chat:
                 ChatView(
                     viewModel: chatViewModel,
@@ -258,15 +310,21 @@ struct ShellView: View {
                 }
             case .creation:
                 CreationGalleryView(
-                    onLaunchImageChat: {
+                    onLaunchImageChat: { prompt in
                         destination = .chat
-                        chatViewModel.createSession(entryMode: .image)
+                        if prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            chatViewModel.createSession(entryMode: .image)
+                        } else {
+                            chatViewModel.createSession(withDraft: prompt, entryMode: .image)
+                        }
                     },
                     onLaunchVideoChat: {
                         destination = .chat
                         chatViewModel.createSession(entryMode: .video)
                     }
                 )
+            case .avatar:
+                Color.clear
             case .profile:
                 ProfileView(
                     isPresented: Binding(get: { true }, set: { _ in destination = .creation }),
@@ -275,7 +333,15 @@ struct ShellView: View {
                     onOpenSettings: { isSettingsPresented = true },
                     onOpenAccount: { withAnimation { showLogin = true } }
                 )
+                }
             }
+
+            // Keep Lily mounted for the entire app session. Switching tabs only changes
+            // visibility, matching Android Fragment hide/show behavior without reloading Duix.
+            AvatarView(viewModel: avatarViewModel)
+                .opacity(destination == .avatar ? 1 : 0)
+                .allowsHitTesting(destination == .avatar)
+                .accessibilityHidden(destination != .avatar)
         }
     }
 
@@ -288,7 +354,7 @@ struct ShellView: View {
                 label: "画图",
                 isSelected: destination == .creation
             ) {
-                destination = .creation
+                selectDestination(.creation)
             }
 
             bottomTabItem(
@@ -296,7 +362,15 @@ struct ShellView: View {
                 label: "对话",
                 isSelected: destination == .chat || destination == .ideas
             ) {
-                destination = .chat
+                selectDestination(.chat)
+            }
+
+            bottomTabItem(
+                icon: "person.crop.circle.badge.waveform",
+                label: "智能体",
+                isSelected: destination == .avatar
+            ) {
+                selectDestination(.avatar)
             }
 
             bottomTabItem(
@@ -304,7 +378,7 @@ struct ShellView: View {
                 label: "我的",
                 isSelected: destination == .profile
             ) {
-                destination = .profile
+                selectDestination(.profile)
             }
         }
         .padding(.horizontal, 12)
@@ -322,11 +396,21 @@ struct ShellView: View {
     ) -> some View {
         Button(action: action) {
             VStack(spacing: 3) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .foregroundColor(isSelected ? AgentClawDesign.accent : .gray)
+                if label == "智能体" {
+                    Image("avatar_agent_tab_icon")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 24, height: 24)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(isSelected ? AgentClawDesign.accent : Color.gray.opacity(0.45), lineWidth: isSelected ? 2 : 1))
+                } else {
+                    Image(systemName: isSelected ? selectedBottomTabIcon(for: icon) : icon)
+                        .font(.system(size: icon == "person.circle" ? 23 : 20, weight: isSelected ? .semibold : .regular))
+                        .foregroundColor(isSelected ? AgentClawDesign.accent : .gray)
+                        .frame(width: 24, height: 24)
+                }
                 Text(label)
-                    .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundColor(isSelected ? AgentClawDesign.accent : .gray)
             }
             .frame(maxWidth: .infinity)
@@ -334,8 +418,19 @@ struct ShellView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
-        .scaleEffect(isSelected ? 1.0 : 0.94)
-        .animation(.easeInOut(duration: 0.18), value: isSelected)
+    }
+
+    private func selectedBottomTabIcon(for icon: String) -> String {
+        switch icon {
+        case "photo.on.rectangle.angled":
+            return "photo.fill"
+        case "bubble.left.and.bubble.right":
+            return "bubble.left.and.bubble.right.fill"
+        case "person.circle":
+            return "person.circle.fill"
+        default:
+            return icon
+        }
     }
 
     private func presentRootImagePicker(_ source: ShellImagePickerSource) {
@@ -627,6 +722,16 @@ struct ShellView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: date)
+    }
+}
+
+private struct AvatarTopImmersiveModifier: ViewModifier {
+    let isEnabled: Bool
+    func body(content: Content) -> some View {
+        // Keep the modified subtree's identity stable while switching tabs. Returning
+        // different view types from an if/else causes SwiftUI to rebuild the embedded
+        // Duix UIViewRepresentable and bind the renderer to a new host view.
+        content.ignoresSafeArea(.container, edges: isEnabled ? .top : [])
     }
 }
 

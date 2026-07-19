@@ -3,7 +3,7 @@ import AVKit
 
 struct CreationViewerView: View {
     let asset: CreationAsset
-    var onCreateSame: ((CreationAssetType) -> Void)?
+    var onCreateSame: ((CreationAsset) -> Void)?
 
     @Environment(\.presentationMode) private var presentationMode
     @State private var loadedImage: UIImage? = nil
@@ -56,7 +56,7 @@ struct CreationViewerView: View {
                 Spacer()
                 Button(action: {
                     presentationMode.wrappedValue.dismiss()
-                    onCreateSame?(asset.type)
+                    onCreateSame?(asset)
                 }) {
                     HStack(spacing: 8) {
                         Image(systemName: "sparkles")

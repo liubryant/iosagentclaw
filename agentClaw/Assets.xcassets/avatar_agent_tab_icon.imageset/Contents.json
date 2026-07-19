@@ -1,0 +1,13 @@
+{
+  "images" : [
+    {
+      "filename" : "avatar_agent_tab_icon.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

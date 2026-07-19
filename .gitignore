@@ -94,3 +94,6 @@ iOSInjectionProject/
 # SDK Frameworks (too large for GitHub)
 Frameworks/
 Frameworks_Backup/
+
+# Local Duix models and runtime resources
+agentClaw/Resources/duix/
