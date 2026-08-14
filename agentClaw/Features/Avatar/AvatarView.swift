@@ -34,6 +34,13 @@ struct AvatarView: View {
         .sheet(isPresented: $showLogin) {
             LoginView()
         }
+        .sheet(isPresented: $viewModel.showAIDataSharingConsent) {
+            AIDataSharingConsentView(
+                onAgree: viewModel.agreeToAIDataSharingAndSubmit,
+                onDecline: viewModel.declineAIDataSharing
+            )
+            .aiConsentSheetPresentation()
+        }
         .onDisappear {
             viewModel.stopAll()
         }

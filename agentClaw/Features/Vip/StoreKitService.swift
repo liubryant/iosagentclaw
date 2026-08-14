@@ -13,8 +13,8 @@ final class StoreKitService {
     // 与 App Store Connect 中创建的商品 ID 完全一致（非续费套餐）
     static let productIDs: [String] = [
         "ai.cjym.agentclaw.vip.week",
-        "ai.cjym.agentclaw.vip.month",
-        "ai.cjym.agentclaw.vip.year"
+        "agent123",
+        "agent124"
     ]
 
     enum StoreError: LocalizedError {

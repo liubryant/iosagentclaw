@@ -43,6 +43,7 @@ final class GatewayClient {
         model: String = AppConfig.defaultChatModel,
         completion: @escaping (Result<String, Error>) -> Void
     ) {
+        guard ensureAIDataSharingConsent(completion: completion) else { return }
         let url = config.baseURL.normalizedGatewayURL
             .appendingPathComponent("chat")
             .appendingPathComponent("completions")
@@ -107,6 +108,7 @@ final class GatewayClient {
         imageBase64: String,
         completion: @escaping (Result<String, Error>) -> Void
     ) {
+        guard ensureAIDataSharingConsent(completion: completion) else { return }
         let cleanPrompt = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanPrompt.isEmpty, !imageBase64.isEmpty else {
             completion(.failure(NSError(
@@ -162,6 +164,7 @@ final class GatewayClient {
         prompt: String,
         completion: @escaping (Result<String, Error>) -> Void
     ) {
+        guard ensureAIDataSharingConsent(completion: completion) else { return }
         let cleanPrompt = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanPrompt.isEmpty else {
             completion(.failure(mediaError("视频描述不能为空")))
@@ -272,6 +275,21 @@ final class GatewayClient {
                 }
             }
         }
+    }
+
+    @discardableResult
+    private func ensureAIDataSharingConsent<T>(
+        completion: @escaping (Result<T, Error>) -> Void
+    ) -> Bool {
+        guard preferences.hasAIDataSharingConsent else {
+            completion(.failure(NSError(
+                domain: "GatewayClient.AIDataSharingConsent",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "请先同意第三方AI服务数据共享授权"]
+            )))
+            return false
+        }
+        return true
     }
 
     private struct VideoOutput {

@@ -29,6 +29,7 @@ final class CreationAssetLoader: ObservableObject {
 
     @Published var images: [CreationAsset] = []
     @Published var videos: [CreationAsset] = []
+    @Published private(set) var isLoading = false
 
     private let imageCache = NSCache<NSString, UIImage>()
     private let thumbCache = NSCache<NSString, UIImage>()
@@ -48,6 +49,10 @@ final class CreationAssetLoader: ObservableObject {
 
     @MainActor
     func loadAll() async {
+        guard !isLoading else { return }
+        isLoading = true
+        defer { isLoading = false }
+
         let prompts = Self.loadImagePrompts()
         let imgs = await Task.detached(priority: .utility) {
             Self.enumerate(dir: Self.imageDir, exts: Self.imageExts, type: .image, prompts: prompts)

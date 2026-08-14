@@ -264,20 +264,33 @@ struct CreationGalleryView: View {
     private var galleryGrid: some View {
         let items = selectedTab == .image ? loader.images : loader.videos
         let columns = masonryColumns(for: items)
-        return HStack(alignment: .top, spacing: 6) {
-            VStack(spacing: 6) {
-                ForEach(columns.left) { asset in
-                    galleryCell(asset: asset)
+        return ZStack {
+            HStack(alignment: .top, spacing: 6) {
+                VStack(spacing: 6) {
+                    ForEach(columns.left) { asset in
+                        galleryCell(asset: asset)
+                    }
                 }
-            }
-            .frame(maxWidth: .infinity, alignment: .top)
+                .frame(maxWidth: .infinity, alignment: .top)
 
-            VStack(spacing: 6) {
-                ForEach(columns.right) { asset in
-                    galleryCell(asset: asset)
+                VStack(spacing: 6) {
+                    ForEach(columns.right) { asset in
+                        galleryCell(asset: asset)
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .top)
             }
-            .frame(maxWidth: .infinity, alignment: .top)
+
+            if loader.isLoading && items.isEmpty {
+                VStack(spacing: 10) {
+                    CompatProgressView()
+                        .scaleEffect(1.15)
+                    Text(selectedTab == .image ? "图片加载中…" : "视频加载中…")
+                        .font(.system(size: fs(13)))
+                        .foregroundColor(Color(hex: "#8A8B93"))
+                }
+                .frame(maxWidth: .infinity, minHeight: isPad ? 300 : 220)
+            }
         }
         .padding(.horizontal, 6)
         .animation(.default, value: selectedTab)

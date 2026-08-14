@@ -553,33 +553,6 @@ struct ShellView: View {
                     isSettingsPresented = true
                 }
 
-                // VIP card with golden gradient (matches Android bg_sidebar_vip_entry)
-                Button(action: { showVip = true }) {
-                    HStack(spacing: 10) {
-                        Text("✦")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(Color(hex: "#F5D69D"))
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("VIP 会员")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundColor(Color(hex: "#F5D69D"))
-                            Text("解锁满血 AI")
-                                .font(.system(size: 12))
-                                .foregroundColor(Color(hex: "#C9AA79"))
-                        }
-                        Spacer()
-                    }
-                    .padding(.horizontal, 12)
-                    .frame(height: 50)
-                    .background(
-                        LinearGradient(
-                            colors: [Color(hex: "#3A1F0D"), Color(hex: "#6B3A1F"), Color(hex: "#3A1F0D")],
-                            startPoint: .leading, endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(8)
-                }
-                .buttonStyle(PlainButtonStyle())
             }
         }
         .padding(.leading, 12)

@@ -25,9 +25,9 @@ struct VipView: View {
 
     /// 接口返回前的默认占位套餐（只显示名称与介绍，不显示价格）。
     private let placeholderPackages: [(name: String, desc: String)] = [
-        ("周卡会员", "短期体验 · 灵活续费"),
-        ("月卡会员", "热门之选 · 畅享全月"),
-        ("年卡会员", "超值长期 · 尊享一整年")
+        ("Agent周会员", "短期体验 · 灵活续费"),
+        ("月会员", "热门之选 · 畅享全月"),
+        ("年会员", "超值长期 · 尊享一整年")
     ]
 
     private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }

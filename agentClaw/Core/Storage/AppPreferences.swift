@@ -5,6 +5,7 @@ final class AppPreferences {
         static let gatewayURL = "gateway_url"
         static let allowInsecureLocalNetwork = "allow_insecure_local_network"
         static let onboardingCompleted = "onboarding_completed"
+        static let aiDataSharingConsentVersion = "ai_data_sharing_consent_version"
         static let chatHistorySnapshot = "chat_history_snapshot"
         static let avatarConversationHistory = "avatar_conversation_history"
         // Auth
@@ -67,6 +68,26 @@ final class AppPreferences {
     var onboardingCompleted: Bool {
         get { defaults.bool(forKey: Key.onboardingCompleted) }
         set { defaults.set(newValue, forKey: Key.onboardingCompleted) }
+    }
+
+    /// Versioned separately from the general privacy-policy consent because Apple
+    /// requires explicit permission before sharing user content with a third-party AI.
+    private static let currentAIDataSharingConsentVersion = 1
+
+    var hasAIDataSharingConsent: Bool {
+        defaults.integer(forKey: Key.aiDataSharingConsentVersion)
+            >= Self.currentAIDataSharingConsentVersion
+    }
+
+    func grantAIDataSharingConsent() {
+        defaults.set(
+            Self.currentAIDataSharingConsentVersion,
+            forKey: Key.aiDataSharingConsentVersion
+        )
+    }
+
+    func revokeAIDataSharingConsent() {
+        defaults.removeObject(forKey: Key.aiDataSharingConsentVersion)
     }
 
     var chatHistorySnapshot: ChatHistorySnapshot? {

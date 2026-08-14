@@ -13,6 +13,7 @@ final class AvatarViewModel: ObservableObject {
     @Published private(set) var highlightedTurnID: String?
     @Published private(set) var highlightedSpeechRange: NSRange?
     @Published var showUpgrade = false
+    @Published var showAIDataSharingConsent = false
 
     private let gatewayClient: GatewayClient
     private let speechRecognizer = AvatarSpeechRecognizer()
@@ -117,6 +118,11 @@ final class AvatarViewModel: ObservableObject {
             return
         }
 
+        guard preferences.hasAIDataSharingConsent else {
+            showAIDataSharingConsent = true
+            return
+        }
+
         let hasActiveMembership = preferences.isLoggedIn && preferences.isVipActive
         guard hasActiveMembership || preferences.avatarFreeConversationCount < freeConversationLimit else {
             showUpgrade = true
@@ -160,6 +166,19 @@ final class AvatarViewModel: ObservableObject {
                     self.setError(self.friendlyErrorMessage(error))
                 }
             }
+        }
+    }
+
+    func agreeToAIDataSharingAndSubmit() {
+        preferences.grantAIDataSharingConsent()
+        showAIDataSharingConsent = false
+        submitDraft()
+    }
+
+    func declineAIDataSharing() {
+        showAIDataSharingConsent = false
+        if !isListening && !isThinking && !isSpeaking {
+            setAvatarState(mood: .idle, motion: .idle)
         }
     }
 

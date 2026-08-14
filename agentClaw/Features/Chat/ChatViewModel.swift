@@ -10,6 +10,7 @@ final class ChatViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published private(set) var quotaExceededMode: ChatEntryMode?
     @Published var attachedImages: [UIImage] = []
+    @Published var showAIDataSharingConsent = false
 
     private let gatewayClient: GatewayClient
     private let preferences: AppPreferences
@@ -171,6 +172,11 @@ final class ChatViewModel: ObservableObject {
             return
         }
 
+        guard preferences.hasAIDataSharingConsent else {
+            showAIDataSharingConsent = true
+            return
+        }
+
         let quota = QuotaManager.shared
         let preferences = AppPreferences()
         switch entryMode {
@@ -292,6 +298,16 @@ final class ChatViewModel: ObservableObject {
             return outboundMessage
         }
         gatewayClient.sendChat(messages: requestMessages, completion: handleResult)
+    }
+
+    func agreeToAIDataSharingAndSend() {
+        preferences.grantAIDataSharingConsent()
+        showAIDataSharingConsent = false
+        send()
+    }
+
+    func declineAIDataSharing() {
+        showAIDataSharingConsent = false
     }
 
     func clearQuotaExceeded() {

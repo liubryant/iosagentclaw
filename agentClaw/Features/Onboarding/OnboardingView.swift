@@ -45,6 +45,17 @@ struct OnboardingView: View {
 	                                    .font(.system(size: 14, weight: .semibold))
 	                                    .foregroundColor(titleText)
 
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        Text("AI 模型服务由智谱大模型提供。我们倡导用户遵守相关法律法规及政策，不得使用本服务从事违法违规活动。")
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        Text("模型名称：智谱大模型 GLM-4.5")
+                                        Text("授权模型：GLM-4.5")
+                                        Text("授权编号：202606091295564742")
+                                    }
+                                    .font(.system(size: 13))
+                                    .foregroundColor(bodyText)
+                                    .lineSpacing(4)
+
                                 VStack(alignment: .leading, spacing: 6) {
                                     HStack(spacing: 0) {
 	                                        Text("我们将通过")

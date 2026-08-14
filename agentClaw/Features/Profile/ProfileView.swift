@@ -91,9 +91,6 @@ struct ProfileView: View {
                 loginCard
                     .padding(.bottom, 14)
 
-                vipCard
-                    .padding(.bottom, 0)
-
                 serviceSection
 
                 aboutSection

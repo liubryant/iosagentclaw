@@ -123,6 +123,13 @@ struct ChatView: View {
         .sheet(isPresented: $showLogin) {
             LoginView()
         }
+        .sheet(isPresented: $viewModel.showAIDataSharingConsent) {
+            AIDataSharingConsentView(
+                onAgree: viewModel.agreeToAIDataSharingAndSend,
+                onDecline: viewModel.declineAIDataSharing
+            )
+            .aiConsentSheetPresentation()
+        }
         .sheet(item: $activePickerSource) { source in
             ImagePickerView(
                 sourceType: source == .camera ? .camera : .photoLibrary,
@@ -665,6 +672,104 @@ struct ChatView: View {
 
     private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+struct AIDataSharingConsentView: View {
+    let onAgree: () -> Void
+    let onDecline: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Capsule()
+                .fill(Color.black.opacity(0.16))
+                .frame(width: 38, height: 5)
+                .padding(.top, 10)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("第三方AI服务数据共享授权")
+                        .font(.system(size: 21, weight: .bold))
+                        .frame(maxWidth: .infinity, alignment: .center)
+
+                    Text("为向您提供智能问答、数字人对话、图片生成、视频生成及文档生成功能，我们需要将以下由您主动提交的信息用于AI处理：")
+
+                    consentRow("文本问题及完成当前回答所需的对话上下文")
+                    consentRow("语音识别后的文字")
+                    consentRow("您主动选择上传的图片、文件及相关生成指令")
+
+                    Group {
+                        Text("数据接收方")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("上述信息将先通过加密连接发送至深圳市春江月明科技有限公司的业务服务器，再提供给北京智谱华章科技有限公司（智谱AI）进行处理并返回生成结果。")
+
+                        Text("处理目的")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("仅用于理解您的请求，以及生成您要求的文本、图片、视频或文档内容。请勿提交身份证号、银行卡号、账号密码等非必要的敏感个人信息。")
+                    }
+
+                    Link(
+                        "查看《隐私政策》",
+                        destination: URL(string: "https://www.cjym123.cn/privacy_agentclaw.html")!
+                    )
+                    .font(.system(size: 15, weight: .medium))
+                    .frame(maxWidth: .infinity, alignment: .center)
+                }
+                .font(.system(size: 15))
+                .foregroundColor(.primary)
+                .padding(.horizontal, 22)
+                .padding(.top, 18)
+            }
+
+            VStack(spacing: 10) {
+                Button(action: onAgree) {
+                    Text("同意并继续使用AI服务")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(Color.black)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+
+                Button(action: onDecline) {
+                    Text("不同意")
+                        .font(.system(size: 16))
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 42)
+                }
+            }
+            .padding(.horizontal, 22)
+            .padding(.top, 12)
+            .padding(.bottom, 18)
+            .background(Color(.systemBackground))
+        }
+        .background(Color(.systemBackground))
+        .interactiveDismissDisabled()
+    }
+
+    private func consentRow(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: 9) {
+            Circle()
+                .fill(Color.black)
+                .frame(width: 6, height: 6)
+                .padding(.top, 8)
+            Text(text)
+        }
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func aiConsentSheetPresentation() -> some View {
+        if #available(iOS 16.0, *) {
+            self
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.hidden)
+        } else {
+            self
+        }
     }
 }
 

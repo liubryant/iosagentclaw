@@ -16,6 +16,7 @@ struct SettingsPanelView: View {
     @State private var tapCount = 0
     @State private var lastTapTime = Date()
     @State private var showEnvironmentOption = false
+    @State private var skillEnabledStates: [String: Bool] = [:]
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     private let skills = [
@@ -60,6 +61,7 @@ struct SettingsPanelView: View {
         }
         .onAppear {
             currentEnvironment = EnvironmentManager.shared.currentEnvironment
+            loadSkillEnabledStates()
         }
     }
 
@@ -299,16 +301,47 @@ struct SettingsPanelView: View {
                     .background(Color(red: 0.95, green: 0.96, blue: 0.98))
                     .cornerRadius(6)
                 Spacer()
-                Image(skill.enabled ? "switch_on" : "switch_off")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 24, height: 14)
+                Button(action: { toggleSkill(skill) }) {
+                    Image(isSkillEnabled(skill) ? "switch_on" : "switch_off")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 24, height: 14)
+                        .frame(width: 44, height: 32)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(PlainButtonStyle())
+                .accessibilityLabel("\(skill.name)技能")
+                .accessibilityValue(isSkillEnabled(skill) ? "已开启" : "已关闭")
+                .accessibilityHint("双击切换技能开关")
             }
         }
         .padding(14)
         .frame(minHeight: 130, alignment: .topLeading)
         .background(Color.white)
         .cornerRadius(12)
+    }
+
+    private func isSkillEnabled(_ skill: SkillItem) -> Bool {
+        skillEnabledStates[skill.id] ?? skill.enabled
+    }
+
+    private func toggleSkill(_ skill: SkillItem) {
+        let nextValue = !isSkillEnabled(skill)
+        skillEnabledStates[skill.id] = nextValue
+        UserDefaults.standard.set(nextValue, forKey: skill.preferenceKey)
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    }
+
+    private func loadSkillEnabledStates() {
+        var states: [String: Bool] = [:]
+        for skill in skills {
+            if let saved = UserDefaults.standard.object(forKey: skill.preferenceKey) as? Bool {
+                states[skill.id] = saved
+            } else {
+                states[skill.id] = skill.enabled
+            }
+        }
+        skillEnabledStates = states
     }
 
     private func versionInfoRow(title: String, detail: String) -> some View {
@@ -559,8 +592,10 @@ struct SettingsPanelView: View {
 }
 
 private struct SkillItem: Identifiable {
-    let id = UUID()
     let name: String
     let detail: String
     let enabled: Bool
+
+    var id: String { name }
+    var preferenceKey: String { "skill_enabled_\(name)" }
 }
