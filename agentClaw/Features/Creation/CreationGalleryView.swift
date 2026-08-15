@@ -23,14 +23,19 @@ struct CreationGalleryView: View {
     @State private var showUpgrade: VipUpgradeType? = nil
     @State private var showVip = false
     @State private var showLogin = false
+    @State private var titleVisibleCharacterCount = 0
+    @State private var didStartTitleWritingAnimation = false
+    @State private var showsGreetingTitle = true
+
+    private let creationTitle = "今天用AI创作什么？"
 
     private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
     private func fs(_ size: CGFloat) -> CGFloat { isPad ? ceil(size * 1.16) : size }
 
     enum Tab { case image, video }
     var body: some View {
-        ZStack {
-            Color(hex: "#FFFDFD").edgesIgnoringSafeArea(.all)
+        ZStack(alignment: .leading) {
+            Color.white.edgesIgnoringSafeArea(.all)
             VStack(spacing: 0) {
                 creationHeader
                 pillTabBar
@@ -66,6 +71,7 @@ struct CreationGalleryView: View {
         }
         .onAppear {
             Task { await CreationAssetLoader.shared.loadAll() }
+            playTitleWritingAnimationIfNeeded()
         }
     }
 
@@ -95,27 +101,93 @@ struct CreationGalleryView: View {
     // MARK: - Header (gradient title, matches Android GradientTextView 27sp)
 
     private var creationHeader: some View {
-        gradientText("今天用AI创作什么？", size: fs(30))
-            .frame(maxWidth: .infinity)
+        ZStack(alignment: .leading) {
+            titleGradientText("您好，", size: fs(30))
+                .opacity(showsGreetingTitle ? 1 : 0)
+                .blur(radius: showsGreetingTitle ? 0 : 3)
+                .scaleEffect(showsGreetingTitle ? 1 : 0.96)
+
+            writingGradientText(creationTitle, size: fs(30))
+        }
+            .fixedSize(horizontal: true, vertical: false)
+            .frame(maxWidth: .infinity, alignment: .center)
             .padding(.horizontal, isPad ? 28 : 20)
-            .padding(.top, isPad ? 52 : 44)
-            .padding(.bottom, isPad ? 32 : 26)
+            .padding(.top, isPad ? 36 : 28)
+            .padding(.bottom, isPad ? 20 : 14)
     }
 
-    private func gradientText(_ text: String, size: CGFloat) -> some View {
+    private func writingGradientText(_ text: String, size: CGFloat) -> some View {
+        let characters = Array(text)
+        return HStack(spacing: 0) {
+            ForEach(Array(characters.enumerated()), id: \.offset) { index, character in
+                Text(String(character))
+                    .font(.custom("PingFangSC-Regular", size: size))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color(hex: "#7558F7"), Color(hex: "#D06BCB")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .opacity(index < titleVisibleCharacterCount ? 1 : 0)
+                    .blur(radius: index < titleVisibleCharacterCount ? 0 : 3.5)
+                    .scaleEffect(index < titleVisibleCharacterCount ? 1 : 0.94, anchor: .bottomLeading)
+                    .rotationEffect(
+                        .degrees(index < titleVisibleCharacterCount ? 0 : (index.isMultiple(of: 2) ? -2.5 : 1.8)),
+                        anchor: .bottom
+                    )
+                    .offset(
+                        x: index < titleVisibleCharacterCount ? 0 : -3,
+                        y: index < titleVisibleCharacterCount ? 0 : (index.isMultiple(of: 3) ? 4 : 6)
+                    )
+                    .shadow(
+                        color: index == titleVisibleCharacterCount - 1
+                            ? Color(hex: "#B65FE0").opacity(0.20)
+                            : Color.clear,
+                        radius: 4,
+                        x: 0,
+                        y: 1
+                    )
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+    }
+
+    private func titleGradientText(_ text: String, size: CGFloat) -> some View {
         Text(text)
-            .font(.system(size: size, weight: .bold))
-            .foregroundColor(.clear)
-            .overlay(
+            .font(.custom("PingFangSC-Regular", size: size))
+            .foregroundStyle(
                 LinearGradient(
                     colors: [Color(hex: "#7558F7"), Color(hex: "#D06BCB")],
-                    startPoint: .leading, endPoint: .trailing
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
                 )
             )
-            .mask(
-                Text(text)
-                    .font(.system(size: size, weight: .bold))
-            )
+    }
+
+    private func playTitleWritingAnimationIfNeeded() {
+        guard !didStartTitleWritingAnimation else { return }
+        didStartTitleWritingAnimation = true
+        let characterCount = Array(creationTitle).count
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 520_000_000)
+            withAnimation(.easeInOut(duration: 0.24)) {
+                showsGreetingTitle = false
+            }
+            try? await Task.sleep(nanoseconds: 110_000_000)
+            guard characterCount >= 1 else { return }
+            for count in 1...characterCount {
+                if Task.isCancelled { return }
+                withAnimation(.easeOut(duration: 0.22)) {
+                    titleVisibleCharacterCount = count
+                }
+                let isPhrasePause = count == 2 || count == 5 || count == 7
+                try? await Task.sleep(
+                    nanoseconds: isPhrasePause ? 130_000_000 : 72_000_000
+                )
+            }
+        }
     }
 
     // MARK: - Pill Tab Bar (bg_creation_tabs: #F0F0F5, selected gradient #7557F6→#A451EE)

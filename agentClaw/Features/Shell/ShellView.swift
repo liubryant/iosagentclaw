@@ -56,7 +56,7 @@ struct ShellView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            VStack(spacing: 0) {
+            ZStack(alignment: .bottom) {
                 ZStack {
                     HStack(spacing: 0) {
                         if effectiveSidebarVisible {
@@ -69,7 +69,10 @@ struct ShellView: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .padding(destination == .avatar ? 0 : 4)
                     }
-                    .background(AgentClawDesign.appBackground.edgesIgnoringSafeArea(.all))
+                    .background(
+                        (usesWhitePageBackground ? Color.white : AgentClawDesign.appBackground)
+                            .edgesIgnoringSafeArea(.all)
+                    )
 
                     if isSettingsPresented {
                         SettingsPanelView(
@@ -129,8 +132,11 @@ struct ShellView: View {
                         }
                 }
                 .modifier(AvatarTopImmersiveModifier(isEnabled: destination == .avatar))
+                .padding(.bottom, extendsBehindBottomTab ? 0 : 50)
+                .ignoresSafeArea(.container, edges: extendsBehindBottomTab ? .bottom : [])
 
                 bottomTabBar
+                    .zIndex(20)
             }
         }
         .modifier(AvatarTopImmersiveModifier(isEnabled: destination == .avatar))
@@ -279,12 +285,24 @@ struct ShellView: View {
             contentArea
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(destination == .avatar ? Color.clear : AgentClawDesign.chatSurface)
+        .background(
+            destination == .avatar
+                ? Color.clear
+                : (usesWhitePageBackground ? Color.white : AgentClawDesign.chatSurface)
+        )
         .cornerRadius(destination == .avatar ? 0 : 10)
     }
 
     private var hidesChatHeader: Bool {
-        destination == .avatar || destination == .profile
+        destination == .creation || destination == .avatar || destination == .profile
+    }
+
+    private var usesWhitePageBackground: Bool {
+        destination == .creation || destination == .profile
+    }
+
+    private var extendsBehindBottomTab: Bool {
+        destination == .creation || destination == .profile
     }
 
     // Content area — each destination is a separate panel (matches Android fragment container)
@@ -353,88 +371,28 @@ struct ShellView: View {
     // MARK: - Bottom Tab Bar (matches Android bottomNavigationBar)
 
     private var bottomTabBar: some View {
-        HStack(spacing: 0) {
-            bottomTabItem(
-                icon: "photo.on.rectangle.angled",
-                label: "画图",
-                isSelected: destination == .creation
-            ) {
-                selectDestination(.creation)
-            }
-
-            bottomTabItem(
-                icon: "bubble.left.and.bubble.right",
-                label: "对话",
-                isSelected: destination == .chat || destination == .ideas
-            ) {
-                selectDestination(.chat)
-            }
-
-            bottomTabItem(
-                icon: "person.crop.circle.badge.waveform",
-                label: "智能体",
-                isSelected: destination == .avatar
-            ) {
-                selectDestination(.avatar)
-            }
-
-            bottomTabItem(
-                icon: "person.circle",
-                label: "我的",
-                isSelected: destination == .profile
-            ) {
-                selectDestination(.profile)
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.top, 7)
-        .padding(.bottom, 7)
-        .frame(minHeight: 56)
-        .modifier(TabBarStyleModifier())
-    }
-
-    private func bottomTabItem(
-        icon: String,
-        label: String,
-        isSelected: Bool,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            VStack(spacing: 3) {
-                if label == "智能体" {
-                    Image("avatar_agent_tab_icon")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 24, height: 24)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(isSelected ? AgentClawDesign.accent : Color.gray.opacity(0.45), lineWidth: isSelected ? 2 : 1))
-                } else {
-                    Image(systemName: isSelected ? selectedBottomTabIcon(for: icon) : icon)
-                        .font(.system(size: icon == "person.circle" ? 23 : 20, weight: isSelected ? .semibold : .regular))
-                        .foregroundColor(isSelected ? AgentClawDesign.accent : .gray)
-                        .frame(width: 24, height: 24)
+        NativeAgentTabBar(
+            selectedIndex: currentBottomTabIndex,
+            onSelect: { index in
+                switch index {
+                case 0: selectDestination(.creation)
+                case 1: selectDestination(.chat)
+                case 2: selectDestination(.avatar)
+                case 3: selectDestination(.profile)
+                default: break
                 }
-                Text(label)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(isSelected ? AgentClawDesign.accent : .gray)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 2)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(PlainButtonStyle())
+        )
+        .frame(height: 50)
+        .offset(y: 12)
     }
 
-    private func selectedBottomTabIcon(for icon: String) -> String {
-        switch icon {
-        case "photo.on.rectangle.angled":
-            return "photo.fill"
-        case "bubble.left.and.bubble.right":
-            return "bubble.left.and.bubble.right.fill"
-        case "person.circle":
-            return "person.circle.fill"
-        default:
-            return icon
+    private var currentBottomTabIndex: Int {
+        switch destination {
+        case .creation: return 0
+        case .chat, .ideas: return 1
+        case .avatar: return 2
+        case .profile: return 3
         }
     }
 
@@ -553,6 +511,33 @@ struct ShellView: View {
                     isSettingsPresented = true
                 }
 
+                // VIP card with golden gradient (matches Android bg_sidebar_vip_entry)
+                Button(action: { showVip = true }) {
+                    HStack(spacing: 10) {
+                        Text("✦")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(Color(hex: "#F5D69D"))
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("VIP 会员")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(Color(hex: "#F5D69D"))
+                            Text("解锁满血 AI")
+                                .font(.system(size: 12))
+                                .foregroundColor(Color(hex: "#C9AA79"))
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 12)
+                    .frame(height: 50)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "#3A1F0D"), Color(hex: "#6B3A1F"), Color(hex: "#3A1F0D")],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(8)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
         }
         .padding(.leading, 12)
@@ -723,41 +708,85 @@ private struct IPadReadableTypeModifier: ViewModifier {
     }
 }
 
-private struct TabBarStyleModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            content
-                .glassEffect()
-                .overlay(
-                    Rectangle()
-                        .fill(Color.white.opacity(0.42))
-                        .frame(height: 0.5),
-                    alignment: .top
-                )
-        } else {
-            content
-                .background(VisualEffectBlur(style: .systemUltraThinMaterialLight))
-                .background(Color.white.opacity(0.48))
-                .overlay(
-                    Rectangle()
-                        .fill(Color.white.opacity(0.72))
-                        .frame(height: 0.5),
-                    alignment: .top
-                )
-                .shadow(color: Color.black.opacity(0.06), radius: 14, x: 0, y: -5)
+private struct NativeAgentTabBar: UIViewRepresentable {
+    let selectedIndex: Int
+    let onSelect: (Int) -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onSelect: onSelect)
+    }
+
+    func makeUIView(context: Context) -> UITabBar {
+        let tabBar = UITabBar()
+        tabBar.delegate = context.coordinator
+        tabBar.isTranslucent = true
+        tabBar.tintColor = .systemBlue
+        tabBar.unselectedItemTintColor = .secondaryLabel
+
+        let drawingIcon = UIImage.SymbolConfiguration(pointSize: 17, weight: .regular)
+        let chatIcon = UIImage.SymbolConfiguration(pointSize: 15, weight: .regular)
+        let profileIcon = UIImage.SymbolConfiguration(pointSize: 19, weight: .regular)
+        let definitions: [(String, UIImage?)] = [
+            ("画图", UIImage(systemName: "photo.on.rectangle.angled", withConfiguration: drawingIcon)),
+            ("对话", UIImage(systemName: "bubble.left.and.bubble.right", withConfiguration: chatIcon)),
+            ("智能体", Self.avatarTabImage()),
+            ("我的", UIImage(systemName: "person.circle", withConfiguration: profileIcon))
+        ]
+
+        tabBar.items = definitions.enumerated().map { index, definition in
+            let item = UITabBarItem(
+                title: definition.0,
+                image: definition.1,
+                selectedImage: nil
+            )
+            item.tag = index
+            return item
+        }
+        if let items = tabBar.items, items.indices.contains(selectedIndex) {
+            tabBar.selectedItem = items[selectedIndex]
+        }
+        return tabBar
+    }
+
+    private static func avatarTabImage() -> UIImage? {
+        guard let source = UIImage(named: "avatar_agent_tab_icon") else { return nil }
+        let size = CGSize(width: 24, height: 24)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { context in
+            let rect = CGRect(origin: .zero, size: size)
+            context.cgContext.addEllipse(in: rect)
+            context.cgContext.clip()
+
+            let scale = max(size.width / source.size.width, size.height / source.size.height)
+            let drawSize = CGSize(width: source.size.width * scale, height: source.size.height * scale)
+            let drawOrigin = CGPoint(
+                x: (size.width - drawSize.width) / 2,
+                y: (size.height - drawSize.height) / 2
+            )
+            source.draw(in: CGRect(origin: drawOrigin, size: drawSize))
+        }
+        .withRenderingMode(.alwaysOriginal)
+    }
+
+    func updateUIView(_ tabBar: UITabBar, context: Context) {
+        context.coordinator.onSelect = onSelect
+        if let items = tabBar.items,
+           items.indices.contains(selectedIndex),
+           tabBar.selectedItem !== items[selectedIndex] {
+            tabBar.selectedItem = items[selectedIndex]
         }
     }
-}
 
-private struct VisualEffectBlur: UIViewRepresentable {
-    let style: UIBlurEffect.Style
+    final class Coordinator: NSObject, UITabBarDelegate {
+        var onSelect: (Int) -> Void
 
-    func makeUIView(context: Context) -> UIVisualEffectView {
-        UIVisualEffectView(effect: UIBlurEffect(style: style))
-    }
+        init(onSelect: @escaping (Int) -> Void) {
+            self.onSelect = onSelect
+        }
 
-    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {
-        uiView.effect = UIBlurEffect(style: style)
+        func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+            onSelect(item.tag)
+        }
     }
 }
 

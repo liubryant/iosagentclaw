@@ -41,13 +41,13 @@ struct VipProduct: Identifiable, Codable {
     static func inferAppleProductId(id: String, name: String, desc: String) -> String {
         let haystack = "\(id) \(name) \(desc)".lowercased()
         if haystack.contains("year") || haystack.contains("年") || haystack.contains("annual") {
-            return "agent124"
+            return "cn.agent.vip.year"
         }
         if haystack.contains("month") || haystack.contains("月") {
-            return "agent123"
+            return "cn.agent.vip.month"
         }
         if haystack.contains("week") || haystack.contains("周") || haystack.contains("星期") {
-            return "ai.cjym.agentclaw.vip.week"
+            return "cn.agent.vip.week"
         }
         return ""
     }

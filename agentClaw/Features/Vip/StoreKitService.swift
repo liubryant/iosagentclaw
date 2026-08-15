@@ -10,11 +10,11 @@ import StoreKit
 final class StoreKitService {
     static let shared = StoreKitService()
 
-    // 与 App Store Connect 中创建的商品 ID 完全一致（非续费套餐）
+    // 与 App Store Connect 自动续订订阅组（22311417）中的产品 ID 完全一致。
     static let productIDs: [String] = [
-        "ai.cjym.agentclaw.vip.week",
-        "agent123",
-        "agent124"
+        "cn.agent.vip.week",
+        "cn.agent.vip.month",
+        "cn.agent.vip.year"
     ]
 
     enum StoreError: LocalizedError {
@@ -116,7 +116,6 @@ final class StoreKitService {
     // MARK: - Restore
 
     /// 恢复购买：与 App Store 同步后，收集全部已验签历史交易，交由调用方补交后端校验。
-    /// 非续费套餐不会进入 currentEntitlements，因此以后端记录为准。
     func restore() async throws -> [SignedTransaction] {
         try await AppStore.sync()
         var collected: [SignedTransaction] = []

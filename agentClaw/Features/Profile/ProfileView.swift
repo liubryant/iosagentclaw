@@ -82,13 +82,10 @@ struct ProfileView: View {
     private var scrollContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                // 27sp page title (matches Android profile_title)
-                Text("我的")
-                    .font(.system(size: fs(27), weight: .bold))
-                    .foregroundColor(Color(hex: "#15151A"))
-                    .padding(.bottom, 18)
-
                 loginCard
+                    .padding(.bottom, 14)
+
+                vipCard
                     .padding(.bottom, 14)
 
                 serviceSection
@@ -103,13 +100,14 @@ struct ProfileView: View {
 
                 versionFooter
                     .padding(.top, 20)
+                    .padding(.bottom, 80)
             }
             .padding(.horizontal, isPad ? 28 : 20)
             .padding(.top, isPad ? 22 : 16)
             .padding(.bottom, 28)
         }
-        .background(Color(hex: "#FFFDFD").edgesIgnoringSafeArea(.all))
-        .navigationBarTitle("我的", displayMode: .inline)
+        .background(Color.white.edgesIgnoringSafeArea(.all))
+        .navigationBarTitle("", displayMode: .inline)
         .navigationBarItems(trailing: showNavigation ? AnyView(Button(action: { isPresented = false }) {
             Image(systemName: "xmark")
                 .font(.system(size: 15, weight: .medium))

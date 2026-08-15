@@ -5,13 +5,13 @@ VIP 会员为数字权益，按 App Store 审核条款 3.1.1 **必须走苹果�
 
 ## 一、商品(App Store Connect)
 
-已创建 3 个「非续费套餐」，商品 ID 必须与代码一致：
+已在自动续订群组 `22311417` 中创建 3 个订阅，产品 ID 必须与代码一致：
 
 | 商品 | Product ID | 会员天数(后端权威) |
 | --- | --- | --- |
-| Agent周会员 | `ai.cjym.agentclaw.vip.week` | 7 |
-| 月会员 | `agent123` | 30 |
-| 年会员 | `agent124` | 365 |
+| Agentclaw周会员 | `cn.agent.vip.week` | 7 |
+| Agentclaw月会员 | `cn.agent.vip.month` | 30 |
+| Agentclaw年会员 | `cn.agent.vip.year` | 365 |
 
 > 天数在服务端 `NaviVipService.appleDurationDays()` 权威判定，**不信任客户端传参**。
 
@@ -38,7 +38,7 @@ VIP 会员为数字权益，按 App Store 审核条款 3.1.1 **必须走苹果�
 ```json
 {
   "productId": "后端套餐id(可空，仅记录订单)",
-  "appleProductId": "agent123",
+  "appleProductId": "cn.agent.vip.month",
   "transactionId": "客户端上报(仅日志)",
   "jws": "StoreKit2 交易凭证(必需)",
   "platform": "ios",

@@ -50,7 +50,11 @@ struct ContentView: View {
                 .resizable()
                 .scaledToFill()
                 .frame(width: 112, height: 112)
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 25, style: .continuous)
+                        .stroke(Color.gray.opacity(0.16), lineWidth: 1)
+                )
         }
     }
 
