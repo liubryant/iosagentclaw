@@ -14,7 +14,7 @@ struct ShellView: View {
     @ObservedObject private var gatewayViewModel: GatewayConnectionViewModel
     @ObservedObject private var chatViewModel: ChatViewModel
     @StateObject private var avatarViewModel: AvatarViewModel
-    @State private var isSidebarVisible = true
+    @AppStorage("agentClaw.sidebar.isVisible") private var isSidebarVisible = false
     @State private var isSettingsPresented = false
     @State private var isDocumentsPresented = false
     @State private var showLogin = false
@@ -307,40 +307,44 @@ struct ShellView: View {
 
     // Content area — each destination is a separate panel (matches Android fragment container)
     private var contentArea: some View {
-        ZStack {
-            Group {
-                switch destination {
-            case .chat:
-                ChatView(
-                    viewModel: chatViewModel,
-                    onRequestImagePicker: {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            showImagePickerOverlay = true
-                        }
+        Color.clear
+        .overlay(
+            ChatView(
+                viewModel: chatViewModel,
+                onRequestImagePicker: {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        showImagePickerOverlay = true
                     }
-                )
-            case .ideas:
-                FancyIdeasView { idea in
-                    destination = .chat
-                    chatViewModel.createSession(withDraft: idea.prompt)
                 }
-            case .creation:
-                Color.clear
-            case .avatar:
-                Color.clear
-            case .profile:
-                ProfileView(
-                    isPresented: Binding(get: { true }, set: { _ in destination = .creation }),
-                    showNavigation: false,
-                    onOpenDocuments: { isDocumentsPresented = true },
-                    onOpenSettings: { isSettingsPresented = true },
-                    onOpenAccount: { withAnimation { showLogin = true } }
-                )
-                }
+            )
+            .opacity(destination == .chat ? 1 : 0)
+            .allowsHitTesting(destination == .chat)
+            .accessibilityHidden(destination != .chat)
+        )
+        .overlay(
+            FancyIdeasView { idea in
+                destination = .chat
+                chatViewModel.createSession(withDraft: idea.prompt)
             }
-
-            // Keep the creation gallery mounted for the app session so returning to
-            // the tab preserves its selected section, loaded cells and scroll offset.
+            .opacity(destination == .ideas ? 1 : 0)
+            .allowsHitTesting(destination == .ideas)
+            .accessibilityHidden(destination != .ideas)
+        )
+        .overlay(
+            ProfileView(
+                isPresented: Binding(get: { true }, set: { _ in destination = .creation }),
+                showNavigation: false,
+                onOpenDocuments: { isDocumentsPresented = true },
+                onOpenSettings: { isSettingsPresented = true },
+                onOpenAccount: { withAnimation { showLogin = true } }
+            )
+            .opacity(destination == .profile ? 1 : 0)
+            .allowsHitTesting(destination == .profile)
+            .accessibilityHidden(destination != .profile)
+        )
+        // Every page is attached to this stable root. Opacity changes visibility while
+        // overlays avoid contributing an intrinsic width to the sidebar HStack.
+        .overlay(
             CreationGalleryView(
                 onLaunchImageChat: { prompt in
                     destination = .chat
@@ -358,14 +362,14 @@ struct ShellView: View {
             .opacity(destination == .creation ? 1 : 0)
             .allowsHitTesting(destination == .creation)
             .accessibilityHidden(destination != .creation)
-
-            // Keep Lily mounted for the entire app session. Switching tabs only changes
-            // visibility, matching Android Fragment hide/show behavior without reloading Duix.
+        )
+        // Lily also remains alive, but no longer establishes a minimum content width.
+        .overlay(
             AvatarView(viewModel: avatarViewModel)
                 .opacity(destination == .avatar ? 1 : 0)
                 .allowsHitTesting(destination == .avatar)
                 .accessibilityHidden(destination != .avatar)
-        }
+        )
     }
 
     // MARK: - Bottom Tab Bar (matches Android bottomNavigationBar)

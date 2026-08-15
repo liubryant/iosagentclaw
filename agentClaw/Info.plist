@@ -10,6 +10,17 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ai.cjym.agentclaw.widgets</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>agentclaw</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleName</key>
 	<string>Agent智能体生活助手</string>
 	<key>CFBundleDisplayName</key>

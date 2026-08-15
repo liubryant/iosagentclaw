@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA3000010000000000000001 /* AgentClawWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100010000000000000001 /* AgentClawWidgets.swift */; };
+		AA3000020000000000000002 /* AgentClawWidgets.appex in Embed PlugIns */ = {isa = PBXBuildFile; fileRef = AA3100030000000000000003 /* AgentClawWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		0428199B2FB80F5A0002BDC7 /* agentClawApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0428199A2FB80F5A0002BDC7 /* agentClawApp.swift */; };
 		0428199D2FB80F5A0002BDC7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0428199C2FB80F5A0002BDC7 /* ContentView.swift */; };
 		0428199F2FB80F620002BDC7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0428199E2FB80F620002BDC7 /* Assets.xcassets */; };
@@ -72,6 +74,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		AA3700010000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0428198F2FB80F5A0002BDC7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA3300010000000000000001;
+			remoteInfo = AgentClawWidgets;
+		};
 		042819A92FB80F620002BDC7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0428198F2FB80F5A0002BDC7 /* Project object */;
@@ -120,6 +129,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				AA3000020000000000000002 /* AgentClawWidgets.appex in Embed PlugIns */,
 			);
 			name = "Embed PlugIns";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -127,6 +137,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA3100010000000000000001 /* AgentClawWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentClawWidgets.swift; sourceTree = "<group>"; };
+		AA3100020000000000000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA3100030000000000000003 /* AgentClawWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AgentClawWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		0406804F2FC169C800185EB0 /* Frameworks */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Frameworks; sourceTree = "<group>"; };
 		042819972FB80F5A0002BDC7 /* agentClaw.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = agentClaw.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0428199A2FB80F5A0002BDC7 /* agentClawApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agentClawApp.swift; sourceTree = "<group>"; };
@@ -206,6 +219,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		AA3500010000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		042819942FB80F5A0002BDC7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -248,6 +268,7 @@
 		0428198E2FB80F5A0002BDC7 = {
 			isa = PBXGroup;
 			children = (
+				AA3200010000000000000001 /* AgentClawWidgets */,
 				042819992FB80F5A0002BDC7 /* agentClaw */,
 				042819AB2FB80F620002BDC7 /* agentClawTests */,
 				042819B62FB80F620002BDC7 /* agentClawUITests */,
@@ -261,6 +282,7 @@
 		042819982FB80F5A0002BDC7 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				AA3100030000000000000003 /* AgentClawWidgets.appex */,
 				042819972FB80F5A0002BDC7 /* agentClaw.app */,
 				042819A82FB80F620002BDC7 /* agentClawTests.xctest */,
 				042819B32FB80F620002BDC7 /* agentClawUITests.xctest */,
@@ -336,6 +358,15 @@
 			path = agentClaw;
 			sourceTree = "<group>";
 		};
+		AA3200010000000000000001 /* AgentClawWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				AA3100010000000000000001 /* AgentClawWidgets.swift */,
+				AA3100020000000000000002 /* Info.plist */,
+			);
+			path = AgentClawWidgets;
+			sourceTree = "<group>";
+		};
 		042819A02FB80F620002BDC7 /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
@@ -399,6 +430,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		AA3300010000000000000001 /* AgentClawWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA3A00010000000000000001 /* Build configuration list for PBXNativeTarget "AgentClawWidgets" */;
+			buildPhases = (
+				AA3400010000000000000001 /* Sources */,
+				AA3500010000000000000001 /* Frameworks */,
+				AA3600010000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AgentClawWidgets;
+			productName = AgentClawWidgets;
+			productReference = AA3100030000000000000003 /* AgentClawWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		042819962FB80F5A0002BDC7 /* agentClaw */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 042819BC2FB80F620002BDC7 /* Build configuration list for PBXNativeTarget "agentClaw" */;
@@ -414,6 +462,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				AA3800010000000000000001 /* PBXTargetDependency */,
 				D10000082FC2000000000008 /* PBXTargetDependency */,
 			);
 			name = agentClaw;
@@ -469,6 +518,9 @@
 				LastSwiftUpdateCheck = 1230;
 				LastUpgradeCheck = 1230;
 				TargetAttributes = {
+					AA3300010000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
 					042819962FB80F5A0002BDC7 = {
 						CreatedOnToolsVersion = 12.3;
 					};
@@ -501,6 +553,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				AA3300010000000000000001 /* AgentClawWidgets */,
 				042819962FB80F5A0002BDC7 /* agentClaw */,
 				042819A72FB80F620002BDC7 /* agentClawTests */,
 				042819B22FB80F620002BDC7 /* agentClawUITests */,
@@ -519,6 +572,13 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
+		AA3600010000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		042819952FB80F5A0002BDC7 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -659,6 +719,14 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		AA3400010000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA3000010000000000000001 /* AgentClawWidgets.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		042819932FB80F5A0002BDC7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -735,6 +803,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		AA3800010000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA3300010000000000000001 /* AgentClawWidgets */;
+			targetProxy = AA3700010000000000000001 /* PBXContainerItemProxy */;
+		};
 		042819AA2FB80F620002BDC7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 042819962FB80F5A0002BDC7 /* agentClaw */;
@@ -753,6 +826,56 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		AA3900010000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = MF7G4UB9D9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AgentClawWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.cjym.agentclaw.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AA3900020000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = YES;
+				CURRENT_PROJECT_VERSION = 2;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = MF7G4UB9D9;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AgentClawWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.cjym.agentclaw.widgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		042819BA2FB80F620002BDC7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1039,6 +1162,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		AA3A00010000000000000001 /* Build configuration list for PBXNativeTarget "AgentClawWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA3900010000000000000001 /* Debug */,
+				AA3900020000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		042819922FB80F5A0002BDC7 /* Build configuration list for PBXProject "agentClaw" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

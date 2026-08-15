@@ -39,6 +39,9 @@ struct ModernApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(container: container)
+                .onOpenURL { url in
+                    QuickActionRouter.shared.route(url)
+                }
         }
     }
 }
@@ -63,12 +66,34 @@ final class QuickActionRouter {
         }
     }
 
+    func route(_ url: URL) {
+        guard url.scheme?.lowercased() == "agentclaw",
+              url.host?.lowercased() == "quick",
+              let action = AgentClawQuickAction(widgetPath: url.path) else { return }
+        lock.lock()
+        pendingAction = action
+        lock.unlock()
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .agentClawQuickAction, object: action)
+        }
+    }
+
     func consumePendingAction() -> AgentClawQuickAction? {
         lock.lock()
         defer { lock.unlock() }
         let action = pendingAction
         pendingAction = nil
         return action
+    }
+}
+
+private extension AgentClawQuickAction {
+    init?(widgetPath: String) {
+        switch widgetPath.lowercased() {
+        case "/avatar": self = .avatar
+        case "/image": self = .image
+        default: return nil
+        }
     }
 }
 
@@ -202,7 +227,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey: Any] = [:]
     ) -> Bool {
-        // 会员权益按 App Store 审核条款 3.1.1 全部走苹果内购(IAP)，不再有任何第三方支付回调。
-        return false
+        QuickActionRouter.shared.route(url)
+        return url.scheme?.lowercased() == "agentclaw"
     }
 }
