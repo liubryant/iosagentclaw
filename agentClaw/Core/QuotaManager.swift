@@ -40,12 +40,12 @@ final class QuotaManager {
 
     func videoLimit() -> Int {
         let preferences = AppPreferences()
-        return preferences.isLoggedIn && preferences.isVipActive ? vipVideoLimit() : freeVideoLimit()
+        return preferences.isVipActive ? vipVideoLimit() : freeVideoLimit()
     }
 
     func imageLimit() -> Int {
         let preferences = AppPreferences()
-        return preferences.isLoggedIn && preferences.isVipActive ? vipImageLimit() : freeImageLimit()
+        return preferences.isVipActive ? vipImageLimit() : freeImageLimit()
     }
 
     // MARK: - Today Usage
@@ -103,7 +103,7 @@ final class QuotaManager {
         do {
             let preferences = AppPreferences()
             let status: MembershipStatus
-            if preferences.isLoggedIn, let token = preferences.userAccessToken, !token.isEmpty {
+            if let token = preferences.effectiveAccessToken, !token.isEmpty {
                 status = try await PaymentService.shared.loadMembership(token: token)
             } else {
                 status = try await PaymentService.shared.loadPublicMembership()

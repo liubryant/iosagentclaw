@@ -169,24 +169,42 @@ struct ChatView: View {
 
     private var content: some View {
         GeometryReader { geometry in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    if viewModel.messages.isEmpty {
-                        welcomeState
-                            .padding(.top, 8)
-                    } else {
-                        ForEach(viewModel.messages) { message in
-                            messageBubble(message, availableWidth: geometry.size.width)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        if viewModel.messages.isEmpty {
+                            welcomeState
+                                .padding(.top, 8)
+                        } else {
+                            ForEach(viewModel.messages) { message in
+                                messageBubble(message, availableWidth: geometry.size.width)
+                            }
                         }
-                    }
 
-                    if viewModel.isSending {
-                        AgentThinkingIndicator()
+                        if viewModel.isSending {
+                            AgentThinkingIndicator()
+                        }
+
+                        Color.clear
+                            .frame(height: 1)
+                            .id("chat-list-bottom")
                     }
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 10)
                 }
-                .padding(.horizontal, 18)
-                .padding(.vertical, 10)
+                .onAppear {
+                    scrollToConversationBottom(using: proxy)
+                }
+                .onChange(of: viewModel.selectedSessionID) { _ in
+                    scrollToConversationBottom(using: proxy)
+                }
             }
+        }
+    }
+
+    private func scrollToConversationBottom(using proxy: ScrollViewProxy) {
+        DispatchQueue.main.async {
+            proxy.scrollTo("chat-list-bottom", anchor: .bottom)
         }
     }
 
@@ -305,10 +323,16 @@ struct ChatView: View {
 
                 if displayContent.isEmpty == false || (!hasImage && !hasVideo) {
                     VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 0) {
-                        Text(copyText)
-                            .font(.system(size: 16))
-                            .foregroundColor(AgentClawDesign.primaryText)
-                            .fixedSize(horizontal: false, vertical: true)
+                        Group {
+                            if message.role == .assistant {
+                                MarkdownMessageView(markdown: copyText)
+                            } else {
+                                Text(copyText)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(AgentClawDesign.primaryText)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
                             .padding(.horizontal, 11)
                             .padding(.top, 8)
                             .padding(.bottom, copyMenuMessageID == message.id || copiedMessageID == message.id ? 6 : 8)
@@ -1586,6 +1610,329 @@ struct PickerAlertMessage: Identifiable {
     let id = UUID()
     let title: String
     let message: String
+}
+
+/// 聊天气泡使用的原生 Markdown 展示层。块级结构自行布局，行内样式交给
+/// Foundation 的 Markdown 解析器，避免 WKWebView 带来的高度、滚动和主题问题。
+private struct MarkdownMessageView: View {
+    private let blocks: [MarkdownBlock]
+
+    init(markdown: String) {
+        blocks = MarkdownBlockParser.parse(markdown)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            ForEach(blocks) { block in
+                blockView(block)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .foregroundColor(AgentClawDesign.primaryText)
+        .tint(AgentClawDesign.accent)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    @ViewBuilder
+    private func blockView(_ block: MarkdownBlock) -> some View {
+        switch block.kind {
+        case .heading(let level, let text):
+            inlineText(text)
+                .font(.system(size: headingSize(level), weight: .bold))
+                .padding(.top, level == 1 ? 2 : 0)
+
+        case .paragraph(let text):
+            inlineText(text)
+                .font(.system(size: 16))
+                .lineSpacing(3)
+
+        case .unorderedList(let items):
+            VStack(alignment: .leading, spacing: 5) {
+                ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                    HStack(alignment: .firstTextBaseline, spacing: 7) {
+                        Text("•")
+                            .font(.system(size: 16, weight: .bold))
+                        inlineText(item)
+                            .font(.system(size: 16))
+                    }
+                }
+            }
+
+        case .orderedList(let items):
+            VStack(alignment: .leading, spacing: 5) {
+                ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                    HStack(alignment: .firstTextBaseline, spacing: 7) {
+                        Text("\(item.number).")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(AgentClawDesign.secondaryText)
+                        inlineText(item.text)
+                            .font(.system(size: 16))
+                    }
+                }
+            }
+
+        case .quote(let text):
+            HStack(alignment: .top, spacing: 9) {
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(AgentClawDesign.accent.opacity(0.55))
+                    .frame(width: 3)
+                inlineText(text)
+                    .font(.system(size: 15))
+                    .foregroundColor(AgentClawDesign.secondaryText)
+                    .lineSpacing(3)
+            }
+            .padding(.vertical, 2)
+
+        case .divider:
+            Rectangle()
+                .fill(Color.black.opacity(0.10))
+                .frame(height: 1)
+                .padding(.vertical, 3)
+
+        case .table(let headers, let rows):
+            ScrollView(.horizontal, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    tableRow(headers, isHeader: true)
+                    ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                        tableRow(row, isHeader: false, alternate: index.isMultiple(of: 2) == false)
+                    }
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 7)
+                        .stroke(Color.black.opacity(0.10), lineWidth: 1)
+                )
+                .cornerRadius(7)
+            }
+        }
+    }
+
+    private func inlineText(_ source: String) -> Text {
+        let options = AttributedString.MarkdownParsingOptions(
+            interpretedSyntax: .inlineOnlyPreservingWhitespace,
+            failurePolicy: .returnPartiallyParsedIfPossible
+        )
+        if let attributed = try? AttributedString(markdown: source, options: options) {
+            return Text(attributed)
+        }
+        return Text(source)
+    }
+
+    private func headingSize(_ level: Int) -> CGFloat {
+        switch level {
+        case 1: return 23
+        case 2: return 20
+        default: return 18
+        }
+    }
+
+    private func tableRow(_ cells: [String], isHeader: Bool, alternate: Bool = false) -> some View {
+        HStack(spacing: 0) {
+            ForEach(Array(cells.enumerated()), id: \.offset) { _, cell in
+                inlineText(cell)
+                    .font(.system(size: 14, weight: isHeader ? .semibold : .regular))
+                    .frame(width: 142, alignment: .leading)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 8)
+                    .background(isHeader
+                        ? AgentClawDesign.accent.opacity(0.10)
+                        : Color.black.opacity(alternate ? 0.025 : 0))
+                    .overlay(alignment: .trailing) {
+                        Rectangle()
+                            .fill(Color.black.opacity(0.08))
+                            .frame(width: 1)
+                    }
+            }
+        }
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(Color.black.opacity(0.08))
+                .frame(height: 1)
+        }
+    }
+}
+
+private struct MarkdownBlock: Identifiable {
+    struct OrderedItem {
+        let number: Int
+        let text: String
+    }
+
+    enum Kind {
+        case heading(Int, String)
+        case paragraph(String)
+        case unorderedList([String])
+        case orderedList([OrderedItem])
+        case quote(String)
+        case divider
+        case table(headers: [String], rows: [[String]])
+    }
+
+    let id = UUID()
+    let kind: Kind
+}
+
+private enum MarkdownBlockParser {
+    static func parse(_ markdown: String) -> [MarkdownBlock] {
+        let lines = markdown.replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+            .components(separatedBy: "\n")
+        var result: [MarkdownBlock] = []
+        var index = 0
+
+        while index < lines.count {
+            let line = lines[index]
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty {
+                index += 1
+                continue
+            }
+
+            if isDivider(trimmed) {
+                result.append(MarkdownBlock(kind: .divider))
+                index += 1
+                continue
+            }
+
+            if let heading = heading(in: trimmed) {
+                result.append(MarkdownBlock(kind: .heading(heading.level, heading.text)))
+                index += 1
+                continue
+            }
+
+            if index + 1 < lines.count,
+               isTableRow(trimmed),
+               isTableSeparator(lines[index + 1]) {
+                let headers = tableCells(trimmed)
+                index += 2
+                var rows: [[String]] = []
+                while index < lines.count, isTableRow(lines[index]) {
+                    rows.append(normalizedRow(tableCells(lines[index]), count: headers.count))
+                    index += 1
+                }
+                result.append(MarkdownBlock(kind: .table(headers: headers, rows: rows)))
+                continue
+            }
+
+            if unorderedText(in: trimmed) != nil {
+                var items: [String] = []
+                while index < lines.count,
+                      let item = unorderedText(in: lines[index].trimmingCharacters(in: .whitespaces)) {
+                    items.append(item)
+                    index += 1
+                }
+                result.append(MarkdownBlock(kind: .unorderedList(items)))
+                continue
+            }
+
+            if orderedItem(in: trimmed) != nil {
+                var items: [MarkdownBlock.OrderedItem] = []
+                while index < lines.count,
+                      let item = orderedItem(in: lines[index].trimmingCharacters(in: .whitespaces)) {
+                    items.append(item)
+                    index += 1
+                }
+                result.append(MarkdownBlock(kind: .orderedList(items)))
+                continue
+            }
+
+            if trimmed.hasPrefix(">") {
+                var quoteLines: [String] = []
+                while index < lines.count {
+                    let value = lines[index].trimmingCharacters(in: .whitespaces)
+                    guard value.hasPrefix(">") else { break }
+                    quoteLines.append(String(value.dropFirst()).trimmingCharacters(in: .whitespaces))
+                    index += 1
+                }
+                result.append(MarkdownBlock(kind: .quote(quoteLines.joined(separator: "\n"))))
+                continue
+            }
+
+            var paragraph: [String] = [trimmed]
+            index += 1
+            while index < lines.count {
+                let next = lines[index].trimmingCharacters(in: .whitespaces)
+                if next.isEmpty || startsBlock(next, nextLine: index + 1 < lines.count ? lines[index + 1] : nil) {
+                    break
+                }
+                paragraph.append(next)
+                index += 1
+            }
+            result.append(MarkdownBlock(kind: .paragraph(paragraph.joined(separator: "\n"))))
+        }
+
+        return result.isEmpty ? [MarkdownBlock(kind: .paragraph(markdown))] : result
+    }
+
+    private static func startsBlock(_ line: String, nextLine: String?) -> Bool {
+        isDivider(line)
+            || heading(in: line) != nil
+            || unorderedText(in: line) != nil
+            || orderedItem(in: line) != nil
+            || line.hasPrefix(">")
+            || (isTableRow(line) && nextLine.map(isTableSeparator) == true)
+    }
+
+    private static func heading(in line: String) -> (level: Int, text: String)? {
+        var count = 0
+        for character in line {
+            guard character == "#", count < 6 else { break }
+            count += 1
+        }
+        guard count > 0 else { return nil }
+        let remainder = String(line.dropFirst(count))
+        guard remainder.first == " " else { return nil }
+        return (count, remainder.trimmingCharacters(in: .whitespaces))
+    }
+
+    private static func isDivider(_ line: String) -> Bool {
+        let compact = line.replacingOccurrences(of: " ", with: "")
+        return compact.count >= 3
+            && (Set(compact) == Set("-") || Set(compact) == Set("*") || Set(compact) == Set("_"))
+    }
+
+    private static func unorderedText(in line: String) -> String? {
+        for prefix in ["- ", "* ", "+ "] where line.hasPrefix(prefix) {
+            return String(line.dropFirst(prefix.count)).trimmingCharacters(in: .whitespaces)
+        }
+        return nil
+    }
+
+    private static func orderedItem(in line: String) -> MarkdownBlock.OrderedItem? {
+        guard let dot = line.firstIndex(of: ".") else { return nil }
+        let numberText = String(line[..<dot])
+        guard let number = Int(numberText), line.index(after: dot) < line.endIndex,
+              line[line.index(after: dot)] == " " else { return nil }
+        let text = String(line[line.index(line.index(after: dot), offsetBy: 1)...])
+        return MarkdownBlock.OrderedItem(number: number, text: text)
+    }
+
+    private static func isTableRow(_ line: String) -> Bool {
+        tableCells(line).count >= 2
+    }
+
+    private static func isTableSeparator(_ line: String) -> Bool {
+        let cells = tableCells(line)
+        guard cells.count >= 2 else { return false }
+        return cells.allSatisfy { cell in
+            let compact = cell.replacingOccurrences(of: " ", with: "")
+            let core = compact.trimmingCharacters(in: CharacterSet(charactersIn: ":"))
+            return core.count >= 3 && Set(core) == Set("-")
+        }
+    }
+
+    private static func tableCells(_ line: String) -> [String] {
+        var value = line.trimmingCharacters(in: .whitespaces)
+        if value.hasPrefix("|") { value.removeFirst() }
+        if value.hasSuffix("|") { value.removeLast() }
+        return value.components(separatedBy: "|")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+    }
+
+    private static func normalizedRow(_ cells: [String], count: Int) -> [String] {
+        if cells.count == count { return cells }
+        if cells.count > count { return Array(cells.prefix(count)) }
+        return cells + Array(repeating: "", count: count - cells.count)
+    }
 }
 
 struct ImagePickerView: UIViewControllerRepresentable {

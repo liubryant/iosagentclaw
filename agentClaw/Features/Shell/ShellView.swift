@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 struct ShellView: View {
-    private enum Destination {
+    private enum Destination: String {
         case chat, ideas, creation, avatar, profile
     }
 
@@ -20,8 +20,10 @@ struct ShellView: View {
     @State private var showLogin = false
     @State private var showVip = false
     @State private var sidebarQuery = ""
-    // 应用启动（包括关闭开屏广告后）默认进入画图首页。
-    @State private var destination: Destination = .creation
+    // 使用场景级状态保存当前栏目。Duo 在外屏、内屏之间切换显示区域时，
+    // 即使系统重新计算根布局，也会继续停留在用户正在浏览的页面。
+    // 首次启动（包括关闭开屏广告后）仍默认进入画图首页。
+    @SceneStorage("agentClaw.shell.destination") private var destination: Destination = .creation
     @State private var sessionToDelete: LocalChatSession?
     @State private var activeShellAlert: ShellAlert?
     // 生成期间切换/新建对话的二次确认（参考安卓 chat_switch 确认弹窗）
@@ -70,7 +72,7 @@ struct ShellView: View {
                             .padding(destination == .avatar ? 0 : 4)
                     }
                     .background(
-                        (usesWhitePageBackground ? Color.white : AgentClawDesign.appBackground)
+                        shellBackgroundColor
                             .edgesIgnoringSafeArea(.all)
                     )
 
@@ -78,6 +80,7 @@ struct ShellView: View {
                         SettingsPanelView(
                             gatewayViewModel: gatewayViewModel,
                             chatViewModel: chatViewModel,
+                            avatarViewModel: avatarViewModel,
                             isPresented: $isSettingsPresented
                         )
                         .transition(.opacity)
@@ -132,7 +135,7 @@ struct ShellView: View {
                         }
                 }
                 .modifier(AvatarTopImmersiveModifier(isEnabled: destination == .avatar))
-                .padding(.bottom, extendsBehindBottomTab ? 0 : 50)
+                .padding(.bottom, extendsBehindBottomTab ? 0 : 56)
                 .ignoresSafeArea(.container, edges: extendsBehindBottomTab ? .bottom : [])
 
                 bottomTabBar
@@ -140,7 +143,12 @@ struct ShellView: View {
             }
         }
         .modifier(AvatarTopImmersiveModifier(isEnabled: destination == .avatar))
+        // Duo 展开时状态栏安全区会明显增高。数字人页采用沉浸式舞台，
+        // 隐藏状态栏后内容才能真正铺到异形内屏顶部，而不是留下白色横条。
+        .statusBarHidden(destination == .avatar)
         .modifier(IPadReadableTypeModifier())
+        .agentClawKeepsHorizontalSystemBars()
+        .agentClawDuoContinuityTransition()
         .vipFullScreenCover(isPresented: $showVip) {
             VipView(isPresented: $showVip)
         }
@@ -253,6 +261,9 @@ struct ShellView: View {
 
     private func handleQuickAction(_ action: AgentClawQuickAction) {
         switch action {
+        case .chat:
+            destination = .chat
+            chatViewModel.createSession(entryMode: .default)
         case .avatar:
             destination = .avatar
         case .image:
@@ -299,6 +310,13 @@ struct ShellView: View {
 
     private var usesWhitePageBackground: Bool {
         destination == .creation || destination == .profile
+    }
+
+    private var shellBackgroundColor: Color {
+        if destination == .avatar {
+            return AgentClawDesign.avatarStageTop
+        }
+        return usesWhitePageBackground ? .white : AgentClawDesign.appBackground
     }
 
     private var extendsBehindBottomTab: Bool {
@@ -387,8 +405,9 @@ struct ShellView: View {
                 }
             }
         )
-        .frame(height: 50)
-        .offset(y: 12)
+        // iOS 16 会严格裁剪 UIViewRepresentable 的 frame。原先再向下偏移
+        // 12pt 会把 UITabBar 标题推出屏幕，只留下上方图标。
+        .frame(height: 56)
     }
 
     private var currentBottomTabIndex: Int {
@@ -692,6 +711,117 @@ struct ShellView: View {
     }
 }
 
+private extension View {
+    @ViewBuilder
+    func agentClawKeepsHorizontalSystemBars() -> some View {
+        if #available(iOS 27.1, *) {
+            toolbarVerticalBehavior(.disabled)
+        } else {
+            self
+        }
+    }
+
+    /// iPhone Duo 打开或合拢时保持同一份页面状态，并让内容随铰链角度
+    /// 做轻量连续过渡。普通 iPhone 和低版本系统不会进入这段逻辑。
+    @ViewBuilder
+    func agentClawDuoContinuityTransition() -> some View {
+        if #available(iOS 27.1, *) {
+            modifier(AgentClawDuoContinuityModifier())
+        } else {
+            self
+        }
+    }
+}
+
+@available(iOS 27.1, *)
+private struct AgentClawDuoContinuityModifier: ViewModifier {
+    @State private var contentScale: CGFloat = 1
+    @State private var contentOpacity = 1.0
+    @State private var contentOffset: CGFloat = 0
+    @State private var contentRotation = 0.0
+    @State private var closingHandoffTask: Task<Void, Never>?
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(contentScale)
+            .opacity(contentOpacity)
+            .offset(x: contentOffset)
+            .rotation3DEffect(
+                .degrees(contentRotation),
+                axis: (x: 0, y: 1, z: 0),
+                anchor: contentRotation > 0 ? .trailing : .leading,
+                perspective: 0.18
+            )
+            // 系统决定铰链角度的更新频率；用短线性动画衔接相邻采样点，
+            // 避免合拢和展开时布局出现台阶感。
+            .animation(.linear(duration: 0.08), value: contentScale)
+            .animation(.linear(duration: 0.08), value: contentOpacity)
+            .animation(.linear(duration: 0.08), value: contentOffset)
+            .animation(.linear(duration: 0.08), value: contentRotation)
+            .onHingeChange { oldContext, newContext in
+                updateTransition(from: oldContext.hinge, to: newContext.hinge)
+            }
+            .onDisappear { closingHandoffTask?.cancel() }
+    }
+
+    private func updateTransition(from oldHinge: DeviceHinge?, to hinge: DeviceHinge?) {
+        closingHandoffTask?.cancel()
+
+        guard let hinge else {
+            resetTransition()
+            return
+        }
+
+        if hinge.status == .closed {
+            // 初次挂载到已合拢的外屏时保持静止；只有从半展开进入合拢，
+            // 才执行最后一段外屏接管动画。
+            guard oldHinge?.status == .partiallyOpen else {
+                resetTransition()
+                return
+            }
+            completeClosingHandoff()
+            return
+        }
+
+        guard hinge.status == .partiallyOpen else {
+            resetTransition()
+            return
+        }
+
+        // 0° 为合拢，180° 为完全展开。变化保持轻微，避免影响阅读和点击。
+        let progress = min(max(hinge.angle.degrees / 180, 0), 1)
+        let isClosing = oldHinge.map { hinge.angle.degrees < $0.angle.degrees } ?? false
+        contentScale = 0.985 + (0.015 * progress)
+        contentOpacity = 0.97 + (0.03 * progress)
+        contentOffset = (isClosing ? 5 : -4) * (1 - progress)
+        contentRotation = (isClosing ? 1.2 : -0.8) * (1 - progress)
+    }
+
+    private func completeClosingHandoff() {
+        withAnimation(.easeOut(duration: 0.12)) {
+            contentScale = 0.975
+            contentOpacity = 0.96
+            contentOffset = 7
+            contentRotation = 1.5
+        }
+
+        closingHandoffTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 120_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.spring(response: 0.24, dampingFraction: 0.90)) {
+                resetTransition()
+            }
+        }
+    }
+
+    private func resetTransition() {
+        contentScale = 1
+        contentOpacity = 1
+        contentOffset = 0
+        contentRotation = 0
+    }
+}
+
 private struct AvatarTopImmersiveModifier: ViewModifier {
     let isEnabled: Bool
     func body(content: Content) -> some View {
@@ -726,6 +856,29 @@ private struct NativeAgentTabBar: UIViewRepresentable {
         tabBar.isTranslucent = true
         tabBar.tintColor = .systemBlue
         tabBar.unselectedItemTintColor = .secondaryLabel
+        tabBar.itemPositioning = .fill
+
+        // iOS 16 在嵌入 SwiftUI 的 UITabBar 上可能使用 scrollEdgeAppearance。
+        // 同时配置两套外观，确保标题文字不会继承到透明/隐藏样式。
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+        let itemAppearances = [
+            appearance.stackedLayoutAppearance,
+            appearance.inlineLayoutAppearance,
+            appearance.compactInlineLayoutAppearance
+        ]
+        for itemAppearance in itemAppearances {
+            itemAppearance.normal.titleTextAttributes = [
+                .font: UIFont.systemFont(ofSize: 10, weight: .regular),
+                .foregroundColor: UIColor.secondaryLabel
+            ]
+            itemAppearance.selected.titleTextAttributes = [
+                .font: UIFont.systemFont(ofSize: 10, weight: .medium),
+                .foregroundColor: UIColor.systemBlue
+            ]
+        }
+        tabBar.standardAppearance = appearance
+        tabBar.scrollEdgeAppearance = appearance
 
         let drawingIcon = UIImage.SymbolConfiguration(pointSize: 17, weight: .regular)
         let chatIcon = UIImage.SymbolConfiguration(pointSize: 15, weight: .regular)

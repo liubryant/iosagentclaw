@@ -223,7 +223,7 @@ struct ProfileView: View {
                         if isVipActive, let exp = vipExpiresAt {
                             Text("有效期至 \(exp)")
                         } else {
-                            Text(isLoggedIn ? "开通会员，解锁AI助手全部功能" : "登录后开通会员享受完整权益")
+                            Text(isLoggedIn ? "开通会员，解锁AI助手全部功能" : "无需登录，可直接开通会员")
                         }
                     }
                     .font(.system(size: fs(11)))
@@ -291,7 +291,7 @@ struct ProfileView: View {
         )
         .cornerRadius(22)
         .onTapGesture {
-            if isLoggedIn { showVip = true } else { showLogin = true }
+            showVip = true
         }
     }
 
@@ -323,6 +323,14 @@ struct ProfileView: View {
             VStack(spacing: 0) {
                 profileRow(icon: "doc.text.fill", title: "用户协议", iconColor: Color(hex: "#596DDF")) {
                     openWebPage(title: "用户协议", url: "https://www.cjym123.cn/agreement_agentclaw.html")
+                }
+                sectionDivider
+                profileRow(icon: "crown.fill", title: "会员服务协议", iconColor: Color(hex: "#C9944F")) {
+                    openWebPage(title: "会员服务协议", url: "https://www.cjym123.cn/agreement_agentclaw_vip.html")
+                }
+                sectionDivider
+                profileRow(icon: "arrow.triangle.2.circlepath", title: "自动续费服务协议", iconColor: Color(hex: "#D08A32")) {
+                    openWebPage(title: "自动续费服务协议", url: "https://www.cjym123.cn/agreement_agentclaw_autorenew.html")
                 }
                 sectionDivider
                 profileRow(icon: "shield.fill", title: "隐私政策", iconColor: Color(hex: "#44A57A")) {

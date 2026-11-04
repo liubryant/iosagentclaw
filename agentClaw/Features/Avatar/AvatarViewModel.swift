@@ -2,6 +2,8 @@ import Combine
 import Foundation
 
 final class AvatarViewModel: ObservableObject {
+    private static let initialGreeting = "你好，我是你的智能体助手。你可以直接说话，也可以输入文字。"
+
     @Published var draft: String = ""
     @Published private(set) var turns: [AvatarConversationTurn] = []
     @Published private(set) var mood: AvatarMood = .idle
@@ -40,7 +42,7 @@ final class AvatarViewModel: ObservableObject {
         let savedTurns = preferences.avatarConversationHistory
         turns = savedTurns.isEmpty ? [AvatarConversationTurn(
                 role: .assistant,
-                content: "你好，我是你的智能体助手。你可以直接说话，也可以输入文字。"
+                content: Self.initialGreeting
             )] : savedTurns
         // Migrate conversations created before the dedicated trial counter existed.
         if preferences.avatarFreeConversationCount == 0 {
@@ -123,7 +125,7 @@ final class AvatarViewModel: ObservableObject {
             return
         }
 
-        let hasActiveMembership = preferences.isLoggedIn && preferences.isVipActive
+        let hasActiveMembership = preferences.isVipActive
         guard hasActiveMembership || preferences.avatarFreeConversationCount < freeConversationLimit else {
             showUpgrade = true
             return
@@ -189,6 +191,14 @@ final class AvatarViewModel: ObservableObject {
         isListening = false
         isThinking = false
         setAvatarState(mood: .idle, motion: .idle)
+    }
+
+    func clearConversationHistory() {
+        stopAll()
+        draft = ""
+        errorMessage = nil
+        turns = [AvatarConversationTurn(role: .assistant, content: Self.initialGreeting)]
+        persistConversation()
     }
 
     func stopSpeaking() {
@@ -324,7 +334,18 @@ final class AvatarViewModel: ObservableObject {
             role: .system,
             content: "你是 AgentClaw 的拟人智能体助手。请用自然、口语化、简洁的中文回答，适合被语音播报。"
         )
-        let recent = turns.suffix(12).map { turn in
+        // 最多携带最近三轮用户提问及其对应回复。以用户消息作为轮次边界，
+        // 避免按固定消息条数截断后出现只有回答、没有对应问题的上下文。
+        let userTurnIndices = turns.indices.filter { turns[$0].role == .user }
+        let recentTurns: ArraySlice<AvatarConversationTurn>
+        if userTurnIndices.count > 3 {
+            recentTurns = turns[userTurnIndices[userTurnIndices.count - 3]...]
+        } else if let firstUserTurnIndex = userTurnIndices.first {
+            recentTurns = turns[firstUserTurnIndex...]
+        } else {
+            recentTurns = turns[turns.endIndex...]
+        }
+        let recent = recentTurns.map { turn in
             ChatMessage(role: turn.role, content: turn.content)
         }
         return [system] + recent

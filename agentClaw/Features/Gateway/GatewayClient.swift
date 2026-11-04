@@ -414,7 +414,7 @@ final class GatewayClient {
         //    普通用户登录即可用它调用生成接口，无需再手动配置网关 token。
         // 之前只认自定义网关 token，导致普通用户/审核设备生成时缺少 Authorization 头而报错。
         let token = config.token?.nilIfEmptyToken
-            ?? preferences.userAccessToken?.nilIfEmptyToken
+            ?? preferences.effectiveAccessToken?.nilIfEmptyToken
         guard let token = token else {
             return
         }

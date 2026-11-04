@@ -8,11 +8,25 @@ struct VipProduct: Identifiable, Codable {
     /// App Store Connect 内购商品 ID。优先取后端下发字段；缺省时按套餐时长本地推断。
     let appleProductId: String
 
+    /// 在购买页明确展示自动续订周期，避免只显示价格而缺少“每周/每月/每年”。
+    var subscriptionPeriodText: String {
+        let value = "\(appleProductId) \(name) \(description)".lowercased()
+        if value.contains("year") || value.contains("年") || value.contains("annual") { return "年" }
+        if value.contains("month") || value.contains("月") { return "月" }
+        return "周"
+    }
+
     init(from dict: [String: Any]) {
         let pid = dict["id"] as? String ?? ""
         id = pid
         name = dict["name"] as? String ?? ""
-        price = dict["price"] as? String ?? (dict["price"] as? Double).map { String($0) } ?? ""
+        if let text = dict["price"] as? String {
+            price = text
+        } else if let number = dict["price"] as? NSNumber {
+            price = number.stringValue
+        } else {
+            price = ""
+        }
         description = dict["description"] as? String ?? ""
 
         let fromServer = (dict["appleProductId"] as? String)
@@ -61,6 +75,21 @@ struct MembershipStatus {
     let vipVideoDaily: Int?
     let vipImageDaily: Int?
     let vipRemindDays: Int?
+}
+
+struct ApplePurchaseVerification {
+    let membership: MembershipStatus
+    let guestAccessToken: String?
+    let appleActive: Bool
+    let appleExpiresAt: String?
+    let appleProductId: String?
+    let transactionAlreadyProcessed: Bool
+}
+
+struct AppleMembershipStatus {
+    let active: Bool
+    let expiresAt: String?
+    let productId: String?
 }
 
 final class PaymentService {
@@ -117,6 +146,30 @@ final class PaymentService {
         return membershipStatus(from: json)
     }
 
+    func bindAppleGuestMembership(userToken: String, guestToken: String) async throws -> MembershipStatus {
+        let json = try await makeRequest(
+            "/apple/bind",
+            method: "POST",
+            token: userToken,
+            body: ["guestAccessToken": guestToken]
+        )
+        return membershipStatus(from: json)
+    }
+
+    func loadAppleMembership(token: String) async throws -> AppleMembershipStatus {
+        let json = try await makeRequest("/apple/membership", token: token)
+        let data = json["data"] as? [String: Any] ?? [:]
+        return appleMembershipStatus(from: data)
+    }
+
+    private func appleMembershipStatus(from data: [String: Any]) -> AppleMembershipStatus {
+        AppleMembershipStatus(
+            active: data["appleActive"] as? Bool ?? false,
+            expiresAt: (data["appleExpiresAt"] as? String).flatMap { $0.isEmpty ? nil : $0 },
+            productId: (data["appleProductId"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+        )
+    }
+
     private func membershipStatus(from json: [String: Any]) -> MembershipStatus {
         let data = json["data"] as? [String: Any] ?? [:]
         let active = (data["active"] as? Bool) ?? (data["isVip"] as? Bool) ?? (data["isMember"] as? Bool) ?? false
@@ -137,12 +190,12 @@ final class PaymentService {
     /// 后端向 Apple 校验后发放会员并返回最新会员状态。
     /// 后端接口：POST {baseURL}/im/bot/navi/vip/apple/verify
     func verifyApplePurchase(
-        token: String,
+        token: String?,
         productId: String,
         appleProductId: String,
         transactionId: String,
         jws: String
-    ) async throws -> MembershipStatus {
+    ) async throws -> ApplePurchaseVerification {
         let body: [String: Any] = [
             "productId": productId,
             "appleProductId": appleProductId,
@@ -156,7 +209,7 @@ final class PaymentService {
         let active = (data["active"] as? Bool) ?? (data["isVip"] as? Bool) ?? (data["isMember"] as? Bool) ?? true
         let expires = (data["expiresAt"] as? String).flatMap { $0.isEmpty ? nil : $0 }
         let quota = data["quota"] as? [String: Any]
-        return MembershipStatus(
+        let membership = MembershipStatus(
             active: active,
             expiresAt: expires,
             freeVideoDaily: quota?["freeVideoDaily"] as? Int,
@@ -164,6 +217,14 @@ final class PaymentService {
             vipVideoDaily: quota?["vipVideoDaily"] as? Int,
             vipImageDaily: quota?["vipImageDaily"] as? Int,
             vipRemindDays: quota?["vipRemindDays"] as? Int
+        )
+        return ApplePurchaseVerification(
+            membership: membership,
+            guestAccessToken: (data["guestAccessToken"] as? String).flatMap { $0.isEmpty ? nil : $0 },
+            appleActive: data["appleActive"] as? Bool ?? false,
+            appleExpiresAt: (data["appleExpiresAt"] as? String).flatMap { $0.isEmpty ? nil : $0 },
+            appleProductId: (data["appleProductId"] as? String).flatMap { $0.isEmpty ? nil : $0 },
+            transactionAlreadyProcessed: data["transactionAlreadyProcessed"] as? Bool ?? false
         )
     }
 

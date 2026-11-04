@@ -8,6 +8,7 @@ struct SettingsPanelView: View {
 
     @ObservedObject var gatewayViewModel: GatewayConnectionViewModel
     @ObservedObject var chatViewModel: ChatViewModel
+    @ObservedObject var avatarViewModel: AvatarViewModel
     @Binding var isPresented: Bool
     @State private var selectedPage: Page = .skills
     @State private var showEnvironmentAlert = false
@@ -207,6 +208,8 @@ struct SettingsPanelView: View {
                             environmentSwitchRow()
                         }
                         aboutListRow(title: "用户协议", detail: nil, url: "https://www.cjym123.cn/agreement_agentclaw.html")
+                        aboutListRow(title: "会员服务协议", detail: nil, url: "https://www.cjym123.cn/agreement_agentclaw_vip.html")
+                        aboutListRow(title: "自动续费服务协议", detail: nil, url: "https://www.cjym123.cn/agreement_agentclaw_autorenew.html")
                         aboutListRow(title: "隐私政策", detail: nil, url: "https://www.cjym123.cn/privacy_agentclaw.html")
 
                         clearDataButton()
@@ -544,6 +547,10 @@ struct SettingsPanelView: View {
     private func clearAllData() {
         // 清除聊天历史（包括内存中的数据）
         chatViewModel.clearAllData()
+
+        // 智能体对话使用独立的本地存储，同时清理内存与持久化历史。
+        // 免费试用次数属于额度数据，不随清理记录重置。
+        avatarViewModel.clearConversationHistory()
 
         // 清除网关token
         let keychain = KeychainStore()

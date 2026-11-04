@@ -3,6 +3,9 @@ import UIKit
 
 enum AgentClawDesign {
     static let appBackground = Color(red: 0.94, green: 0.95, blue: 0.97)
+    // 数字人舞台最顶部的底色。Duo 展开或铰链动画缩放内容时，
+    // 外层会使用相同颜色承接，避免顶部安全区闪出白边。
+    static let avatarStageTop = Color(red: 0.25, green: 0.15, blue: 0.48)
     static let sidebarBackground = Color(red: 0.89, green: 0.91, blue: 0.94)
     static let chatSurface = Color.white
     static let controlSurface = Color(red: 0.96, green: 0.97, blue: 0.98)

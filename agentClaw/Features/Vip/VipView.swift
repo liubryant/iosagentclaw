@@ -5,14 +5,17 @@ struct VipView: View {
     @Binding var isPresented: Bool
     var onLoginRequired: (() -> Void)?
 
-    @ObservedObject private var vm: VipViewModel
+    @StateObject private var vm: VipViewModel
 
     init(isPresented: Binding<Bool>, onLoginRequired: (() -> Void)? = nil) {
         self._isPresented = isPresented
         self.onLoginRequired = onLoginRequired
-        _vm = ObservedObject(wrappedValue: VipViewModel())
+        _vm = StateObject(wrappedValue: VipViewModel())
     }
     @State private var showAgreement = false
+    @State private var showAutoRenewAgreement = false
+    @State private var showPrivacyPolicy = false
+    @State private var showTermsOfUse = false
     @State private var showAgreementAlert = false
     @State private var showBenefitsDetail = false
 
@@ -32,7 +35,7 @@ struct VipView: View {
 
     private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
     private func fs(_ size: CGFloat) -> CGFloat { isPad ? ceil(size * 1.16) : size }
-    private var memberActiveForDisplay: Bool { vm.isLoggedIn && vm.memberActive }
+    private var memberActiveForDisplay: Bool { vm.memberActive }
 
     var body: some View {
         ZStack {
@@ -82,11 +85,39 @@ struct VipView: View {
                 .zIndex(20)
             }
 
+            if showAutoRenewAgreement, let url = URL(string: "https://www.cjym123.cn/agreement_agentclaw_autorenew.html") {
+                InAppLegalWebView(
+                    page: LegalWebPage(title: "自动续费服务协议", url: url),
+                    onClose: { showAutoRenewAgreement = false }
+                )
+                .transition(.move(edge: .trailing))
+                .zIndex(20)
+            }
+
+            if showPrivacyPolicy, let url = URL(string: "https://www.cjym123.cn/privacy_agentclaw.html") {
+                InAppLegalWebView(
+                    page: LegalWebPage(title: "隐私政策", url: url),
+                    onClose: { showPrivacyPolicy = false }
+                )
+                .transition(.move(edge: .trailing))
+                .zIndex(20)
+            }
+
+            if showTermsOfUse, let url = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/") {
+                InAppLegalWebView(
+                    page: LegalWebPage(title: "使用条款（EULA）", url: url),
+                    onClose: { showTermsOfUse = false }
+                )
+                .transition(.move(edge: .trailing))
+                .zIndex(20)
+            }
+
             if showBenefitsDetail {
                 VipBenefitsDetailSheet(
                     products: vm.products,
                     selectedIndex: vm.selectedIndex,
                     memberActive: memberActiveForDisplay,
+                    priceText: { vm.priceText(for: $0) },
                     onSelectProduct: { vm.selectProduct($0) },
                     onPurchase: {
                         withAnimation(.easeOut(duration: 0.2)) {
@@ -112,7 +143,7 @@ struct VipView: View {
         .alert(isPresented: $showAgreementAlert) {
             Alert(
                 title: Text("请同意服务协议"),
-                message: Text("开通会员前，请先阅读并同意《会员服务协议》。"),
+                message: Text("开通会员前，请先阅读并同意《会员服务协议》《自动续费服务协议》《隐私政策》和《使用条款》。"),
                 primaryButton: .default(Text("同意并继续")) {
                     vm.isAgreementChecked = true
                     vm.startPayment()
@@ -186,22 +217,25 @@ struct VipView: View {
             .frame(width: 36, height: 36)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(vm.isLoggedIn ? vm.maskedPhone : "登录后开通会员")
+                Text(vm.isLoggedIn ? vm.maskedPhone : "无需登录，直接开通会员")
                     .font(.system(size: fs(15), weight: .bold))
                     .foregroundColor(.white)
-                Text(memberActiveForDisplay && vm.vipExpiresAt != nil
-                     ? "尊贵会员 · 有效期至 \(vm.vipExpiresAt!)"
+                Text(vm.appleActive && vm.appleExpiresAt != nil
+                     ? "有效期至 \(vm.appleExpiresAt!)"
+                     : memberActiveForDisplay && vm.vipExpiresAt != nil
+                     ? "有效期至 \(vm.vipExpiresAt!)"
                      : "开通会员，解锁AI助手全部功能")
                     .font(.system(size: fs(13)))
                     .foregroundColor(memberActiveForDisplay ? Color(hex: "#FFEDBD") : Color(hex: "#CDAF7A"))
                     .lineLimit(1)
+                    .minimumScaleFactor(0.85)
             }
 
             Spacer()
 
             if !vm.isLoggedIn {
                 Button(action: { vm.showLogin = true }) {
-                    Text("去登录")
+                    Text("登录同步权益")
                         .font(.system(size: fs(12), weight: .bold))
                         .foregroundColor(Color(hex: "#864F2D"))
                         .padding(.horizontal, 18)
@@ -261,6 +295,7 @@ struct VipView: View {
             isSelected: isSelected,
             badgeText: badgeText,
             badgeColor: badgeColor,
+            displayPrice: vm.priceText(for: product),
             // 价格接口加载完成后才展示价格，加载期间显示占位。
             showPrice: vm.pricesReady,
             onTap: { vm.selectProduct(index) }
@@ -430,7 +465,8 @@ struct VipView: View {
         4. 会员权益（对话、图片及视频生成额度等）按自然日计算，每日 0 点重置，当日未使用不累计至次日。
         5. 若支付后权益未及时到账，可稍后重新进入本页面，或点击「恢复购买」同步订单状态。
         6. 由于数字商品的特殊性，会员一经开通、权益开始使用后原则上不支持退款；如遇重复扣费或支付异常，请通过「我的-联系客服」与我们联系核实处理。
-        7. 开通即代表您已阅读并同意《会员服务协议》。
+        7. 无需注册或登录即可购买、恢复订阅；登录仅用于在支持的设备间同步账号内容与会员权益。
+        8. 开通即代表您已阅读并同意《会员服务协议》《自动续费服务协议》《隐私政策》和《使用条款（EULA）》。
         """
     }
 
@@ -449,9 +485,9 @@ struct VipView: View {
                         }
                     } else {
                         HStack(spacing: 8) {
-                            Text(vm.displayPrice.replacingOccurrences(of: "¥", with: "￥"))
+                            Text(selectedPriceAndPeriod)
                                 .font(.system(size: fs(24), weight: .bold))
-                            Text(memberActiveForDisplay ? "立即续费" : "立即开通")
+                            Text(vm.payActionTitle)
                                 .font(.system(size: fs(14), weight: .bold))
                         }
                         .foregroundColor(Color(hex: "#864F2D"))
@@ -474,7 +510,8 @@ struct VipView: View {
             .padding(.horizontal, 28)
             .padding(.top, 7)
 
-            HStack(spacing: 2) {
+            VStack(spacing: 1) {
+                HStack(spacing: 2) {
                 Button(action: { vm.isAgreementChecked.toggle() }) {
                     Image(systemName: vm.isAgreementChecked ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: fs(16)))
@@ -486,12 +523,35 @@ struct VipView: View {
                 Text("请阅读并同意")
                     .font(.system(size: fs(12)))
                     .foregroundColor(Color(hex: "#999999"))
+                }
+                HStack(spacing: 6) {
                 Button(action: { withAnimation { showAgreement = true } }) {
                     Text("《会员服务协议》")
                         .font(.system(size: fs(12), weight: .bold))
                         .foregroundColor(Color(hex: "#C87830"))
                 }
                 .buttonStyle(PlainButtonStyle())
+                Button(action: { withAnimation { showAutoRenewAgreement = true } }) {
+                    Text("《自动续费协议》")
+                        .font(.system(size: fs(11), weight: .bold))
+                        .foregroundColor(Color(hex: "#C87830"))
+                }
+                .buttonStyle(PlainButtonStyle())
+                }
+                HStack(spacing: 6) {
+                Button(action: { withAnimation { showPrivacyPolicy = true } }) {
+                    Text("《隐私政策》")
+                        .font(.system(size: fs(11), weight: .bold))
+                        .foregroundColor(Color(hex: "#C87830"))
+                }
+                .buttonStyle(PlainButtonStyle())
+                Button(action: { withAnimation { showTermsOfUse = true } }) {
+                    Text("《使用条款》")
+                        .font(.system(size: fs(11), weight: .bold))
+                        .foregroundColor(Color(hex: "#C87830"))
+                }
+                .buttonStyle(PlainButtonStyle())
+                }
             }
             .frame(maxWidth: .infinity)
             .padding(.bottom, 8)
@@ -505,6 +565,12 @@ struct VipView: View {
         } else {
             showAgreementAlert = true
         }
+    }
+
+    private var selectedPriceAndPeriod: String {
+        let price = vm.displayPrice.replacingOccurrences(of: "¥", with: "￥")
+        guard let product = vm.selectedProduct else { return price }
+        return "\(price)/\(product.subscriptionPeriodText)"
     }
 
     /// 支付中的按钮文案：优先跟随实时状态，避免只有一个孤零零的小转圈。
@@ -522,6 +588,7 @@ private struct VipBenefitsDetailSheet: View {
     let products: [VipProduct]
     let selectedIndex: Int?
     let memberActive: Bool
+    let priceText: (VipProduct) -> String
     let onSelectProduct: (Int) -> Void
     let onPurchase: () -> Void
     let onDismiss: () -> Void
@@ -728,7 +795,7 @@ private struct VipBenefitsDetailSheet: View {
                     }
                 }
                 Spacer()
-                Text("￥\(product.price)")
+                Text("\(priceText(product))/\(product.subscriptionPeriodText)")
                     .font(.system(size: fs(18), weight: .bold))
                     .foregroundColor(Color(hex: "#F6D28F"))
             }
@@ -750,7 +817,7 @@ private struct VipBenefitsDetailSheet: View {
             Button(action: onPurchase) {
                 HStack(spacing: 8) {
                     if let selectedIndex = selectedIndex, products.indices.contains(selectedIndex) {
-                        Text("￥\(products[selectedIndex].price)")
+                        Text("\(priceText(products[selectedIndex]))/\(products[selectedIndex].subscriptionPeriodText)")
                             .font(.system(size: fs(20), weight: .bold))
                     }
                     Text(memberActive ? "立即续费" : "立即开通会员")
@@ -771,7 +838,7 @@ private struct VipBenefitsDetailSheet: View {
             .disabled(selectedIndex == nil || products.isEmpty)
             .opacity(selectedIndex == nil || products.isEmpty ? 0.5 : 1)
 
-            Text("开通前请阅读并同意页面下方《会员服务协议》")
+            Text("开通前请阅读并同意页面下方全部协议与政策")
                 .font(.system(size: fs(10)))
                 .foregroundColor(Color(hex: "#756757"))
         }
@@ -789,6 +856,7 @@ struct VipProductCard: View {
     let isSelected: Bool
     let badgeText: String?
     let badgeColor: (String, String)?
+    var displayPrice: String? = nil
     var showPrice: Bool = true
     let onTap: () -> Void
 
@@ -816,7 +884,7 @@ struct VipProductCard: View {
         VStack(spacing: 6) {
             Spacer().frame(height: badgeText != nil ? 14 : 4)
             if showPrice {
-                Text("¥\(product.price)")
+                Text("\(displayPrice ?? "¥\(product.price)")/\(product.subscriptionPeriodText)")
                     .font(.system(size: fs(24), weight: .bold))
                     .foregroundColor(priceColor)
             } else {

@@ -267,9 +267,20 @@ final class AvatarSpeechSynthesizer: NSObject, AVSpeechSynthesizerDelegate {
         let liLianAliases = ["黎潋", "li-lian", "li_lian", "li lian", "lilian"]
         if let liLianVoice = voices.first(where: { voice in
             let searchable = "\(voice.name) \(voice.identifier)".lowercased()
-            return voice.language.hasPrefix("zh") && liLianAliases.contains { searchable.contains($0) }
+            return voice.language.hasPrefix("zh")
+                && voice.gender != .male
+                && liLianAliases.contains { searchable.contains($0) }
         }) {
             return liLianVoice
+        }
+
+        // 名称和 identifier 在不同 iOS 版本及不同地区会变化，不能只靠名称
+        // 判断。优先使用系统明确标记为 female 的普通话声线，避免首次安装时
+        // 落到用户设备当前的男性默认声线。
+        if let systemFemaleMandarinVoice = bestVoice(
+            in: mandarinVoices.filter { $0.gender == .female }
+        ) {
+            return systemFemaleMandarinVoice
         }
 
         if let enhancedFemaleVoice = mandarinVoices
@@ -286,13 +297,44 @@ final class AvatarSpeechSynthesizer: NSObject, AVSpeechSynthesizerDelegate {
             return femaleChineseVoice
         }
 
-        return AVSpeechSynthesisVoice(language: "zh-CN")
+        // 兼容部分旧系统没有可靠 gender/name 元数据的内置中文女声。
+        let knownFemaleVoiceIdentifiers = [
+            "com.apple.voice.compact.zh-CN.Tingting",
+            "com.apple.voice.compact.zh-CN.Ting-Ting",
+            "com.apple.ttsbundle.Ting-Ting-compact",
+            "com.apple.voice.compact.zh-CN.Li-Lian",
+            "com.apple.voice.compact.zh-TW.Meijia",
+            "com.apple.ttsbundle.Mei-Jia-compact",
+            "com.apple.ttsbundle.Sin-Ji-compact"
+        ]
+        for identifier in knownFemaleVoiceIdentifiers {
+            if let voice = AVSpeechSynthesisVoice(identifier: identifier), voice.gender != .male {
+                return voice
+            }
+        }
+
+        // 最后一层只接受“非男性”的普通话默认声线，绝不主动把 Lily 指定成
+        // 男声。正常 iOS 安装均自带至少一条可用的中文女声，上面的分支会命中。
+        if let defaultMandarinVoice = AVSpeechSynthesisVoice(language: "zh-CN"),
+           defaultMandarinVoice.gender != .male {
+            return defaultMandarinVoice
+        }
+        return mandarinVoices.first { $0.gender != .male }
     }
 
     private func isLikelyFemaleMandarinVoice(_ voice: AVSpeechSynthesisVoice) -> Bool {
+        if voice.gender == .female { return true }
+        if voice.gender == .male { return false }
+
         let searchable = "\(voice.name) \(voice.identifier)".lowercased()
         let preferredFemaleNames = [
+            "黎潋",
+            "婷婷",
+            "美佳",
             "tingting",
+            "ting-ting",
+            "li-lian",
+            "lilian",
             "mei-jia",
             "meijia",
             "sin-ji",
@@ -301,6 +343,15 @@ final class AvatarSpeechSynthesizer: NSObject, AVSpeechSynthesizerDelegate {
             "siri"
         ]
         return preferredFemaleNames.contains { searchable.contains($0) }
+    }
+
+    private func bestVoice(in voices: [AVSpeechSynthesisVoice]) -> AVSpeechSynthesisVoice? {
+        voices.sorted { lhs, rhs in
+            if lhs.quality.rawValue != rhs.quality.rawValue {
+                return lhs.quality.rawValue > rhs.quality.rawValue
+            }
+            return lhs.identifier < rhs.identifier
+        }.first
     }
 
     private func scheduleDigitalHumanSafetyTimeout(for text: String, generation: Int) {

@@ -55,6 +55,7 @@ final class LoginViewModel: ObservableObject {
                 prefs.isLoggedIn = true
                 prefs.userPhone = result.phone
                 if !result.accessToken.isEmpty { prefs.userAccessToken = result.accessToken }
+                await syncAppleMembershipAfterLogin(preferences: prefs, userToken: result.accessToken)
                 await MainActor.run {
                     self.isLoading = false
                     NotificationCenter.default.post(name: .authStateDidChange, object: nil)
@@ -80,6 +81,7 @@ final class LoginViewModel: ObservableObject {
                 prefs.isLoggedIn = true
                 prefs.userPhone = result.phone
                 if !result.accessToken.isEmpty { prefs.userAccessToken = result.accessToken }
+                await syncAppleMembershipAfterLogin(preferences: prefs, userToken: result.accessToken)
                 await MainActor.run {
                     self.isLoading = false
                     NotificationCenter.default.post(name: .authStateDidChange, object: nil)
@@ -91,6 +93,22 @@ final class LoginViewModel: ObservableObject {
                     self.errorMsg = error.localizedDescription
                 }
             }
+        }
+    }
+
+    /// 游客购买不要求注册；用户之后自愿登录时，将 Apple 权益同步到该账号。
+    private func syncAppleMembershipAfterLogin(preferences: AppPreferences, userToken: String) async {
+        guard !userToken.isEmpty,
+              let guestToken = preferences.appleGuestAccessToken, !guestToken.isEmpty else { return }
+        if let membership = try? await PaymentService.shared.bindAppleGuestMembership(
+            userToken: userToken, guestToken: guestToken
+        ) {
+            preferences.isVipActive = membership.active
+            preferences.vipExpiresAt = membership.expiresAt
+        }
+        if let apple = try? await PaymentService.shared.loadAppleMembership(token: userToken) {
+            preferences.appleVipActive = apple.active
+            preferences.appleVipExpiresAt = apple.expiresAt
         }
     }
 

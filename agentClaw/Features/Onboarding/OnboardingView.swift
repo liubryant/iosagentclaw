@@ -41,7 +41,7 @@ struct OnboardingView: View {
                         // 介绍内容
                         ScrollView(showsIndicators: true) {
                             VStack(alignment: .leading, spacing: 12) {
-	                                Text("欢迎来到Agent智能体生活助手！")
+	                                Text("欢迎来到 Muse AI！")
 	                                    .font(.system(size: 14, weight: .semibold))
 	                                    .foregroundColor(titleText)
 

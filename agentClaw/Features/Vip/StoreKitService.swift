@@ -73,6 +73,10 @@ final class StoreKitService {
 
     /// 发起购买。成功后返回已签名交易，交由后端发放会员成功后再调用 finish()。
     func purchase(productId: String) async throws -> SignedTransaction {
+        // 服务端不会给已过期交易发放权益，但这类交易若一直不 finish，StoreKit 会在
+        // 后续启动/购买时反复投递。付款前先清理队列，确保本次拿到的是新交易。
+        await finishExpiredUnfinishedTransactions()
+
         let product: Product
         if let cached = productsCache[productId] {
             product = cached
@@ -88,6 +92,10 @@ final class StoreKitService {
         switch result {
         case .success(let verification):
             let transaction = try checkVerified(verification)
+            guard isCurrentlyActive(transaction) else {
+                await transaction.finish()
+                throw StoreError.notEntitled
+            }
             return SignedTransaction(
                 transactionId: String(transaction.id),
                 originalId: String(transaction.originalID),
@@ -115,12 +123,19 @@ final class StoreKitService {
 
     // MARK: - Restore
 
-    /// 恢复购买：与 App Store 同步后，收集全部已验签历史交易，交由调用方补交后端校验。
+    /// 恢复购买：与 App Store 同步后，只收集当前有效权益。
+    /// Transaction.all 会包含已过期的历史订阅，提交它们会造成“订阅已过期”的误提示，
+    /// 也会产生大量无意义的后端校验请求。
     func restore() async throws -> [SignedTransaction] {
+        await finishExpiredUnfinishedTransactions()
         try await AppStore.sync()
         var collected: [SignedTransaction] = []
-        for await result in Transaction.all {
+        for await result in Transaction.currentEntitlements {
             guard case .verified(let tx) = result else { continue }
+            guard isCurrentlyActive(tx) else {
+                await tx.finish()
+                continue
+            }
             collected.append(SignedTransaction(
                 transactionId: String(tx.id),
                 originalId: String(tx.originalID),
@@ -139,7 +154,14 @@ final class StoreKitService {
         updatesListener?.cancel()
         updatesListener = Task.detached {
             for await result in Transaction.updates {
+                if Task.isCancelled { return }
                 guard case .verified(let tx) = result else { continue }
+                // 已过期、退款或已升级的历史交易无需再请求业务服务端，直接结束，
+                // 防止每次启动都重复提示“订阅已过期”。
+                guard self.isCurrentlyActive(tx) else {
+                    await tx.finish()
+                    continue
+                }
                 await onSigned(SignedTransaction(
                     transactionId: String(tx.id),
                     originalId: String(tx.originalID),
@@ -158,6 +180,25 @@ final class StoreKitService {
             throw StoreError.failedVerification
         case .verified(let safe):
             return safe
+        }
+    }
+
+    private func isCurrentlyActive(_ transaction: Transaction) -> Bool {
+        guard transaction.revocationDate == nil, !transaction.isUpgraded else { return false }
+        if let expirationDate = transaction.expirationDate {
+            return expirationDate > Date()
+        }
+        return true
+    }
+
+    /// 清理此前因服务端拒绝而遗留的过期交易。只处理无有效权益的交易，
+    /// 当前仍有效的订阅仍会正常提交服务端同步会员。
+    private func finishExpiredUnfinishedTransactions() async {
+        for await result in Transaction.unfinished {
+            guard case .verified(let transaction) = result else { continue }
+            if !isCurrentlyActive(transaction) {
+                await transaction.finish()
+            }
         }
     }
 }

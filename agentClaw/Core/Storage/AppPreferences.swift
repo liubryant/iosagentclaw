@@ -14,6 +14,8 @@ final class AppPreferences {
         // VIP
         static let isVipActive = "vip_active"
         static let vipExpiresAt = "vip_expires_at"
+        static let appleVipActive = "apple_vip_active"
+        static let appleVipExpiresAt = "apple_vip_expires_at"
         // Server quota config
         static let serverFreeVideoDaily = "server_free_video_daily"
         static let serverFreeImageDaily = "server_free_image_daily"
@@ -29,6 +31,7 @@ final class AppPreferences {
     }
 
     private static let keychainTokenAccount = "user_access_token"
+    private static let keychainAppleGuestTokenAccount = "apple_guest_access_token"
 
     private let defaults: UserDefaults
     private let keychain: KeychainStore
@@ -143,12 +146,26 @@ final class AppPreferences {
         set { try? keychain.setString(newValue, for: Self.keychainTokenAccount) }
     }
 
+    /// Apple 内购游客权益凭证。它不包含手机号等个人信息，退出账号时仍保留，
+    /// 以便未登录用户继续使用或恢复其 App Store 订阅。
+    var appleGuestAccessToken: String? {
+        get { keychain.string(for: Self.keychainAppleGuestTokenAccount) }
+        set { try? keychain.setString(newValue, for: Self.keychainAppleGuestTokenAccount) }
+    }
+
+    var effectiveAccessToken: String? {
+        if isLoggedIn, let token = userAccessToken, !token.isEmpty { return token }
+        return appleGuestAccessToken
+    }
+
     func logout() {
         isLoggedIn = false
         userPhone = nil
         userAccessToken = nil
-        isVipActive = false
-        vipExpiresAt = nil
+        if appleGuestAccessToken == nil {
+            isVipActive = false
+            vipExpiresAt = nil
+        }
     }
 
     // MARK: - VIP
@@ -161,6 +178,16 @@ final class AppPreferences {
     var vipExpiresAt: String? {
         get { defaults.string(forKey: Key.vipExpiresAt) }
         set { defaults.set(newValue, forKey: Key.vipExpiresAt) }
+    }
+
+    var appleVipActive: Bool {
+        get { defaults.bool(forKey: Key.appleVipActive) }
+        set { defaults.set(newValue, forKey: Key.appleVipActive) }
+    }
+
+    var appleVipExpiresAt: String? {
+        get { defaults.string(forKey: Key.appleVipExpiresAt) }
+        set { defaults.set(newValue, forKey: Key.appleVipExpiresAt) }
     }
 
     // MARK: - Server Quota Config (refreshed from /membership)

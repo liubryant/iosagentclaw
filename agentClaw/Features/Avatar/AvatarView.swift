@@ -13,18 +13,31 @@ struct AvatarView: View {
     var body: some View {
         GeometryReader { proxy in
             let topInset = proxy.safeAreaInsets.top
-            VStack(spacing: 0) {
-                avatarStage(topInset: topInset)
-                    .frame(height: max(430, proxy.size.height * 0.58 + topInset))
-                    .ignoresSafeArea(.container, edges: .top)
+            let isDuoExpanded = proxy.size.width >= 600
+            let preferredStageHeight = proxy.size.height * (isDuoExpanded ? 0.54 : 0.58) + topInset
+            let stageHeight = isDuoExpanded
+                ? max(340, min(preferredStageHeight, 520))
+                : max(430, preferredStageHeight)
 
-                conversationPanel
+            ZStack(alignment: .top) {
+                // 覆盖包括顶部安全区在内的整个容器。Duo 展开重排和窗口尺寸
+                // 动画期间，即使前景视图尚未完成布局，也不会露出白色底层。
+                AgentClawDesign.avatarStageTop
+                    .ignoresSafeArea()
 
-                composer
+                VStack(spacing: 0) {
+                    avatarStage(topInset: topInset, isDuoExpanded: isDuoExpanded)
+                        .frame(height: stageHeight)
+                        .ignoresSafeArea(.container, edges: .top)
+
+                    conversationPanel
+
+                    composer
+                }
+                .background(Color.white)
             }
-            .background(Color.white)
         }
-        .background(Color.white)
+        .background(AgentClawDesign.avatarStageTop.ignoresSafeArea())
         .sheet(isPresented: $viewModel.showUpgrade) {
             VipUpgradeSheet(type: .avatar, onGoVip: { showVip = true })
         }
@@ -46,12 +59,12 @@ struct AvatarView: View {
         }
     }
 
-    private func avatarStage(topInset: CGFloat) -> some View {
+    private func avatarStage(topInset: CGFloat, isDuoExpanded: Bool) -> some View {
         GeometryReader { proxy in
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color(red: 0.25, green: 0.15, blue: 0.48),
+                        AgentClawDesign.avatarStageTop,
                         Color(red: 0.48, green: 0.35, blue: 0.70),
                         Color(red: 0.62, green: 0.55, blue: 0.80)
                     ],
@@ -59,12 +72,11 @@ struct AvatarView: View {
                     endPoint: .bottomTrailing
                 )
 
-                Image("avatar_agent_portrait")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: proxy.size.width, height: proxy.size.height)
+                avatarPoster(
+                    size: proxy.size,
+                    usesExpandedLayout: isDuoExpanded
+                )
                     .opacity(revealLiveDigitalHuman ? 0 : 1)
-                    .clipped()
                     .animation(.easeOut(duration: 0.28), value: revealLiveDigitalHuman)
 
                 DuixDigitalHumanView(controller: digitalHuman)
@@ -102,7 +114,7 @@ struct AvatarView: View {
                     Spacer()
                 }
                 .padding(.horizontal, 17)
-                .padding(.top, topInset + 65)
+                .padding(.top, topInset + (isDuoExpanded ? 24 : 65))
                 .frame(maxHeight: .infinity, alignment: .top)
 
                 if viewModel.isSpeaking || viewModel.isListening || viewModel.isThinking {
@@ -157,6 +169,37 @@ struct AvatarView: View {
                     revealLiveDigitalHuman = digitalHuman.state.isReady
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func avatarPoster(size: CGSize, usesExpandedLayout: Bool) -> some View {
+        if usesExpandedLayout {
+            // 原海报是 9:16 竖图。Duo 展开后若继续 scaledToFill，会把图片
+            // 放大约四倍并只留下嘴部。宽屏改用一层柔化铺底和一层完整人物，
+            // 既覆盖整个舞台，也能保留头部、眼睛和上半身。
+            ZStack {
+                Image("avatar_agent_portrait")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: size.width, height: size.height)
+                    .blur(radius: 22)
+                    .scaleEffect(1.08)
+                    .opacity(0.52)
+
+                Image("avatar_agent_portrait")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size.width, height: size.height)
+            }
+            .frame(width: size.width, height: size.height)
+            .clipped()
+        } else {
+            Image("avatar_agent_portrait")
+                .resizable()
+                .scaledToFill()
+                .frame(width: size.width, height: size.height)
+                .clipped()
         }
     }
 

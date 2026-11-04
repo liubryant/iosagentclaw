@@ -47,6 +47,7 @@ struct ModernApp: App {
 }
 
 enum AgentClawQuickAction: String {
+    case chat = "com.agentclaw.quick.chat"
     case avatar = "com.agentclaw.quick.avatar"
     case image = "com.agentclaw.quick.image"
 }
@@ -90,6 +91,7 @@ final class QuickActionRouter {
 private extension AgentClawQuickAction {
     init?(widgetPath: String) {
         switch widgetPath.lowercased() {
+        case "/chat": self = .chat
         case "/avatar": self = .avatar
         case "/image": self = .image
         default: return nil
@@ -160,24 +162,27 @@ final class QuickActionSceneDelegate: NSObject, UIWindowSceneDelegate {
 }
 
 /// 全局内购交易监听：处理支付成功但 App 中断(被杀/家长同意后到账)等未完成交易，
-/// 下次启动时若已登录则补交后端校验并发放会员。
+/// 下次启动时无论是否登录都补交后端校验并恢复会员；登录仅用于可选的账号同步。
 enum IAPBootstrap {
     static func startObservingTransactions() {
         StoreKitService.shared.startObservingUpdates { signed in
             let prefs = AppPreferences()
-            guard let token = prefs.userAccessToken, !token.isEmpty else {
-                return // 未登录：保留未完成交易，待登录后的启动再处理
-            }
             do {
-                let status = try await PaymentService.shared.verifyApplePurchase(
-                    token: token,
+                let verified = try await PaymentService.shared.verifyApplePurchase(
+                    // 未登录时不能把游客权益凭证当成正式账号身份上报；Apple 原始交易号
+                    // 本身即可稳定找回匿名会员，登录后才携带手机号账号 Token 做可选同步。
+                    token: prefs.isLoggedIn ? prefs.userAccessToken : nil,
                     productId: "",
                     appleProductId: signed.productId,
                     transactionId: signed.transactionId,
                     jws: signed.jws
                 )
+                let status = verified.membership
+                if let guestToken = verified.guestAccessToken { prefs.appleGuestAccessToken = guestToken }
                 prefs.isVipActive = status.active
                 prefs.vipExpiresAt = status.expiresAt
+                prefs.appleVipActive = verified.appleActive
+                prefs.appleVipExpiresAt = verified.appleExpiresAt
                 QuotaManager.shared.applyServerQuota(status)
                 await StoreKitService.shared.finish(transactionId: signed.transactionId)
             } catch {

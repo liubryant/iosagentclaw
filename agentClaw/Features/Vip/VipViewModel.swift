@@ -7,6 +7,9 @@ final class VipViewModel: ObservableObject {
     @Published var memberActive = false
     @Published var memberStatusLoaded = false
     @Published var vipExpiresAt: String? = nil
+    @Published var appleExpiresAt: String? = nil
+    @Published var appleActive = false
+    @Published var currentAppleProductId: String? = nil
     @Published var statusMessage = "正在加载会员套餐…"
     @Published var isPayEnabled = false
     @Published var isLoading = false
@@ -40,6 +43,13 @@ final class VipViewModel: ObservableObject {
         guard let product = selectedProduct else { return "¥--" }
         return priceText(for: product)
     }
+    var selectedProductIsCurrent: Bool {
+        appleActive && selectedProduct?.appleProductId == currentAppleProductId
+    }
+    var payActionTitle: String {
+        if selectedProductIsCurrent { return "当前套餐" }
+        return memberActive ? "更换套餐" : "立即开通"
+    }
 
     /// 优先展示 App Store 本地化价格(合规要求)，拿不到再回退后端价格。
     func priceText(for product: VipProduct) -> String {
@@ -51,40 +61,71 @@ final class VipViewModel: ObservableObject {
 
     func loadData() {
         let preferences = AppPreferences()
-        let hasValidLogin = preferences.isLoggedIn && !(preferences.userPhone?.isEmpty ?? true)
-        let token = hasValidLogin ? preferences.userAccessToken : nil
+        let token = preferences.effectiveAccessToken
         memberStatusLoaded = false
         isPayEnabled = false
         pricesReady = false
         statusMessage = "正在加载会员套餐…"
 
         Task {
-            async let products = loadProducts()
+            if preferences.isLoggedIn,
+               let userToken = preferences.userAccessToken, !userToken.isEmpty,
+               let guestToken = preferences.appleGuestAccessToken, !guestToken.isEmpty {
+                if let bound = try? await PaymentService.shared.bindAppleGuestMembership(
+                    userToken: userToken, guestToken: guestToken
+                ) {
+                    preferences.isVipActive = bound.active
+                    preferences.vipExpiresAt = bound.expiresAt
+                }
+            }
+            // 后台套餐与 StoreKit 并行请求。后台价格先到即可立即展示，
+            // 不再因为 App Store 商品请求较慢而把已有价格一起隐藏。
             async let membership: Void = token != nil ? loadMembership(token: token!) : noMembership()
-            let (p, _) = await (products, membership)
+            async let productsRequest = loadProducts()
+            async let storePricesRequest = fetchStoreDisplayPrices()
+            let p = await productsRequest
             await MainActor.run {
                 self.products = p
                 if !p.isEmpty {
                     self.selectedIndex = 0
                 }
+                // 后台已经返回套餐价格，先展示后端价格作为可靠回退。
+                self.pricesReady = !p.isEmpty
                 self.updatePayButtonState()
             }
-            await self.loadStorePrices()
+            let storePrices = await storePricesRequest
+            await MainActor.run {
+                self.storeDisplayPrices = storePrices
+                self.storePricesReady = !storePrices.isEmpty
+                // StoreKit 为空时继续显示后台价格。
+                self.pricesReady = !self.products.isEmpty
+            }
+            await membership
+            if let currentToken = preferences.effectiveAccessToken,
+               let apple = try? await PaymentService.shared.loadAppleMembership(token: currentToken) {
+                preferences.appleVipActive = apple.active
+                preferences.appleVipExpiresAt = apple.expiresAt
+                await MainActor.run {
+                    self.appleActive = apple.active
+                    self.appleExpiresAt = apple.expiresAt
+                    self.currentAppleProductId = apple.productId
+                    if apple.active,
+                       let productId = apple.productId,
+                       let index = self.products.firstIndex(where: { $0.appleProductId == productId }) {
+                        self.selectedIndex = index
+                    }
+                    self.updatePayButtonState()
+                }
+            }
         }
     }
 
-    /// 拉取 App Store 本地化价格，用于价格展示与内购下单。
-    private func loadStorePrices() async {
+    /// 拉取 App Store 本地化价格。与后台套餐并行，不阻塞后台价格展示。
+    private func fetchStoreDisplayPrices() async -> [String: String] {
         let storeProducts = await StoreKitService.shared.loadProducts()
         var built: [String: String] = [:]
         for sp in storeProducts { built[sp.id] = sp.displayPrice }
-        let map = built
-        await MainActor.run {
-            self.storeDisplayPrices = map
-            self.storePricesReady = !map.isEmpty
-            // 无论 App Store 价格是否取到（取不到会回退后端价格），都算加载结束，可展示价格。
-            self.pricesReady = true
-        }
+        return built
     }
 
     private func loadProducts() async -> [VipProduct] {
@@ -137,14 +178,17 @@ final class VipViewModel: ObservableObject {
             isPayEnabled = false
             return
         }
-        isPayEnabled = selectedProduct != nil
         if selectedProduct == nil {
+            isPayEnabled = false
             statusMessage = "请先选择会员套餐"
-        } else if !isLoggedIn {
-            statusMessage = "支付前需要先登录"
+        } else if selectedProductIsCurrent {
+            isPayEnabled = false
+            statusMessage = "当前套餐已生效，将由 App Store 自动续订"
         } else if memberActive {
-            statusMessage = "会员已开通，可继续续费"
+            isPayEnabled = true
+            statusMessage = "可通过 App Store 更换订阅套餐"
         } else {
+            isPayEnabled = true
             statusMessage = "请选择套餐并支付"
         }
     }
@@ -156,14 +200,13 @@ final class VipViewModel: ObservableObject {
 
     func startPayment() {
         guard isAgreementChecked else {
-            showToast("请先阅读并同意《会员服务协议》")
+            showToast("请先阅读并同意会员、自动续费、隐私政策和使用条款")
             return
         }
         let prefs = AppPreferences()
-        guard prefs.isLoggedIn, let token = prefs.userAccessToken, !token.isEmpty else {
-            showLogin = true
-            return
-        }
+        // 游客凭证只用于读取当前游客权益，不能作为“账号身份”参与 Apple 交易校验。
+        // 未登录时交由服务端根据 Apple originalTransactionId 找回或创建匿名权益主体。
+        let token = prefs.isLoggedIn ? prefs.userAccessToken : nil
         guard let product = selectedProduct else {
             showToast("请先选择会员套餐")
             return
@@ -181,9 +224,18 @@ final class VipViewModel: ObservableObject {
                 let signed = try await StoreKitService.shared.purchase(productId: product.appleProductId)
                 await MainActor.run { self.statusMessage = "支付结果确认中…" }
                 // 2) 交给后端校验并发放会员
-                try await self.grantWithApple(signed: signed, backendProductId: product.id, token: token)
+                let verified = try await self.grantWithApple(
+                    signed: signed, backendProductId: product.id, token: token
+                )
                 // 3) 发放成功后结束交易
                 await StoreKitService.shared.finish(transactionId: signed.transactionId)
+                // 后端可能刚签发游客权益凭证。使用最新凭证再拉一次会员状态，
+                // 确保顶部有效期、本地缓存和服务端最终状态保持一致。
+                let refreshedToken = AppPreferences().effectiveAccessToken
+                if !verified.transactionAlreadyProcessed,
+                   let refreshedToken, !refreshedToken.isEmpty {
+                    await self.loadMembership(token: refreshedToken)
+                }
             } catch is CancellationError {
                 await MainActor.run {
                     self.isLoading = false
@@ -201,38 +253,54 @@ final class VipViewModel: ObservableObject {
     }
 
     /// 把苹果交易凭证发给后端校验，成功即刷新会员状态。
-    private func grantWithApple(signed: StoreKitService.SignedTransaction, backendProductId: String, token: String) async throws {
-        let status = try await PaymentService.shared.verifyApplePurchase(
+    @discardableResult
+    private func grantWithApple(
+        signed: StoreKitService.SignedTransaction,
+        backendProductId: String,
+        token: String?
+    ) async throws -> ApplePurchaseVerification {
+        let verified = try await PaymentService.shared.verifyApplePurchase(
             token: token,
             productId: backendProductId,
             appleProductId: signed.productId,
             transactionId: signed.transactionId,
             jws: signed.jws
         )
+        let status = verified.membership
         QuotaManager.shared.applyServerQuota(status)
         let prefs = AppPreferences()
         prefs.isVipActive = status.active
         prefs.vipExpiresAt = status.expiresAt
+        if let guestToken = verified.guestAccessToken { prefs.appleGuestAccessToken = guestToken }
+        prefs.appleVipActive = verified.appleActive
+        prefs.appleVipExpiresAt = verified.appleExpiresAt
         await MainActor.run {
             self.isLoading = false
             self.memberActive = status.active
             self.vipExpiresAt = status.expiresAt
-            self.paySuccess = status.active
-            self.statusMessage = status.active
-                ? "支付成功，会员已开通" + (status.expiresAt.map { "，有效期至 \($0)" } ?? "")
-                : "支付已完成，正在同步会员状态…"
+            self.appleActive = verified.appleActive
+            self.appleExpiresAt = verified.appleExpiresAt
+            self.currentAppleProductId = verified.appleProductId
+            self.paySuccess = verified.appleActive && !verified.transactionAlreadyProcessed
+            if verified.transactionAlreadyProcessed {
+                self.statusMessage = "当前订阅已生效，本次未生成新的续订周期"
+            } else {
+                self.statusMessage = verified.appleActive
+                    ? "支付成功，会员已开通" + (verified.appleExpiresAt.map { "，App Store 订阅有效期至 \($0)" } ?? "")
+                    : "支付已完成，正在同步会员状态…"
+            }
             self.isPayEnabled = !status.active
-            if status.active { self.onPaymentSuccess?() }
+            if verified.appleActive && !verified.transactionAlreadyProcessed {
+                self.onPaymentSuccess?()
+            }
         }
+        return verified
     }
 
     /// 恢复购买：与 App Store 同步后把历史交易补交给后端校验。
     func restorePurchases() {
         let prefs = AppPreferences()
-        guard prefs.isLoggedIn, let token = prefs.userAccessToken, !token.isEmpty else {
-            showLogin = true
-            return
-        }
+        let token = prefs.isLoggedIn ? prefs.userAccessToken : nil
         isLoading = true
         statusMessage = "正在恢复购买…"
         Task {
@@ -250,7 +318,11 @@ final class VipViewModel: ObservableObject {
             let didRestore = restoredAny
             await MainActor.run {
                 self.isLoading = false
-                if !didRestore && !self.memberActive {
+                if didRestore {
+                    self.statusMessage = self.vipExpiresAt.map { "会员权益已恢复，有效期至 \($0)" }
+                        ?? "会员权益已恢复"
+                    self.isPayEnabled = false
+                } else if !self.memberActive {
                     self.statusMessage = "未找到可恢复的购买记录"
                     self.isPayEnabled = self.selectedProduct != nil
                 }
