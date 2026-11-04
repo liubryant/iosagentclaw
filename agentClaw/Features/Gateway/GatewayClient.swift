@@ -41,6 +41,8 @@ final class GatewayClient {
     func sendChat(
         messages: [ChatMessage],
         model: String = AppConfig.defaultChatModel,
+        onUpdate: ((String) -> Void)? = nil,
+        onStreamTask: ((Task<Void, Never>) -> Void)? = nil,
         completion: @escaping (Result<String, Error>) -> Void
     ) {
         guard ensureAIDataSharingConsent(completion: completion) else { return }
@@ -50,6 +52,7 @@ final class GatewayClient {
         let hasImageModeMarker = messages.contains { $0.content.contains(imageModeMarker) }
         let hasVideoModeMarker = messages.contains { $0.content.contains(videoModeMarker) }
         let hasDocumentModeMarker = messages.contains { $0.content.contains(documentModeMarker) }
+        let streamsText = onUpdate != nil && !hasImageModeMarker && !hasVideoModeMarker && !hasDocumentModeMarker
         let timeout: TimeInterval
         if hasImageModeMarker || hasVideoModeMarker {
             timeout = AppConfig.mediaGenerationRequestTimeout
@@ -73,7 +76,7 @@ final class GatewayClient {
             request.httpBody = try encoder.encode(
                 ChatCompletionRequest(
                     model: requestModel,
-                    stream: false,
+                    stream: streamsText,
                     responseMode: hasVideoModeMarker ? "video_only" : nil,
                     messages: messages.map {
                         ChatCompletionRequest.Message(
@@ -88,6 +91,11 @@ final class GatewayClient {
             return
         }
 
+        if streamsText, let onUpdate = onUpdate {
+            let task = streamText(request: request, onUpdate: onUpdate, completion: completion)
+            onStreamTask?(task)
+            return
+        }
         httpClient.data(for: request) { [decoder] result in
             switch result {
             case .success(let data):
@@ -100,6 +108,51 @@ final class GatewayClient {
             case .failure(let error):
                 completion(.failure(error))
             }
+        }
+    }
+
+    private func streamText(request: URLRequest, onUpdate: @escaping (String) -> Void,
+                            completion: @escaping (Result<String, Error>) -> Void) -> Task<Void, Never> {
+        Task {
+            do {
+                let (bytes, response) = try await URLSession.shared.bytes(for: request)
+                guard let response = response as? HTTPURLResponse else { throw HTTPClientError.invalidResponse }
+                guard (200..<300).contains(response.statusCode) else {
+                    throw HTTPClientError.statusCode(response.statusCode, "对话请求失败，请稍后重试")
+                }
+                guard response.mimeType == "text/event-stream" else {
+                    var data = Data()
+                    for try await byte in bytes { data.append(byte) }
+                    let result = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
+                    completion(.success(result.firstContent))
+                    return
+                }
+                var content = ""
+                var finished = false
+                var lastUpdate = Date.distantPast
+                for try await line in bytes.lines {
+                    guard line.hasPrefix("data:") else { continue }
+                    let payload = String(line.dropFirst(5)).trimmingCharacters(in: .whitespaces)
+                    if payload == "[DONE]" { finished = true; break }
+                    let json = try JSONSerialization.jsonObject(with: Data(payload.utf8)) as? [String: Any]
+                    if let error = json?["error"] as? [String: Any] {
+                        throw HTTPClientError.statusCode(502, error["message"] as? String ?? "生成失败")
+                    }
+                    if let choices = json?["choices"] as? [[String: Any]], let choice = choices.first {
+                        if let delta = choice["delta"] as? [String: Any], let text = delta["content"] as? String {
+                            content += text
+                            if Date().timeIntervalSince(lastUpdate) >= 0.08 {
+                                onUpdate(content)
+                                lastUpdate = Date()
+                            }
+                        }
+                        if let reason = choice["finish_reason"] as? String, !reason.isEmpty { finished = true }
+                    }
+                }
+                guard finished else { throw HTTPClientError.statusCode(502, "连接中断，回答未完成，请重试") }
+                onUpdate(content)
+                completion(.success(content))
+            } catch { completion(.failure(error)) }
         }
     }
 

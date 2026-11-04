@@ -22,6 +22,7 @@ final class AvatarViewModel: ObservableObject {
     private let speechSynthesizer = AvatarSpeechSynthesizer()
     let digitalHuman = DuixDigitalHumanController.shared
     private var generation = 0
+    private var streamingTask: Task<Void, Never>?
     private let preferences = AppPreferences()
     private let freeConversationLimit = 3
     private let greetings = [
@@ -147,13 +148,21 @@ final class AvatarViewModel: ObservableObject {
         generation &+= 1
         let currentGeneration = generation
         let requestMessages = buildRequestMessages()
+        let streamingID = UUID().uuidString
 
-        gatewayClient.sendChat(messages: requestMessages) { [weak self] result in
+        gatewayClient.sendChat(messages: requestMessages, onUpdate: { [weak self] content in
+            DispatchQueue.main.async {
+                guard let self = self, currentGeneration == self.generation, !content.isEmpty else { return }
+                self.turns.removeAll { $0.id == streamingID }
+                self.turns.append(AvatarConversationTurn(id: streamingID, role: .assistant, content: content))
+            }
+        }, onStreamTask: { [weak self] task in self?.streamingTask = task }) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self, currentGeneration == self.generation else { return }
                 self.isThinking = false
                 switch result {
                 case .success(let reply):
+                    self.turns.removeAll { $0.id == streamingID }
                     let cleanReply = reply.trimmingCharacters(in: .whitespacesAndNewlines)
                     let content = cleanReply.isEmpty ? "我暂时没有拿到有效回答，请稍后再试。" : cleanReply
                     #if DEBUG
@@ -165,6 +174,7 @@ final class AvatarViewModel: ObservableObject {
                     self.persistConversation()
                     self.speak(self.speechText(for: content), turnID: assistantTurn.id, displayText: content)
                 case .failure(let error):
+                    self.persistConversation()
                     self.setError(self.friendlyErrorMessage(error))
                 }
             }
@@ -185,6 +195,8 @@ final class AvatarViewModel: ObservableObject {
     }
 
     func stopAll() {
+        streamingTask?.cancel()
+        streamingTask = nil
         generation &+= 1
         speechRecognizer.stop()
         stopSpeaking()

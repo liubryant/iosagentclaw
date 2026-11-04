@@ -19,6 +19,7 @@ final class ChatViewModel: ObservableObject {
     private var entryModesBySession: [String: ChatEntryMode] = [:]
     /// 每次发送自增；用于在生成期间切换/新建对话后作废“在途”的回复，避免落到别的对话里。
     private var sendGeneration = 0
+    private var streamingTask: Task<Void, Never>?
 
     init(
         gatewayClient: GatewayClient,
@@ -132,6 +133,9 @@ final class ChatViewModel: ObservableObject {
     /// 中断当前生成：作废在途回复并结束加载态。
     /// 用于生成期间切换/新建对话时，先停止当前生成再切走（与安卓 abortCurrent 一致）。
     func cancelGeneration() {
+        streamingTask?.cancel()
+        streamingTask = nil
+        saveHistory()
         guard isSending else { return }
         sendGeneration &+= 1
         isSending = false
@@ -232,6 +236,7 @@ final class ChatViewModel: ObservableObject {
         sendGeneration &+= 1
         let generation = sendGeneration
         let targetSessionID = selectedSessionID
+        let streamingID = UUID().uuidString
 
         let handleResult: (Result<String, Error>) -> Void = { [weak self] result in
             DispatchQueue.main.async {
@@ -244,6 +249,7 @@ final class ChatViewModel: ObservableObject {
                 }
                 switch result {
                 case .success(let reply):
+                    self.messagesBySession[targetSessionID]?.removeAll { $0.id == streamingID }
                     let fallbackTitle = self.sessions.first(where: { $0.id == targetSessionID })?.title ?? "document"
                     let saveResult = self.generatedDocumentStore.saveGeneratedDocuments(
                         from: reply,
@@ -257,6 +263,7 @@ final class ChatViewModel: ObservableObject {
                 case .failure(let error):
                     self.errorMessage = self.friendlyErrorMessage(error)
                 }
+                self.saveHistory()
                 self.isSending = false
             }
         }
@@ -297,7 +304,17 @@ final class ChatViewModel: ObservableObject {
             outboundMessage.content = outbound
             return outboundMessage
         }
-        gatewayClient.sendChat(messages: requestMessages, completion: handleResult)
+        gatewayClient.sendChat(messages: requestMessages, onUpdate: { [weak self] content in
+            DispatchQueue.main.async {
+                guard let self = self, generation == self.sendGeneration, !content.isEmpty else { return }
+                if let index = self.messagesBySession[targetSessionID]?.firstIndex(where: { $0.id == streamingID }) {
+                    self.messagesBySession[targetSessionID]?[index].content = content
+                    self.objectWillChange.send()
+                } else {
+                    self.append(ChatMessage(id: streamingID, role: .assistant, content: content), to: targetSessionID)
+                }
+            }
+        }, onStreamTask: { [weak self] task in self?.streamingTask = task }, completion: handleResult)
     }
 
     func agreeToAIDataSharingAndSend() {
@@ -506,6 +523,7 @@ final class ChatViewModel: ObservableObject {
     }
 
     func clearAllData() {
+        cancelGeneration()
         // 重置为初始状态
         let initialSession = LocalChatSession(title: "新对话")
         self.sessions = [initialSession]

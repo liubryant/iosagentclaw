@@ -57,6 +57,91 @@ private struct ShortcutWidgetView: View {
     }
 }
 
+/// GPT 快捷组件同款布局：顶部主入口，底部相机与语音两个独立入口。
+/// 保留 Muse AI 原有蓝色渐变，并继续通过既有 Deep Link 打开对应功能页。
+private struct AssistantShortcutWidgetView: View {
+    private let shortcutDiameter: CGFloat = 62
+    private let shortcutSpacing: CGFloat = 14
+    private let chatURL = URL(string: "agentclaw://quick/chat")!
+    private let imageURL = URL(string: "agentclaw://quick/image")!
+    private let avatarURL = URL(string: "agentclaw://quick/avatar")!
+
+    private let colors = [
+        Color(red: 0.10, green: 0.48, blue: 0.95),
+        Color(red: 0.18, green: 0.75, blue: 0.80)
+    ]
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Link(destination: chatURL) {
+                HStack(spacing: 10) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 21, weight: .regular))
+                        .frame(width: 27)
+
+                    Text("AI Agent")
+                        .font(.system(size: 17, weight: .medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .layoutPriority(1)
+
+                    Spacer(minLength: 0)
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 14)
+                .frame(width: controlsWidth)
+                .frame(height: 56)
+                .background(shortcutBackground)
+            }
+
+            HStack(spacing: shortcutSpacing) {
+                shortcutLink(symbol: "camera", label: "相机", destination: imageURL)
+                shortcutLink(symbol: "waveform", label: "语音", destination: avatarURL)
+            }
+            .frame(width: controlsWidth)
+        }
+        .padding(8)
+        .modifier(WidgetSystemMarginCompensation())
+        .modifier(WidgetGradientBackground(colors: colors))
+    }
+
+    private var shortcutBackground: some View {
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+            .fill(Color.white.opacity(0.18))
+    }
+
+    private var controlsWidth: CGFloat {
+        shortcutDiameter * 2 + shortcutSpacing
+    }
+
+    private func shortcutLink(symbol: String, label: String, destination: URL) -> some View {
+        Link(destination: destination) {
+            Image(systemName: symbol)
+                .font(.system(size: 25, weight: .regular))
+                .foregroundStyle(.white)
+                .frame(width: shortcutDiameter, height: shortcutDiameter)
+                .background(
+                    Circle()
+                        .fill(Color.white.opacity(0.18))
+                )
+                .accessibilityLabel(label)
+        }
+    }
+}
+
+private struct WidgetSystemMarginCompensation: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            // WidgetKit 已在外层自动预留约 16pt；抵消它，仅保留上面的 8pt 自定义间距。
+            content.padding(-16)
+        } else {
+            content
+        }
+    }
+}
+
 private struct WidgetGradientBackground: ViewModifier {
     let colors: [Color]
 
@@ -100,16 +185,10 @@ private struct AvatarShortcutWidget: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: ShortcutProvider()) { _ in
-            ShortcutWidgetView(
-                title: "AI 智能体",
-                subtitle: "随时开始面对面对话",
-                symbol: "person.crop.circle.badge.waveform",
-                colors: [Color(red: 0.10, green: 0.48, blue: 0.95), Color(red: 0.18, green: 0.75, blue: 0.80)],
-                url: URL(string: "agentclaw://quick/avatar")!
-            )
+            AssistantShortcutWidgetView()
         }
-        .configurationDisplayName("AI 智能体")
-        .description("快速打开 AgentClaw 数字人。")
+        .configurationDisplayName("Muse AI 快捷入口")
+        .description("快速打开对话、相机生图和语音智能体。")
         .supportedFamilies([.systemSmall])
     }
 }

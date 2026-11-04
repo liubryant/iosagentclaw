@@ -135,7 +135,7 @@ struct ShellView: View {
                         }
                 }
                 .modifier(AvatarTopImmersiveModifier(isEnabled: destination == .avatar))
-                .padding(.bottom, extendsBehindBottomTab ? 0 : 56)
+                .padding(.bottom, extendsBehindBottomTab ? 0 : (destination == .avatar ? 61 : 56))
                 .ignoresSafeArea(.container, edges: extendsBehindBottomTab ? .bottom : [])
 
                 bottomTabBar
