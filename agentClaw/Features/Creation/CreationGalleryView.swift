@@ -478,9 +478,14 @@ struct VideoGalleryCell: View {
                     .resizable()
                     .scaledToFill()
             }
-            Image(systemName: "play.circle.fill")
-                .font(.system(size: 36))
-                .foregroundColor(.white.opacity(thumbnail != nil ? 0.85 : 0.4))
+            Image(systemName: "play.fill")
+                .font(.system(size: 11.3, weight: .semibold))
+                .foregroundColor(.white)
+                .offset(x: 1)
+                .frame(width: 29.3, height: 29.3)
+                .background(.ultraThinMaterial, in: Circle())
+                .overlay(Circle().strokeBorder(Color.white.opacity(0.45), lineWidth: 0.8))
+                .shadow(color: .black.opacity(0.18), radius: 5, y: 2)
         }
         .aspectRatio(16.0 / 9.0, contentMode: .fit)
         .clipped()

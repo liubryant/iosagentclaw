@@ -492,14 +492,16 @@ struct ShellView: View {
             searchField
 
             Button(action: { requestNewSession() }) {
-                HStack {
+                HStack(spacing: 3) {
                     Image(systemName: "square.and.pencil")
                     Text("新对话")
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
                     Spacer()
                 }
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(AgentClawDesign.primaryText)
-                .padding(.horizontal, 14)
+                .padding(.horizontal, 5)
                 .frame(height: 38)
                 .background(Color.white.opacity(0.72))
                 .cornerRadius(8)
@@ -507,7 +509,7 @@ struct ShellView: View {
             .buttonStyle(PlainButtonStyle())
 
             ScrollView {
-                VStack(spacing: 6) {
+                VStack(spacing: 2) {
                     ForEach(filteredSessions) { session in
                         sessionRow(session)
                     }
@@ -536,21 +538,25 @@ struct ShellView: View {
 
                 // VIP card with golden gradient (matches Android bg_sidebar_vip_entry)
                 Button(action: { showVip = true }) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 3) {
                         Text("✦")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: 10, weight: .bold))
                             .foregroundColor(Color(hex: "#F5D69D"))
                         VStack(alignment: .leading, spacing: 3) {
                             Text("VIP 会员")
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.system(size: 11, weight: .bold))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                                 .foregroundColor(Color(hex: "#F5D69D"))
                             Text("解锁满血 AI")
-                                .font(.system(size: 12))
+                                .font(.system(size: 10, weight: .medium))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                                 .foregroundColor(Color(hex: "#C9AA79"))
                         }
                         Spacer()
                     }
-                    .padding(.horizontal, 12)
+                    .padding(.horizontal, 5)
                     .frame(height: 50)
                     .background(
                         LinearGradient(
@@ -563,32 +569,33 @@ struct ShellView: View {
                 .buttonStyle(PlainButtonStyle())
             }
         }
-        .padding(.leading, 12)
-        .padding(.trailing, 10)
+        .padding(.horizontal, 5)
         .padding(.vertical, 16)
         .background(AgentClawDesign.sidebarBackground)
     }
 
     private var searchField: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 3) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 13))
+                .font(.system(size: 10))
                 .foregroundColor(AgentClawDesign.secondaryText)
             ZStack(alignment: .leading) {
                 if sidebarQuery.isEmpty {
                     Text("搜索历史")
-                        .font(.system(size: 13))
+                        .font(.system(size: 11, weight: .semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
                         .foregroundColor(AgentClawDesign.secondaryText)
                         .allowsHitTesting(false)
                 }
                 TextField("", text: $sidebarQuery)
-                    .font(.system(size: 13))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundColor(AgentClawDesign.primaryText)
                     .accentColor(AgentClawDesign.accent)
                     .disableAutocorrection(true)
             }
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 5)
         .frame(height: 32)
         .background(Color.white.opacity(0.76))
         .cornerRadius(8)
@@ -604,21 +611,18 @@ struct ShellView: View {
 
     private func sessionRow(_ session: LocalChatSession) -> some View {
         let selected = session.id == chatViewModel.selectedSessionID
-        return HStack(spacing: 4) {
+        return HStack(spacing: 2) {
             Button(action: { requestSelectSession(session) }) {
-                HStack(spacing: 10) {
-                    Image(systemName: "message")
-                        .font(.system(size: 13))
-                        .foregroundColor(selected ? AgentClawDesign.accent : AgentClawDesign.secondaryText)
-
+                HStack(spacing: 2) {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(session.title)
-                            .font(.system(size: 13, weight: selected ? .semibold : .regular))
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(AgentClawDesign.primaryText)
                             .lineLimit(1)
-                            .minimumScaleFactor(0.82)
+                            .truncationMode(.tail)
                         Text(relativeDate(session.updatedAt))
-                            .font(.system(size: 12))
+                            .font(.system(size: 10, weight: .medium))
+                            .lineLimit(1)
                             .foregroundColor(AgentClawDesign.secondaryText)
                     }
 
@@ -634,14 +638,14 @@ struct ShellView: View {
                 activeShellAlert = .deleteSession(session)
             }) {
                 Image(systemName: "trash")
-                    .font(.system(size: 13))
+                    .font(.system(size: 10))
                     .foregroundColor(AgentClawDesign.secondaryText)
-                    .frame(width: 44, height: 38)
+                    .frame(width: 24, height: 38)
                 .contentShape(Rectangle())
             }
             .buttonStyle(PlainButtonStyle())
         }
-        .padding(.leading, 8)
+        .padding(.leading, 5)
         .padding(.trailing, 0)
         .frame(height: 38)
         .background(selected ? Color.white : Color.white.opacity(0.42))
@@ -656,32 +660,36 @@ struct ShellView: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            HStack(spacing: 10) {
+            HStack(spacing: 3) {
                 ZStack {
                     if isCustomIcon {
                         Image(icon)
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 18, height: 18)
+                            .frame(width: 12, height: 12)
                     } else {
                         Image(systemName: icon)
-                            .font(.system(size: 15, weight: .regular))
+                            .font(.system(size: 12, weight: .regular))
                             .foregroundColor(Color.black)
                     }
                 }
-                .frame(width: 20)
+                .frame(width: 12)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 11, weight: .semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                         .foregroundColor(AgentClawDesign.primaryText)
                     Text(subtitle)
-                        .font(.system(size: 12))
+                        .font(.system(size: 10, weight: .medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                         .foregroundColor(AgentClawDesign.secondaryText)
                 }
-                Spacer()
+                Spacer(minLength: 0)
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 5)
             .frame(height: 40)
             .background(Color.white.opacity(0.44))
             .cornerRadius(8)
@@ -690,7 +698,7 @@ struct ShellView: View {
     }
 
     private func sidebarWidth(for width: CGFloat) -> CGFloat {
-        width * 2 / 5.5
+        width * 0.25
     }
 
     private var maskedAccountPhone: String {

@@ -172,7 +172,7 @@ final class AvatarViewModel: ObservableObject {
                     let assistantTurn = AvatarConversationTurn(role: .assistant, content: content)
                     self.turns.append(assistantTurn)
                     self.persistConversation()
-                    self.speak(self.speechText(for: content), turnID: assistantTurn.id, displayText: content)
+                    self.speak(Self.speechText(for: content), turnID: assistantTurn.id, displayText: content)
                 case .failure(let error):
                     self.persistConversation()
                     self.setError(self.friendlyErrorMessage(error))
@@ -233,7 +233,7 @@ final class AvatarViewModel: ObservableObject {
         guard !isThinking, !isListening else { return }
         let content = turn.content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !content.isEmpty else { return }
-        speak(speechText(for: content), turnID: turn.id, displayText: turn.content)
+        speak(Self.speechText(for: content), turnID: turn.id, displayText: turn.content)
     }
 
     private func persistConversation() {
@@ -307,7 +307,7 @@ final class AvatarViewModel: ObservableObject {
         return match
     }
 
-    private func speechText(for content: String) -> String {
+    static func speechText(for content: String) -> String {
         var text = content
         text = text.replacingOccurrences(
             of: #"(?s)```.*?```"#,

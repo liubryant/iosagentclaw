@@ -15,6 +15,8 @@ struct ChatView: View {
     @State private var pickerAlert: PickerAlertMessage?
     @State private var copyMenuMessageID: String?
     @State private var copiedMessageID: String?
+    @State private var readingMessageID: String?
+    @State private var reader = AvatarSpeechSynthesizer()
     @State private var activeVideoPlayback: VideoPlaybackItem?
     @State private var videoSaveStatus = ""
     @State private var hotspots: [TodayHotspotItem] = []
@@ -94,6 +96,8 @@ struct ChatView: View {
                 )
             }
         }
+        .onDisappear { reader.stop(); readingMessageID = nil }
+        .onChange(of: viewModel.selectedSessionID) { _ in reader.stop(); readingMessageID = nil }
         .onAppear {
             loadHotspots()
         }
@@ -337,7 +341,8 @@ struct ChatView: View {
                             .padding(.top, 8)
                             .padding(.bottom, copyMenuMessageID == message.id || copiedMessageID == message.id ? 6 : 8)
 
-                        if copyMenuMessageID == message.id || copiedMessageID == message.id {
+                        if copyMenuMessageID == message.id || copiedMessageID == message.id || readingMessageID == message.id {
+                            HStack(spacing: 6) {
                             Button(action: {
                                 UIPasteboard.general.string = copyText
                                 withAnimation(.easeOut(duration: 0.12)) {
@@ -359,8 +364,7 @@ struct ChatView: View {
                                         .font(.system(size: 14, weight: .semibold))
                                 }
                                 .foregroundColor(message.role == .user ? AgentClawDesign.accent : Color(hex: "#2E3138"))
-                                .padding(.horizontal, 12)
-                                .frame(height: 34)
+                                .frame(width: 88, height: 34)
                                 .background(Color.white.opacity(message.role == .user ? 0.72 : 0.95))
                                 .cornerRadius(17)
                                 .overlay(
@@ -372,6 +376,36 @@ struct ChatView: View {
                             .padding(.horizontal, 8)
                             .padding(.bottom, 8)
                             .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                            if message.role == .assistant {
+                                Button {
+                                    reader.stop()
+                                    if readingMessageID == message.id {
+                                        readingMessageID = nil
+                                    } else {
+                                        readingMessageID = message.id
+                                        reader.speak(AvatarViewModel.speechText(for: copyText), onStart: {}, onFinish: {
+                                            DispatchQueue.main.async {
+                                                if readingMessageID == message.id { readingMessageID = nil }
+                                            }
+                                        })
+                                    }
+                                } label: {
+                                    Label(readingMessageID == message.id ? "停止" : "朗读", systemImage: readingMessageID == message.id ? "stop.fill" : "speaker.wave.2.fill")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(Color(hex: "#2E3138"))
+                                        .frame(width: 88, height: 34)
+                                        .background(Color.white.opacity(0.95))
+                                        .cornerRadius(17)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 17)
+                                                .stroke(Color.black.opacity(0.08), lineWidth: 1)
+                                        )
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .disabled(viewModel.isSending)
+                                .padding(.bottom, 8)
+                            }
+                            }
                         }
                     }
                     .background(message.role == .user ? Color(red: 0.88, green: 0.93, blue: 1.0) : AgentClawDesign.controlSurface)
@@ -1361,8 +1395,7 @@ private enum ChatMediaParser {
                 }.trimmingCharacters(in: .whitespaces)
             }
             .filter { line in
-                line.isEmpty == false &&
-                    line.hasPrefix("图片链接") == false &&
+                line.hasPrefix("图片链接") == false &&
                     line.hasPrefix("Image link") == false &&
                     line.hasPrefix("视频封面") == false &&
                     line.hasPrefix("Video cover") == false &&
@@ -1622,7 +1655,7 @@ private struct MarkdownMessageView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: 12) {
             ForEach(blocks) { block in
                 blockView(block)
             }
