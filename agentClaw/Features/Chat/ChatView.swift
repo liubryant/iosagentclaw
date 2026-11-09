@@ -19,6 +19,8 @@ struct ChatView: View {
     @State private var reader = AvatarSpeechSynthesizer()
     @State private var activeVideoPlayback: VideoPlaybackItem?
     @State private var videoSaveStatus = ""
+    @State private var savedVideoURLs: Set<URL> = []
+    @State private var savingVideoURLs: Set<URL> = []
     @State private var hotspots: [TodayHotspotItem] = []
     @State private var showUpgrade: VipUpgradeType?
     @State private var showVip = false
@@ -445,14 +447,46 @@ struct ChatView: View {
     }
 
     private func openGeneratedVideo(url: URL, coverURL: URL?) {
-        videoSaveStatus = "正在保存到文件管理…"
         activeVideoPlayback = VideoPlaybackItem(url: url, coverURL: coverURL)
+        if savedVideoURLs.contains(url) {
+            videoSaveStatus = "已保存到手机相册"
+            return
+        }
+        videoSaveStatus = "正在保存到手机相册…"
+        guard savingVideoURLs.insert(url).inserted else { return }
         viewModel.saveGeneratedVideo(from: url) { result in
+            DispatchQueue.main.async {
             switch result {
-            case .success:
-                videoSaveStatus = "已保存到文件管理"
+            case .success(let document):
+                let localURL = viewModel.generatedDocumentStore.fileURL(for: document)
+                PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
+                    guard status == .authorized || status == .limited else {
+                        DispatchQueue.main.async {
+                            savingVideoURLs.remove(url)
+                            if activeVideoPlayback?.url == url {
+                                videoSaveStatus = "已保存到文件管理；请在系统设置中允许添加到相册后重试"
+                            }
+                        }
+                        return
+                    }
+                    PHPhotoLibrary.shared().performChanges {
+                        PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: localURL)
+                    } completionHandler: { success, error in
+                        DispatchQueue.main.async {
+                            savingVideoURLs.remove(url)
+                            if success { savedVideoURLs.insert(url) }
+                            if activeVideoPlayback?.url == url {
+                                videoSaveStatus = success ? "已保存到手机相册" : "相册保存失败：\(error?.localizedDescription ?? "请稍后重试")"
+                            }
+                        }
+                    }
+                }
             case .failure(let error):
-                videoSaveStatus = "保存失败：\(error.localizedDescription)"
+                savingVideoURLs.remove(url)
+                if activeVideoPlayback?.url == url {
+                    videoSaveStatus = "保存失败：\(error.localizedDescription)"
+                }
+            }
             }
         }
     }
